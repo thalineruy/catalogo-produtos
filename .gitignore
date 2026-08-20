@@ -1,0 +1,13 @@
+# Dependências
+node_modules/
+
+# Variáveis de ambiente
+.env
+
+# Uploads
+uploads/
+
+# Arquivos de sistema operacional
+.DS_Store
+Thumbs.db
+desktop.ini
