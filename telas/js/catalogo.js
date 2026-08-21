@@ -23,8 +23,11 @@
   const botaoCancelarModal = document.getElementById('botao-cancelar-modal');
   const campoCategoriaModal = document.getElementById('produto-categoria');
 
+  const botaoExportarCsv = document.getElementById('botao-exportar-csv');
+
   let categorias = [];
   let elementoAbriuModal = null;
+  let produtosNaTela = [];
 
   const ICONE_IMAGEM =
     '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><rect x="3" y="4" width="18" height="16"/><circle cx="9" cy="10" r="1.5"/><path d="M4 17l5-5 4 4 3-3 4 4"/></svg>';
@@ -198,6 +201,7 @@
   }
 
   function renderizarProdutos(produtos) {
+    produtosNaTela = produtos;
     corpoTabela.innerHTML = '';
 
     if (produtos.length === 0) {
@@ -222,6 +226,64 @@
       exibirErro(`Não foi possível carregar os produtos: ${erro.message}`);
       renderizarProdutos([]);
     }
+  }
+
+  /* ---------- Exportar CSV ---------- */
+
+  // Separador ";" e BOM no início: é o que o Excel em português espera
+  // para abrir o arquivo já com as colunas separadas e os acentos certos.
+  function escaparCampoCsv(valor) {
+    const texto = valor === null || valor === undefined ? '' : String(valor);
+    return `"${texto.replace(/"/g, '""')}"`;
+  }
+
+  function montarCsv(produtos) {
+    const colunas = [
+      ['Nome', (p) => p.nome],
+      ['Código interno', (p) => p.codigo_interno],
+      ['Categoria', (p) => p.categoria_nome],
+      ['Descrição', (p) => p.descricao || ''],
+      ['Quantidade em estoque', (p) => p.quantidade],
+      ['Estoque mínimo', (p) => p.estoque_minimo],
+      ['Status', (p) => (p.status === 'ativo' ? 'Ativo' : 'Inativo')],
+      ['Tem imagem', (p) => (p.url_imagem ? 'Sim' : 'Não')],
+    ];
+
+    const linhas = [colunas.map(([titulo]) => escaparCampoCsv(titulo)).join(';')];
+    produtos.forEach((produto) => {
+      linhas.push(colunas.map(([, ler]) => escaparCampoCsv(ler(produto))).join(';'));
+    });
+
+    return `\uFEFF${linhas.join('\r\n')}\r\n`;
+  }
+
+  function nomeArquivoCsv() {
+    const agora = new Date();
+    const doisDigitos = (n) => String(n).padStart(2, '0');
+    return `catalogo-produtos-${agora.getFullYear()}-${doisDigitos(agora.getMonth() + 1)}-${doisDigitos(agora.getDate())}.csv`;
+  }
+
+  function exportarCsv() {
+    if (produtosNaTela.length === 0) {
+      exibirAviso('Não há produtos na lista para exportar. Ajuste os filtros e tente de novo.');
+      return;
+    }
+
+    const blob = new Blob([montarCsv(produtosNaTela)], { type: 'text/csv;charset=utf-8;' });
+    const endereco = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = endereco;
+    link.download = nomeArquivoCsv();
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(endereco);
+
+    exibirAviso(
+      produtosNaTela.length === 1
+        ? '1 produto exportado para CSV.'
+        : `${produtosNaTela.length} produtos exportados para CSV.`,
+    );
   }
 
   async function carregarCategorias() {
@@ -355,6 +417,7 @@
   botaoLimparFiltros.addEventListener('click', limparFiltros);
   botaoLimparFiltrosVazio.addEventListener('click', limparFiltros);
   botaoNovoProduto.addEventListener('click', () => abrirModalNovo());
+  botaoExportarCsv.addEventListener('click', exportarCsv);
 
   botaoFecharModal.addEventListener('click', fecharModal);
   botaoCancelarModal.addEventListener('click', fecharModal);

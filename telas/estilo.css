@@ -759,6 +759,10 @@ legend { padding: 0; font-size: 12px; color: var(--apagado); }
 #conteudo-administracao > * + * { margin-top: 16px; }
 .conteudo > .titulo-tela + * { margin-top: 0; }
 
+/* Resumo de resultados com os selos ao lado, como no mockup */
+.linha-resumo { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.linha-resumo .rotulo { margin: 0; }
+
 .painel-corpo form { display: flex; flex-direction: column; gap: 12px; }
 .painel-corpo fieldset + fieldset { margin-top: 8px; }
 legend { margin-bottom: 10px; }

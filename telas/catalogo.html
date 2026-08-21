@@ -45,6 +45,10 @@
             <p class="apagado">Controle de estoque — consulte, cadastre e mantenha os produtos da ótica.</p>
           </div>
           <div class="acoes">
+            <button type="button" id="botao-exportar-csv" class="botao botao-contorno">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+              Exportar CSV
+            </button>
             <button type="button" id="botao-novo-produto" class="botao botao-principal">Novo produto</button>
           </div>
         </div>
@@ -53,42 +57,42 @@
           <form id="form-filtros">
             <div class="filtros">
               <div class="campo busca">
-                <label for="campo-busca" class="apenas-leitor">Buscar por nome, código ou descrição</label>
-                <input type="search" id="campo-busca" name="busca" placeholder="Buscar por nome, código ou descrição" autocomplete="off">
+                <label for="campo-busca" class="apenas-leitor">Buscar produtos por nome, categoria, código interno ou descrição</label>
+                <input type="search" id="campo-busca" name="busca" placeholder="Buscar produtos por nome, categoria, código interno ou descrição" autocomplete="off">
               </div>
 
               <div class="campo">
                 <label for="filtro-categoria">Categoria</label>
                 <select id="filtro-categoria" name="categoria" class="selecao">
-                  <option value="">Todas</option>
+                  <option value="">Todas as categorias</option>
                 </select>
               </div>
 
               <div class="campo">
                 <label for="filtro-estoque">Estoque</label>
                 <select id="filtro-estoque" name="estoque" class="selecao">
-                  <option value="">Todos</option>
-                  <option value="baixo">Baixo</option>
+                  <option value="">Qualquer quantidade</option>
+                  <option value="baixo">Estoque baixo (no mínimo ou abaixo)</option>
                   <option value="zerado">Zerado</option>
-                  <option value="acima">Acima de 20</option>
+                  <option value="acima">Acima de 20 unidades</option>
                 </select>
               </div>
 
               <div class="campo">
                 <label for="filtro-status">Status</label>
                 <select id="filtro-status" name="status" class="selecao">
-                  <option value="">Todos</option>
-                  <option value="ativo">Ativo</option>
-                  <option value="inativo">Inativo</option>
+                  <option value="">Ativos e inativos</option>
+                  <option value="ativo">Somente ativos</option>
+                  <option value="inativo">Somente inativos</option>
                 </select>
               </div>
 
               <div class="campo">
                 <label for="filtro-imagem">Imagem</label>
                 <select id="filtro-imagem" name="imagem" class="selecao">
-                  <option value="">Todos</option>
-                  <option value="com">Com imagem</option>
-                  <option value="sem">Sem imagem</option>
+                  <option value="">Com e sem imagem</option>
+                  <option value="com">Somente com imagem</option>
+                  <option value="sem">Somente sem imagem</option>
                 </select>
               </div>
 
@@ -97,7 +101,11 @@
           </form>
         </section>
 
-        <p id="resumo-resultados" class="rotulo" aria-live="polite" role="status"></p>
+        <div class="linha-resumo">
+          <p id="resumo-resultados" class="rotulo" aria-live="polite" role="status"></p>
+          <span class="etiqueta" title="A busca ignora acentos e maiúsculas e combina vários termos ao mesmo tempo.">Busca inteligente</span>
+          <span class="etiqueta" title="A lista é atualizada assim que você digita ou muda um filtro, sem precisar recarregar a página.">Tempo real</span>
+        </div>
 
         <div id="mensagem-erro" class="erro-geral" role="alert" hidden></div>
 
