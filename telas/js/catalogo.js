@@ -29,6 +29,8 @@
   let elementoAbriuModal = null;
   let produtosNaTela = [];
 
+  const paginacao = criarPaginacao('paginacao-produtos', () => carregarProdutos());
+
   const ICONE_IMAGEM =
     '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><rect x="3" y="4" width="18" height="16"/><circle cx="9" cy="10" r="1.5"/><path d="M4 17l5-5 4 4 3-3 4 4"/></svg>';
   const ICONE_EDITAR =
@@ -200,7 +202,8 @@
     return tr;
   }
 
-  function renderizarProdutos(produtos) {
+  function renderizarProdutos(resposta) {
+    const produtos = resposta.itens;
     produtosNaTela = produtos;
     corpoTabela.innerHTML = '';
 
@@ -213,19 +216,29 @@
       produtos.forEach((produto) => corpoTabela.appendChild(criarLinhaProduto(produto)));
     }
 
+    // O total é o do filtro inteiro, não o da página que está na tela
     resumoResultados.textContent =
-      produtos.length === 1 ? '1 produto encontrado' : `${produtos.length} produtos encontrados`;
+      resposta.total === 1 ? '1 produto encontrado' : `${resposta.total} produtos encontrados`;
+
+    paginacao.desenhar(resposta);
   }
+
+  const VAZIO = { itens: [], total: 0, pagina: 1, porPagina: 25, totalPaginas: 1 };
 
   async function carregarProdutos() {
     try {
       limparErro();
-      const produtos = await listarProdutos(filtrosAtuais());
-      renderizarProdutos(produtos);
+      renderizarProdutos(await listarProdutos({ ...filtrosAtuais(), pagina: paginacao.pagina }));
     } catch (erro) {
       exibirErro(`Não foi possível carregar os produtos: ${erro.message}`);
-      renderizarProdutos([]);
+      renderizarProdutos(VAZIO);
     }
+  }
+
+  // Trocar filtro volta para a primeira página
+  function recarregarDoInicio() {
+    paginacao.reiniciar();
+    carregarProdutos();
   }
 
   /* ---------- Exportar CSV ---------- */
@@ -307,7 +320,7 @@
 
   function limparFiltros() {
     form.reset();
-    carregarProdutos();
+    recarregarDoInicio();
     campoBusca.focus();
   }
 
@@ -410,9 +423,9 @@
   }
 
   form.addEventListener('submit', (evento) => evento.preventDefault());
-  campoBusca.addEventListener('input', debounce(carregarProdutos, 300));
+  campoBusca.addEventListener('input', debounce(recarregarDoInicio, 300));
   [filtroCategoria, filtroEstoque, filtroStatus, filtroImagem].forEach((campo) => {
-    campo.addEventListener('change', carregarProdutos);
+    campo.addEventListener('change', recarregarDoInicio);
   });
   botaoLimparFiltros.addEventListener('click', limparFiltros);
   botaoLimparFiltrosVazio.addEventListener('click', limparFiltros);

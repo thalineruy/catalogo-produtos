@@ -303,10 +303,12 @@ function montarNotificacoes(produtos) {
 // avisos do sistema, que são de outra natureza (conta e infraestrutura).
 async function carregarAlertaEstoque() {
   const sino = document.getElementById('botao-sino');
-  if (!sino || typeof listarProdutos !== 'function' || !obterToken()) return;
+  if (!sino || typeof listarAlertasDeEstoque !== 'function' || !obterToken()) return;
 
   try {
-    montarNotificacoes(await listarProdutos());
+    // Rota própria, fora da paginação: o sino precisa de todos os produtos
+    // que pedem reposição, não só dos que caem na primeira página.
+    montarNotificacoes(await listarAlertasDeEstoque());
   } catch (erro) {
     // Sem estoque para mostrar, o sino simplesmente não aparece; a falha
     // de comunicação é anunciada pelos avisos do sistema.

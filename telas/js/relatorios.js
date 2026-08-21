@@ -105,18 +105,14 @@
   }
 
   async function carregarFiltros() {
-    const [categorias, saidas] = await Promise.all([listarCategorias(), listarSaidas()]);
+    // Os operadores vêm de uma rota própria: antes eram deduzidos da lista
+    // inteira de saídas, que agora chega paginada e não mostraria todos.
+    const [categorias, operadores] = await Promise.all([
+      listarCategorias(),
+      listarOperadoresDeSaida(),
+    ]);
     categoriasMapa = categorias;
-
-    const operadoresVistos = new Map();
-    saidas.forEach((saida) => {
-      if (!operadoresVistos.has(saida.usuario_id)) {
-        operadoresVistos.set(saida.usuario_id, saida.operador_nome);
-      }
-    });
-    usuariosMapa = [...operadoresVistos.entries()]
-      .map(([id, nome]) => ({ id, nome }))
-      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+    usuariosMapa = operadores;
 
     categorias.forEach((categoria) => {
       const opcao = document.createElement('option');

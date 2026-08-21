@@ -2,6 +2,8 @@
   const usuario = montarBarraNavegacao({ exigirLogin: true });
   if (!usuario) return;
 
+  const paginacao = criarPaginacao('paginacao-logs', () => carregarLogs());
+
   const form = document.getElementById('form-filtros-logs');
   const campoPeriodo = document.getElementById('logs-periodo');
   const campoInicio = document.getElementById('logs-inicio');
@@ -81,7 +83,8 @@
     return filtros;
   }
 
-  function renderizarLogs(logs) {
+  function renderizarLogs(resposta) {
+    const logs = resposta.itens;
     corpoLogs.innerHTML = '';
 
     if (logs.length === 0) {
@@ -114,18 +117,28 @@
       });
     }
 
-    resumo.textContent = logs.length === 1 ? '1 registro encontrado' : `${logs.length} registros encontrados`;
+    resumo.textContent =
+      resposta.total === 1 ? '1 registro encontrado' : `${resposta.total} registros encontrados`;
+
+    paginacao.desenhar(resposta);
   }
+
+  const VAZIO = { itens: [], total: 0, pagina: 1, porPagina: 25, totalPaginas: 1 };
 
   async function carregarLogs() {
     try {
       limparErro();
-      const logs = await listarLogs(filtrosAtuais());
-      renderizarLogs(logs);
+      renderizarLogs(await listarLogs({ ...filtrosAtuais(), pagina: paginacao.pagina }));
     } catch (erro) {
       exibirErro(`Não foi possível carregar os logs: ${erro.message}`);
-      renderizarLogs([]);
+      renderizarLogs(VAZIO);
     }
+  }
+
+  // Trocar filtro volta para a primeira página
+  function recarregarDoInicio() {
+    paginacao.reiniciar();
+    carregarLogs();
   }
 
   async function configurarFiltroOperador() {
@@ -162,20 +175,20 @@
     campoTipo.value = '';
     if (ehAdministrador) campoOperador.value = '';
     atualizarVisibilidadeDatas();
-    carregarLogs();
+    recarregarDoInicio();
   }
 
   form.addEventListener('submit', (evento) => evento.preventDefault());
   campoPeriodo.addEventListener('change', () => {
     atualizarVisibilidadeDatas();
     // No modo personalizado só busca quando as datas forem preenchidas
-    if (campoPeriodo.value !== 'personalizado') carregarLogs();
+    if (campoPeriodo.value !== 'personalizado') recarregarDoInicio();
   });
-  campoInicio.addEventListener('change', carregarLogs);
-  campoFim.addEventListener('change', carregarLogs);
-  campoTipo.addEventListener('change', carregarLogs);
+  campoInicio.addEventListener('change', recarregarDoInicio);
+  campoFim.addEventListener('change', recarregarDoInicio);
+  campoTipo.addEventListener('change', recarregarDoInicio);
   campoOperador.addEventListener('change', () => {
-    if (ehAdministrador) carregarLogs();
+    if (ehAdministrador) recarregarDoInicio();
   });
   botaoLimpar.addEventListener('click', limparFiltros);
 

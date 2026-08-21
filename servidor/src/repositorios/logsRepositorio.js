@@ -9,7 +9,16 @@ async function registrar({ usuarioId, tipo, detalhes }, executor = pool) {
   );
 }
 
-async function listar({ usuarioIdSolicitante, nivelSolicitante, operador, tipo, inicio, fim }) {
+async function listar({
+  usuarioIdSolicitante,
+  nivelSolicitante,
+  operador,
+  tipo,
+  inicio,
+  fim,
+  porPagina,
+  deslocamento,
+}) {
   const condicoes = [];
   const params = [];
 
@@ -39,12 +48,19 @@ async function listar({ usuarioIdSolicitante, nivelSolicitante, operador, tipo, 
 
   const where = condicoes.length ? `WHERE ${condicoes.join(' AND ')}` : '';
 
+  // COUNT(*) OVER() traz o total de registros do filtro junto das linhas
+  // da página, sem precisar de uma segunda consulta ao banco.
+  params.push(porPagina, deslocamento);
+  const limite = `LIMIT $${params.length - 1} OFFSET $${params.length}`;
+
   const { rows } = await pool.query(
-    `SELECT l.id, l.usuario_id, u.nome AS operador_nome, l.acao AS tipo, l.detalhes, l.criado_em
+    `SELECT l.id, l.usuario_id, u.nome AS operador_nome, l.acao AS tipo, l.detalhes, l.criado_em,
+            COUNT(*) OVER() AS total_geral
      FROM logs l
      LEFT JOIN usuarios u ON u.id = l.usuario_id
      ${where}
-     ORDER BY l.criado_em DESC`,
+     ORDER BY l.criado_em DESC
+     ${limite}`,
     params,
   );
   return rows;

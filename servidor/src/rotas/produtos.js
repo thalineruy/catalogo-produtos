@@ -3,16 +3,45 @@ const express = require('express');
 const repositorio = require('../repositorios/produtosRepositorio');
 const categoriasRepositorio = require('../repositorios/categoriasRepositorio');
 const logsRepositorio = require('../repositorios/logsRepositorio');
-const { aplicarFiltros } = require('../servicos/filtroProdutos');
 const { validarProduto } = require('../servicos/validacaoProdutos');
 const { autenticar } = require('../middleware/autenticacao');
+const { lerPaginacao, montarResposta } = require('../servicos/paginacao');
 
 const router = express.Router();
 
 router.get('/', async (req, res, next) => {
   try {
-    const produtos = await repositorio.listar();
-    res.json(aplicarFiltros(produtos, req.query));
+    const paginacao = lerPaginacao(req.query);
+
+    const linhas = await repositorio.listar({
+      busca: req.query.busca,
+      categoria: req.query.categoria,
+      estoque: req.query.estoque,
+      status: req.query.status,
+      imagem: req.query.imagem,
+      porPagina: paginacao.porPagina,
+      deslocamento: paginacao.deslocamento,
+    });
+
+    res.json(montarResposta(linhas, paginacao));
+  } catch (erro) {
+    next(erro);
+  }
+});
+
+// As duas rotas abaixo precisam vir antes de "/:id", senão os nomes seriam
+// lidos como se fossem o id de um produto.
+router.get('/para-selecao', autenticar, async (req, res, next) => {
+  try {
+    res.json(await repositorio.listarParaSelecao());
+  } catch (erro) {
+    next(erro);
+  }
+});
+
+router.get('/alertas-estoque', autenticar, async (req, res, next) => {
+  try {
+    res.json(await repositorio.listarAlertasDeEstoque());
   } catch (erro) {
     next(erro);
   }

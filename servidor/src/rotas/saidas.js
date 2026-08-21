@@ -4,6 +4,7 @@ const { autenticar } = require('../middleware/autenticacao');
 const saidasRepositorio = require('../repositorios/saidasRepositorio');
 const logsRepositorio = require('../repositorios/logsRepositorio');
 const { validarSaida } = require('../servicos/validacaoSaida');
+const { lerPaginacao, montarResposta } = require('../servicos/paginacao');
 
 const router = express.Router();
 
@@ -35,21 +36,36 @@ router.post('/', autenticar, async (req, res, next) => {
   }
 });
 
+// Precisa vir antes de "/" com filtros? Não — mas fica antes por clareza,
+// junto das demais leituras.
+router.get('/operadores', autenticar, async (req, res, next) => {
+  try {
+    res.json(await saidasRepositorio.listarOperadores());
+  } catch (erro) {
+    next(erro);
+  }
+});
+
 router.get('/', autenticar, async (req, res, next) => {
   try {
-    const saidas = await saidasRepositorio.listar({
+    const paginacao = lerPaginacao(req.query);
+
+    const linhas = await saidasRepositorio.listar({
       produtoId: req.query.produto,
       categoria: req.query.categoria,
       operador: req.query.operador,
       inicio: req.query.inicio,
       fim: req.query.fim,
+      busca: req.query.busca,
+      porPagina: paginacao.porPagina,
+      deslocamento: paginacao.deslocamento,
     });
 
     logsRepositorio
       .registrar({ usuarioId: req.usuario.id, tipo: 'Relatório', detalhes: 'Consultou o histórico de saídas' })
       .catch((erro) => console.error('falha ao registrar log de relatório', erro));
 
-    res.json(saidas);
+    res.json(montarResposta(linhas, paginacao));
   } catch (erro) {
     next(erro);
   }

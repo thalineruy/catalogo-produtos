@@ -7,8 +7,91 @@ const SELECT_BASE = `
   JOIN categorias c ON c.id = p.categoria_id
 `;
 
-async function listar() {
-  const { rows } = await pool.query(`${SELECT_BASE} ORDER BY p.nome`);
+// Filtra em SQL, e não na memória: antes o servidor trazia a tabela
+// inteira a cada consulta e descartava quase tudo em seguida.
+async function listar({ busca, categoria, estoque, status, imagem, porPagina, deslocamento } = {}) {
+  const condicoes = [];
+  const params = [];
+
+  // Cada palavra precisa aparecer em algum dos campos, ignorando acentos:
+  // "arma preta" encontra "Armação Acetato Preta".
+  const palavras = (busca || '').trim().split(/\s+/).filter(Boolean);
+  palavras.forEach((palavra) => {
+    params.push(`%${palavra}%`);
+    condicoes.push(
+      `unaccent(concat_ws(' ', p.nome, p.codigo_interno, c.nome, p.descricao, p.status))
+       ILIKE unaccent($${params.length})`,
+    );
+  });
+
+  if (categoria) {
+    params.push(categoria);
+    condicoes.push(`c.nome = $${params.length}`);
+  }
+  if (status) {
+    params.push(status);
+    condicoes.push(`p.status = $${params.length}`);
+  }
+
+  if (estoque === 'baixo') {
+    condicoes.push('p.quantidade > 0 AND p.quantidade <= p.estoque_minimo');
+  } else if (estoque === 'zerado') {
+    condicoes.push('p.quantidade = 0');
+  } else if (estoque === 'acima') {
+    condicoes.push('p.quantidade > 20');
+  }
+
+  if (imagem === 'com') {
+    condicoes.push("p.url_imagem IS NOT NULL AND btrim(p.url_imagem) <> ''");
+  } else if (imagem === 'sem') {
+    condicoes.push("(p.url_imagem IS NULL OR btrim(p.url_imagem) = '')");
+  }
+
+  const where = condicoes.length ? `WHERE ${condicoes.join(' AND ')}` : '';
+
+  let limite = '';
+  if (porPagina) {
+    params.push(porPagina, deslocamento);
+    limite = `LIMIT $${params.length - 1} OFFSET $${params.length}`;
+  }
+
+  const { rows } = await pool.query(
+    `SELECT p.id, p.nome, p.codigo_interno, p.categoria_id, c.nome AS categoria_nome,
+            p.descricao, p.quantidade, p.estoque_minimo, p.status, p.url_imagem, p.criado_em,
+            COUNT(*) OVER() AS total_geral
+     FROM produtos p
+     JOIN categorias c ON c.id = p.categoria_id
+     ${where}
+     ORDER BY p.nome
+     ${limite}`,
+    params,
+  );
+  return rows;
+}
+
+// Lista enxuta para o seletor de produtos da tela de saída. Fica fora da
+// paginação porque um <select> precisa de todas as opções; em troca traz
+// só as colunas que o seletor usa.
+async function listarParaSelecao() {
+  const { rows } = await pool.query(
+    `SELECT p.id, p.nome, p.codigo_interno, p.quantidade
+     FROM produtos p
+     WHERE p.status = 'ativo'
+     ORDER BY p.nome`,
+  );
+  return rows;
+}
+
+// Produtos que precisam de reposição, para o sino de avisos. Fica fora da
+// paginação de propósito: o sino precisa da conta certa, não de uma página.
+// O teto de 100 evita uma lista gigante se o estoque estiver todo furado.
+async function listarAlertasDeEstoque() {
+  const { rows } = await pool.query(
+    `${SELECT_BASE}
+     WHERE p.quantidade = 0 OR p.quantidade <= p.estoque_minimo
+     ORDER BY p.quantidade, p.nome
+     LIMIT 100`,
+  );
   return rows;
 }
 
@@ -74,4 +157,13 @@ async function excluir(id) {
   await pool.query('DELETE FROM produtos WHERE id = $1', [id]);
 }
 
-module.exports = { listar, buscarPorId, buscarPorCodigo, criar, atualizar, excluir };
+module.exports = {
+  listar,
+  listarParaSelecao,
+  listarAlertasDeEstoque,
+  buscarPorId,
+  buscarPorCodigo,
+  criar,
+  atualizar,
+  excluir,
+};

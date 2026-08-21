@@ -82,12 +82,30 @@ async function registrarSaida(dados) {
   return apiFetch('/saidas', { method: 'POST', body: JSON.stringify(dados) });
 }
 
+// As três listagens abaixo devolvem { itens, total, pagina, porPagina,
+// totalPaginas } — não um vetor solto, porque o servidor entrega uma
+// página de cada vez.
 async function listarSaidas(filtros = {}) {
   return apiFetch(`/saidas${construirQuery(filtros)}`);
 }
 
 async function listarLogs(filtros = {}) {
   return apiFetch(`/logs${construirQuery(filtros)}`);
+}
+
+// Listas completas, fora da paginação, para os casos em que uma página
+// não serve: o seletor de produtos, o sino de avisos e o filtro de
+// operadores dos relatórios.
+async function listarProdutosParaSelecao() {
+  return apiFetch('/produtos/para-selecao');
+}
+
+async function listarAlertasDeEstoque() {
+  return apiFetch('/produtos/alertas-estoque');
+}
+
+async function listarOperadoresDeSaida() {
+  return apiFetch('/saidas/operadores');
 }
 
 async function listarUsuarios() {

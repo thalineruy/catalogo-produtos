@@ -26,6 +26,16 @@
   const historicoVazio = document.getElementById('historico-vazio');
   const tabelaWrapperHistorico = document.querySelector('.rolagem-tabela');
 
+  const paginacao = criarPaginacao('paginacao-saidas', () => carregarHistorico());
+
+  function debounceHistorico(funcao, atraso) {
+    let temporizador;
+    return (...args) => {
+      clearTimeout(temporizador);
+      temporizador = setTimeout(() => funcao(...args), atraso);
+    };
+  }
+
   let produtos = [];
   let saidas = [];
 
@@ -115,27 +125,22 @@
     });
   }
 
-  function preencherSelectCategoriasHistorico() {
-    const categoriasUnicas = [...new Set(saidas.map((saida) => saida.categoria_nome))].sort();
+  // Vem da lista de categorias, e não das saídas da página: com a
+  // paginação, as saídas visíveis não representam todas as categorias.
+  async function preencherSelectCategoriasHistorico() {
+    const categorias = await listarCategorias();
     campoHistoricoCategoria.querySelectorAll('option:not(:first-child)').forEach((opcao) => opcao.remove());
-    categoriasUnicas.forEach((nome) => {
+    categorias.forEach((categoria) => {
       const opcao = document.createElement('option');
-      opcao.value = nome;
-      opcao.textContent = nome;
+      opcao.value = categoria.nome;
+      opcao.textContent = categoria.nome;
       campoHistoricoCategoria.appendChild(opcao);
     });
   }
 
-  function renderizarHistorico() {
-    const busca = campoHistoricoBusca.value.trim().toLowerCase();
-    const categoria = campoHistoricoCategoria.value;
-
-    const filtradas = saidas.filter((saida) => {
-      if (busca && !saida.produto_nome.toLowerCase().includes(busca)) return false;
-      if (categoria && saida.categoria_nome !== categoria) return false;
-      return true;
-    });
-
+  // O filtro agora acontece no servidor: aqui só desenhamos a página
+  function renderizarHistorico(resposta) {
+    const filtradas = resposta.itens;
     corpoHistorico.innerHTML = '';
 
     if (filtradas.length === 0) {
@@ -179,19 +184,37 @@
       });
     }
 
+    // O total é o do filtro inteiro, não o da página que está na tela
     resumoHistorico.textContent =
-      filtradas.length === 1 ? '1 saída encontrada' : `${filtradas.length} saídas encontradas`;
+      resposta.total === 1 ? '1 saída encontrada' : `${resposta.total} saídas encontradas`;
+
+    paginacao.desenhar(resposta);
   }
 
+  // O seletor precisa de todos os produtos ativos, não de uma página
   async function carregarProdutos() {
-    produtos = await listarProdutos();
+    produtos = await listarProdutosParaSelecao();
     preencherSelectProdutos();
   }
 
+  function filtrosHistorico() {
+    return {
+      busca: campoHistoricoBusca.value.trim(),
+      categoria: campoHistoricoCategoria.value,
+      pagina: paginacao.pagina,
+    };
+  }
+
   async function carregarHistorico() {
-    saidas = await listarSaidas();
-    preencherSelectCategoriasHistorico();
-    renderizarHistorico();
+    const resposta = await listarSaidas(filtrosHistorico());
+    saidas = resposta.itens;
+    renderizarHistorico(resposta);
+  }
+
+  // Trocar filtro volta para a primeira página
+  function recarregarHistoricoDoInicio() {
+    paginacao.reiniciar();
+    carregarHistorico();
   }
 
   function limparFormulario() {
@@ -208,8 +231,8 @@
 
   campoQuantidade.addEventListener('input', atualizarPreviaEstoque);
 
-  campoHistoricoBusca.addEventListener('input', renderizarHistorico);
-  campoHistoricoCategoria.addEventListener('change', renderizarHistorico);
+  campoHistoricoBusca.addEventListener('input', debounceHistorico(recarregarHistoricoDoInicio, 300));
+  campoHistoricoCategoria.addEventListener('change', recarregarHistoricoDoInicio);
 
   botaoLimpar.addEventListener('click', limparFormulario);
 
@@ -276,6 +299,7 @@
   (async function iniciar() {
     try {
       await carregarProdutos();
+      await preencherSelectCategoriasHistorico();
       await carregarHistorico();
     } catch (erro) {
       erroGeral.textContent = `Não foi possível carregar os dados: ${erro.message}`;

@@ -69,10 +69,16 @@ async function registrarSaida({ produtoId, quantidade, motivo, observacao, usuar
   }
 }
 
-async function listar({ produtoId, categoria, operador, inicio, fim }) {
+async function listar({ produtoId, categoria, operador, inicio, fim, busca, porPagina, deslocamento }) {
   const condicoes = [];
   const params = [];
 
+  // Busca pelo nome do produto, ignorando acentos e maiúsculas, para o
+  // histórico poder ser filtrado sem trazer tudo para a memória.
+  if (busca && busca.trim()) {
+    params.push(`%${busca.trim()}%`);
+    condicoes.push(`unaccent(p.nome) ILIKE unaccent($${params.length})`);
+  }
   if (produtoId) {
     params.push(produtoId);
     condicoes.push(`s.produto_id = $${params.length}`);
@@ -96,18 +102,40 @@ async function listar({ produtoId, categoria, operador, inicio, fim }) {
 
   const where = condicoes.length ? `WHERE ${condicoes.join(' AND ')}` : '';
 
+  // Sem paginação (relatórios) a consulta devolve tudo; com ela, só a página
+  let limite = '';
+  if (porPagina) {
+    params.push(porPagina, deslocamento);
+    limite = `LIMIT $${params.length - 1} OFFSET $${params.length}`;
+  }
+
   const { rows } = await pool.query(
     `SELECT s.id, s.produto_id, p.nome AS produto_nome, c.nome AS categoria_nome,
-            s.usuario_id, u.nome AS operador_nome, s.quantidade, s.motivo, s.observacao, s.data_saida
+            s.usuario_id, u.nome AS operador_nome, s.quantidade, s.motivo, s.observacao, s.data_saida,
+            COUNT(*) OVER() AS total_geral
      FROM saidas s
      JOIN produtos p ON p.id = s.produto_id
      JOIN categorias c ON c.id = p.categoria_id
      JOIN usuarios u ON u.id = s.usuario_id
      ${where}
-     ORDER BY s.data_saida DESC`,
+     ORDER BY s.data_saida DESC
+     ${limite}`,
     params,
   );
   return rows;
 }
 
-module.exports = { registrarSaida, listar };
+// Operadores que já registraram alguma saída, para o filtro dos relatórios.
+// Vem daqui, e não da lista de usuários, porque aquela rota é só para
+// administrador e o filtro precisa funcionar para o operador também.
+async function listarOperadores() {
+  const { rows } = await pool.query(
+    `SELECT DISTINCT u.id, u.nome
+     FROM saidas s
+     JOIN usuarios u ON u.id = s.usuario_id
+     ORDER BY u.nome`,
+  );
+  return rows;
+}
+
+module.exports = { registrarSaida, listar, listarOperadores };
