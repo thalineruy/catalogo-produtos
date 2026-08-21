@@ -43,6 +43,14 @@ async function criarCategoria(nome) {
   return apiFetch('/categorias', { method: 'POST', body: JSON.stringify({ nome }) });
 }
 
+async function atualizarCategoria(id, nome) {
+  return apiFetch(`/categorias/${id}`, { method: 'PUT', body: JSON.stringify({ nome }) });
+}
+
+async function excluirCategoria(id) {
+  return apiFetch(`/categorias/${id}`, { method: 'DELETE' });
+}
+
 async function listarProdutos(filtros = {}) {
   return apiFetch(`/produtos${construirQuery(filtros)}`);
 }
@@ -81,4 +89,44 @@ async function gerarRelatorioSaidas(filtros = {}) {
 
 async function buscarEmpresa() {
   return apiFetch('/empresa');
+}
+
+async function atualizarEmpresa(dados) {
+  return apiFetch('/empresa', { method: 'PUT', body: JSON.stringify(dados) });
+}
+
+async function enviarLogotipoEmpresa(arquivo) {
+  const dadosFormulario = new FormData();
+  dadosFormulario.append('logotipo', arquivo);
+
+  const token = obterToken();
+  const resposta = await fetch(`${API_URL}/empresa/logotipo`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: dadosFormulario,
+  });
+
+  const dados = await resposta.json().catch(() => null);
+
+  if (!resposta.ok) {
+    throw new Error((dados && dados.erro) || `Erro na requisição: ${resposta.status}`);
+  }
+
+  return dados;
+}
+
+async function criarUsuario(dados) {
+  return apiFetch('/usuarios', { method: 'POST', body: JSON.stringify(dados) });
+}
+
+async function alterarNivelUsuario(id, nivel) {
+  return apiFetch(`/usuarios/${id}/nivel`, { method: 'PUT', body: JSON.stringify({ nivel }) });
+}
+
+async function resetarSenhaUsuario(id) {
+  return apiFetch(`/usuarios/${id}/reset-senha`, { method: 'POST' });
+}
+
+async function buscarEstatisticas() {
+  return apiFetch('/estatisticas');
 }

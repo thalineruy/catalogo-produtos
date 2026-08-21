@@ -3,6 +3,7 @@ const express = require('express');
 const repositorio = require('../repositorios/categoriasRepositorio');
 const logsRepositorio = require('../repositorios/logsRepositorio');
 const { autenticar } = require('../middleware/autenticacao');
+const { exigirAdministrador } = require('../middleware/autorizacao');
 
 const router = express.Router();
 
@@ -14,7 +15,7 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-router.post('/', autenticar, async (req, res, next) => {
+router.post('/', autenticar, exigirAdministrador, async (req, res, next) => {
   try {
     const nome = (req.body.nome || '').trim();
     if (!nome) return res.status(400).json({ erro: 'nome é obrigatório' });
@@ -34,7 +35,7 @@ router.post('/', autenticar, async (req, res, next) => {
   }
 });
 
-router.put('/:id', autenticar, async (req, res, next) => {
+router.put('/:id', autenticar, exigirAdministrador, async (req, res, next) => {
   try {
     const atual = await repositorio.buscarPorId(req.params.id);
     if (!atual) return res.status(404).json({ erro: 'categoria não encontrada' });
@@ -61,7 +62,7 @@ router.put('/:id', autenticar, async (req, res, next) => {
   }
 });
 
-router.delete('/:id', autenticar, async (req, res, next) => {
+router.delete('/:id', autenticar, exigirAdministrador, async (req, res, next) => {
   try {
     const atual = await repositorio.buscarPorId(req.params.id);
     if (!atual) return res.status(404).json({ erro: 'categoria não encontrada' });

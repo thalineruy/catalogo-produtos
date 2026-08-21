@@ -105,9 +105,18 @@
   }
 
   async function carregarFiltros() {
-    const [categorias, usuarios] = await Promise.all([listarCategorias(), listarUsuarios()]);
+    const [categorias, saidas] = await Promise.all([listarCategorias(), listarSaidas()]);
     categoriasMapa = categorias;
-    usuariosMapa = usuarios;
+
+    const operadoresVistos = new Map();
+    saidas.forEach((saida) => {
+      if (!operadoresVistos.has(saida.usuario_id)) {
+        operadoresVistos.set(saida.usuario_id, saida.operador_nome);
+      }
+    });
+    usuariosMapa = [...operadoresVistos.entries()]
+      .map(([id, nome]) => ({ id, nome }))
+      .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
 
     categorias.forEach((categoria) => {
       const opcao = document.createElement('option');
@@ -116,7 +125,7 @@
       campoCategoria.appendChild(opcao);
     });
 
-    usuarios.forEach((operador) => {
+    usuariosMapa.forEach((operador) => {
       const opcao = document.createElement('option');
       opcao.value = operador.id;
       opcao.textContent = operador.nome;

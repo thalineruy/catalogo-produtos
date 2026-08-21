@@ -8,6 +8,7 @@ const logsRepositorio = require('../src/repositorios/logsRepositorio');
 const { gerarToken } = require('./ajudantes/token');
 
 const tokenOperador = `Bearer ${gerarToken({ id: 9, nivel: 'operador' })}`;
+const tokenAdministrador = `Bearer ${gerarToken({ id: 1, nivel: 'administrador' })}`;
 
 describe('DELETE /categorias/:id', () => {
   beforeEach(() => {
@@ -22,7 +23,7 @@ describe('DELETE /categorias/:id', () => {
     categoriasRepositorio.buscarPorId.mockResolvedValue({ id: 1, nome: 'Armações' });
     categoriasRepositorio.contarProdutosVinculados.mockResolvedValue(3);
 
-    const resposta = await request(app).delete('/categorias/1').set('Authorization', tokenOperador);
+    const resposta = await request(app).delete('/categorias/1').set('Authorization', tokenAdministrador);
 
     expect(resposta.status).toBe(409);
     expect(resposta.body).toEqual({ erro: expect.any(String) });
@@ -34,7 +35,7 @@ describe('DELETE /categorias/:id', () => {
     categoriasRepositorio.contarProdutosVinculados.mockResolvedValue(0);
     categoriasRepositorio.excluir.mockResolvedValue();
 
-    const resposta = await request(app).delete('/categorias/2').set('Authorization', tokenOperador);
+    const resposta = await request(app).delete('/categorias/2').set('Authorization', tokenAdministrador);
 
     expect(resposta.status).toBe(204);
     expect(categoriasRepositorio.excluir).toHaveBeenCalledWith('2');
@@ -45,5 +46,25 @@ describe('DELETE /categorias/:id', () => {
 
     expect(resposta.status).toBe(401);
     expect(categoriasRepositorio.excluir).not.toHaveBeenCalled();
+  });
+
+  it('responde 403 quando o token é de operador', async () => {
+    const resposta = await request(app).delete('/categorias/2').set('Authorization', tokenOperador);
+
+    expect(resposta.status).toBe(403);
+    expect(categoriasRepositorio.excluir).not.toHaveBeenCalled();
+  });
+});
+
+describe('POST /categorias', () => {
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('responde 403 quando o token é de operador', async () => {
+    const resposta = await request(app).post('/categorias').set('Authorization', tokenOperador).send({ nome: 'Nova' });
+
+    expect(resposta.status).toBe(403);
+    expect(categoriasRepositorio.criar).not.toHaveBeenCalled();
   });
 });

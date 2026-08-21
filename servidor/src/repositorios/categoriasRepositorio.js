@@ -1,7 +1,13 @@
 const { pool } = require('../db');
 
 async function listar() {
-  const { rows } = await pool.query('SELECT id, nome FROM categorias ORDER BY nome');
+  const { rows } = await pool.query(
+    `SELECT c.id, c.nome, COUNT(p.id)::int AS total_produtos
+     FROM categorias c
+     LEFT JOIN produtos p ON p.categoria_id = c.id
+     GROUP BY c.id, c.nome
+     ORDER BY c.nome`,
+  );
   return rows;
 }
 

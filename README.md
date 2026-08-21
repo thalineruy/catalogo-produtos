@@ -37,6 +37,16 @@ Execute os scripts na pasta `banco/`, em ordem, no SQL Editor do Supabase:
 3. `03-saidas-observacao.sql` — adiciona o campo de observação às saídas.
 4. `04-empresa.sql` — cria a tabela com os dados da empresa usados no cabeçalho dos relatórios.
 
+## Upload do logotipo (Supabase Storage)
+
+O upload de logotipo (`POST /empresa/logotipo`) grava o arquivo direto no bucket
+`logotipos` do Supabase Storage — nunca em disco no servidor. Para funcionar, é
+preciso, uma vez só:
+1. Criar o bucket `logotipos` (público) no painel do Supabase, em Storage.
+2. Preencher `SUPABASE_KEY` em `servidor/.env` com a chave `service_role` do
+   projeto (Project Settings → API). Sem essa chave, todas as outras
+   funcionalidades funcionam normalmente — só o upload de logotipo falha.
+
 ## Login para testes locais
 
 Os usuários de exemplo em `02-dados-exemplo.sql` usam a senha `senha123`

@@ -11,6 +11,7 @@ const authRotas = require('./rotas/auth');
 const usuariosRotas = require('./rotas/usuarios');
 const relatoriosRotas = require('./rotas/relatorios');
 const empresaRotas = require('./rotas/empresa');
+const estatisticasRotas = require('./rotas/estatisticas');
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use('/login', authRotas);
 app.use('/usuarios', usuariosRotas);
 app.use('/relatorios', relatoriosRotas);
 app.use('/empresa', empresaRotas);
+app.use('/estatisticas', estatisticasRotas);
 
 app.use((req, res) => {
   res.status(404).json({ erro: 'rota não encontrada' });
