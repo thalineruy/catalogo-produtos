@@ -4,18 +4,166 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Catálogo de Produtos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/estilo.css">
 </head>
 <body>
-  <header>
-    <h1>Catálogo de Produtos — Controle de Estoque</h1>
+  <a class="pular-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
+
+  <header class="cabecalho">
+    <h1>Catálogo de Produtos</h1>
+    <p class="cabecalho-subtitulo">Controle de estoque — consulte, cadastre e mantenha os produtos da ótica.</p>
   </header>
 
-  <main>
-    <p>Sistema em desenvolvimento.</p>
+  <main id="conteudo-principal" class="conteudo">
+    <section class="painel-filtros" aria-label="Busca e filtros">
+      <form id="form-filtros">
+        <div class="campo campo-busca">
+          <label for="campo-busca">Buscar por nome, código ou descrição</label>
+          <input type="search" id="campo-busca" name="busca" placeholder="Ex.: Varilux Confort Max" autocomplete="off">
+        </div>
+
+        <div class="grade-filtros">
+          <div class="campo">
+            <label for="filtro-categoria">Categoria</label>
+            <select id="filtro-categoria" name="categoria">
+              <option value="">Todas</option>
+            </select>
+          </div>
+
+          <div class="campo">
+            <label for="filtro-estoque">Estoque</label>
+            <select id="filtro-estoque" name="estoque">
+              <option value="">Todos</option>
+              <option value="baixo">Baixo</option>
+              <option value="zerado">Zerado</option>
+              <option value="acima">Acima de 20</option>
+            </select>
+          </div>
+
+          <div class="campo">
+            <label for="filtro-status">Status</label>
+            <select id="filtro-status" name="status">
+              <option value="">Todos</option>
+              <option value="ativo">Ativo</option>
+              <option value="inativo">Inativo</option>
+            </select>
+          </div>
+
+          <div class="campo">
+            <label for="filtro-imagem">Imagem</label>
+            <select id="filtro-imagem" name="imagem">
+              <option value="">Todos</option>
+              <option value="com">Com imagem</option>
+              <option value="sem">Sem imagem</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="acoes-filtros">
+          <button type="button" id="botao-limpar-filtros" class="botao botao-secundario">Limpar filtros</button>
+          <button type="button" id="botao-novo-produto" class="botao botao-primario">Novo produto</button>
+        </div>
+      </form>
+    </section>
+
+    <p id="resumo-resultados" class="resumo-resultados" aria-live="polite" role="status"></p>
+
+    <div id="mensagem-erro" class="mensagem-erro" role="alert" hidden></div>
+
+    <div class="tabela-wrapper">
+      <table class="tabela-produtos">
+        <caption class="visualmente-oculto">Lista de produtos do estoque, com imagem, nome, categoria, quantidade em estoque, estoque mínimo, status e ações</caption>
+        <thead>
+          <tr>
+            <th scope="col" class="col-imagem">Imagem</th>
+            <th scope="col" class="col-produto">Produto</th>
+            <th scope="col" class="col-categoria">Categoria</th>
+            <th scope="col" class="col-estoque">Estoque</th>
+            <th scope="col" class="col-minimo">Estoque mínimo</th>
+            <th scope="col" class="col-status">Status</th>
+            <th scope="col" class="col-acoes">Ações</th>
+          </tr>
+        </thead>
+        <tbody id="corpo-tabela-produtos"></tbody>
+      </table>
+    </div>
+
+    <div id="estado-vazio" class="estado-vazio" hidden>
+      <p>Nenhum produto encontrado com os filtros aplicados.</p>
+      <button type="button" id="botao-limpar-filtros-vazio" class="botao botao-secundario">Limpar filtros</button>
+    </div>
   </main>
+
+  <dialog id="modal-produto" class="modal" aria-labelledby="modal-produto-titulo">
+    <form id="form-produto" method="dialog" novalidate>
+      <div class="modal-cabecalho">
+        <h2 id="modal-produto-titulo">Novo produto</h2>
+        <button type="button" id="botao-fechar-modal" class="botao-icone" aria-label="Fechar formulário">✕</button>
+      </div>
+
+      <input type="hidden" id="produto-id" name="id">
+
+      <div class="campo">
+        <label for="produto-nome">Nome *</label>
+        <input type="text" id="produto-nome" name="nome" required>
+      </div>
+
+      <div class="campo">
+        <label for="produto-codigo">Código interno *</label>
+        <input type="text" id="produto-codigo" name="codigo_interno" required>
+      </div>
+
+      <div class="campo">
+        <label for="produto-categoria">Categoria *</label>
+        <select id="produto-categoria" name="categoria_id" required>
+          <option value="">Selecione</option>
+        </select>
+      </div>
+
+      <div class="campo">
+        <label for="produto-descricao">Descrição</label>
+        <textarea id="produto-descricao" name="descricao" rows="3"></textarea>
+      </div>
+
+      <div class="grade-filtros">
+        <div class="campo">
+          <label for="produto-quantidade">Quantidade em estoque</label>
+          <input type="number" id="produto-quantidade" name="quantidade" min="0" step="1" value="0">
+        </div>
+
+        <div class="campo">
+          <label for="produto-estoque-minimo">Estoque mínimo</label>
+          <input type="number" id="produto-estoque-minimo" name="estoque_minimo" min="0" step="1" value="0">
+        </div>
+
+        <div class="campo">
+          <label for="produto-status">Status</label>
+          <select id="produto-status" name="status">
+            <option value="ativo">Ativo</option>
+            <option value="inativo">Inativo</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="campo">
+        <label for="produto-imagem">URL da imagem</label>
+        <input type="url" id="produto-imagem" name="url_imagem" placeholder="https://...">
+      </div>
+
+      <p id="modal-erro" class="mensagem-erro" role="alert" hidden></p>
+
+      <div class="modal-rodape">
+        <button type="button" id="botao-cancelar-modal" class="botao botao-secundario">Cancelar</button>
+        <button type="submit" class="botao botao-primario">Salvar</button>
+      </div>
+    </form>
+  </dialog>
 
   <script src="config.js"></script>
   <script src="js/api.js"></script>
+  <script src="js/catalogo.js"></script>
 </body>
 </html>

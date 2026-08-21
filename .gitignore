@@ -158,3 +158,6 @@ vite.config.ts.timestamp-*
 
 # Dados sensíveis locais (credenciais, senhas)
 dados/
+
+# Configuração local de preview/dev server
+.claude/
