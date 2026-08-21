@@ -26,6 +26,13 @@
   let categorias = [];
   let elementoAbriuModal = null;
 
+  const ICONE_IMAGEM =
+    '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><rect x="3" y="4" width="18" height="16"/><circle cx="9" cy="10" r="1.5"/><path d="M4 17l5-5 4 4 3-3 4 4"/></svg>';
+  const ICONE_EDITAR =
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.121 2.121 0 0 0-3-3L5 17v3z"/><path d="M14 6l4 4"/></svg>';
+  const ICONE_EXCLUIR =
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
+
   function debounce(funcao, atraso) {
     let temporizador;
     return (...args) => {
@@ -87,7 +94,7 @@
     const span = document.createElement('span');
     span.className = 'miniatura-vazia';
     span.setAttribute('aria-hidden', 'true');
-    span.textContent = '🖼';
+    span.innerHTML = ICONE_IMAGEM;
     return span;
   }
 
@@ -150,14 +157,14 @@
     botaoEditar.type = 'button';
     botaoEditar.className = 'botao-icone';
     botaoEditar.setAttribute('aria-label', `Editar ${produto.nome}`);
-    botaoEditar.textContent = '✎';
+    botaoEditar.innerHTML = ICONE_EDITAR;
     botaoEditar.addEventListener('click', (evento) => abrirModalEdicao(produto, evento.currentTarget));
 
     const botaoExcluir = document.createElement('button');
     botaoExcluir.type = 'button';
     botaoExcluir.className = 'botao-icone botao-icone-perigo';
     botaoExcluir.setAttribute('aria-label', `Excluir ${produto.nome}`);
-    botaoExcluir.textContent = '🗑';
+    botaoExcluir.innerHTML = ICONE_EXCLUIR;
     botaoExcluir.addEventListener('click', () => confirmarExclusao(produto));
 
     container.appendChild(botaoEditar);

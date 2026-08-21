@@ -2,6 +2,13 @@
   const usuarioLogado = montarBarraNavegacao({ exigirLogin: true });
   if (!usuarioLogado) return;
 
+  const ICONE_EDITAR =
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.121 2.121 0 0 0-3-3L5 17v3z"/><path d="M14 6l4 4"/></svg>';
+  const ICONE_EXCLUIR =
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
+  const ICONE_CADEADO =
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><rect x="5" y="11" width="14" height="9"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+
   const areaRestrita = document.getElementById('area-restrita');
   const conteudoAdmin = document.getElementById('conteudo-administracao');
 
@@ -238,7 +245,7 @@
       botaoEditar.type = 'button';
       botaoEditar.className = 'botao-icone';
       botaoEditar.setAttribute('aria-label', `Editar categoria ${categoria.nome}`);
-      botaoEditar.textContent = '✎';
+      botaoEditar.innerHTML = ICONE_EDITAR;
       botaoEditar.addEventListener('click', () => {
         categoriaEmEdicaoId = categoria.id;
         renderizarCategorias(ultimasCategorias);
@@ -249,7 +256,7 @@
       botaoExcluir.type = 'button';
       botaoExcluir.className = 'botao-icone botao-icone-perigo';
       botaoExcluir.setAttribute('aria-label', `Excluir categoria ${categoria.nome}`);
-      botaoExcluir.textContent = '🗑';
+      botaoExcluir.innerHTML = ICONE_EXCLUIR;
       botaoExcluir.addEventListener('click', async () => {
         const confirmou = window.confirm(`Excluir a categoria "${categoria.nome}"?`);
         if (!confirmou) return;
@@ -333,7 +340,7 @@
     const botaoNivel = document.createElement('button');
     botaoNivel.type = 'button';
     botaoNivel.className = 'botao botao-contorno';
-    botaoNivel.textContent = `🔒 Tornar ${usuario.nivel === 'administrador' ? 'Operador' : 'Administrador'}`;
+    botaoNivel.innerHTML = `${ICONE_CADEADO} Tornar ${usuario.nivel === 'administrador' ? 'Operador' : 'Administrador'}`;
     botaoNivel.setAttribute(
       'aria-label',
       `Alterar nível de ${usuario.nome} para ${usuario.nivel === 'administrador' ? 'Operador' : 'Administrador'}`,
@@ -360,7 +367,7 @@
     const botaoReset = document.createElement('button');
     botaoReset.type = 'button';
     botaoReset.className = 'botao botao-contorno';
-    botaoReset.textContent = '🔒 Resetar senha';
+    botaoReset.innerHTML = `${ICONE_CADEADO} Resetar senha`;
     botaoReset.setAttribute('aria-label', `Gerar senha temporária para ${usuario.nome}`);
     botaoReset.addEventListener('click', async () => {
       const confirmou = window.confirm(`Gerar uma senha temporária para ${usuario.nome}?`);
