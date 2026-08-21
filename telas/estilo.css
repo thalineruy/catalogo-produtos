@@ -998,3 +998,53 @@ legend { margin-bottom: 10px; }
   text-transform: uppercase;
 }
 .tag-empresa-tick { width: 16px; height: 2px; background: var(--destaque); flex-shrink: 0; }
+
+/* ---------- 17. Ajuste fino ao mockup ----------
+   As seções acima normalizaram alguns tamanhos; o mockup aprovado usa
+   valores mais compactos e diferentes por contexto (tela de entrada x
+   telas internas). Como a referência combinada é o mockup, as regras
+   abaixo reproduzem as medidas dele. Nada foi apagado acima — isto só
+   entra por cima. */
+
+/* Coluna do menu: 210px, como no mockup */
+@media (min-width: 901px) {
+  .aplicacao { grid-template-columns: 210px minmax(0, 1fr); }
+}
+
+.menu a { min-height: auto; padding: 9px 14px; font-size: 13.5px; font-weight: 600; }
+
+.painel-cabeca { padding: 11px 14px; }
+.painel-corpo { padding: 14px; }
+
+/* Campos das telas internas */
+.conteudo .entrada,
+.conteudo .selecao,
+.modal .entrada,
+.modal .selecao { min-height: 32px; padding: 5px 9px; font-size: 12.5px; }
+
+.conteudo .area,
+.modal .area { padding: 5px 9px; font-size: 12.5px; }
+
+.conteudo .busca { min-height: 32px; }
+.conteudo .busca input { font-size: 12.5px; }
+
+/* Campos da tela de entrada, que no mockup são um pouco maiores */
+.entrada-forma .entrada,
+.entrada-forma .selecao { min-height: 36px; padding: 7px 10px; font-size: 13.5px; }
+
+.botao { min-height: auto; padding: 9px 15px; font-size: 13.5px; }
+
+/* O botão principal da tela de entrada é mais alto no mockup */
+.entrada-forma .botao-principal { padding: 12px 14px; font-size: 14px; }
+
+.tabela td { padding: 9px 12px 11px; }
+
+.campo > label,
+.rotulo-campo { font-size: 12px; }
+
+/* Em telas sensíveis ao toque, os alvos voltam aos 44px que a folha
+   define como mínimo — abaixo disso fica difícil acertar com o dedo. */
+@media (pointer: coarse) {
+  .botao,
+  .menu a { min-height: var(--alvo); }
+}

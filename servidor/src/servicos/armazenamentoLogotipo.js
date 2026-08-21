@@ -1,5 +1,8 @@
+const { lerDimensao } = require('./dimensaoImagem');
+
 const BUCKET = 'logotipos';
 const TAMANHO_MAXIMO_BYTES = 2 * 1024 * 1024;
+const LADO_MINIMO = 240;
 
 const TIPOS_ACEITOS = {
   'image/png': 'png',
@@ -17,6 +20,13 @@ function validarArquivoLogotipo(arquivo) {
   if (arquivo.size > TAMANHO_MAXIMO_BYTES) {
     return 'arquivo maior que 2 MB';
   }
+
+  // SVG é vetorial e escala sem perder qualidade, então não tem lado mínimo
+  const dimensao = lerDimensao(arquivo);
+  if (dimensao && (dimensao.largura < LADO_MINIMO || dimensao.altura < LADO_MINIMO)) {
+    return `imagem muito pequena (${dimensao.largura}×${dimensao.altura}): o mínimo é ${LADO_MINIMO}×${LADO_MINIMO}`;
+  }
+
   return null;
 }
 
@@ -44,4 +54,11 @@ async function enviarLogotipo(arquivo) {
   return `${process.env.SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${nomeArquivo}`;
 }
 
-module.exports = { validarArquivoLogotipo, enviarLogotipo, TIPOS_ACEITOS, TAMANHO_MAXIMO_BYTES, BUCKET };
+module.exports = {
+  validarArquivoLogotipo,
+  enviarLogotipo,
+  TIPOS_ACEITOS,
+  TAMANHO_MAXIMO_BYTES,
+  LADO_MINIMO,
+  BUCKET,
+};

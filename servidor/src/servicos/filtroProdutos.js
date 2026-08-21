@@ -13,7 +13,7 @@ function correspondeBusca(produto, termo) {
   if (palavras.length === 0) return true;
 
   const alvo = normalizar(
-    [produto.nome, produto.codigo_interno, produto.categoria_nome, produto.descricao]
+    [produto.nome, produto.codigo_interno, produto.categoria_nome, produto.descricao, produto.status]
       .filter(Boolean)
       .join(' '),
   );
