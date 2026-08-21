@@ -24,7 +24,7 @@ function encerrarSessao() {
 function exigirSessao() {
   const usuario = obterUsuario();
   if (!obterToken() || !usuario) {
-    window.location.href = 'login.html';
+    window.location.href = 'index.html';
     return null;
   }
   return usuario;
@@ -110,7 +110,7 @@ function montarBarraNavegacao({ exigirLogin = false } = {}) {
   const usuario = obterUsuario();
 
   if (exigirLogin && (!obterToken() || !usuario)) {
-    window.location.href = 'login.html';
+    window.location.href = 'index.html';
     return null;
   }
 
@@ -135,7 +135,7 @@ function montarBarraNavegacao({ exigirLogin = false } = {}) {
       botaoSair.hidden = false;
       botaoSair.addEventListener('click', () => {
         encerrarSessao();
-        window.location.href = 'login.html';
+        window.location.href = 'index.html';
       });
     }
     if (linkEntrar) linkEntrar.hidden = true;

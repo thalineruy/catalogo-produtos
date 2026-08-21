@@ -3,7 +3,7 @@
   const campoErro = document.getElementById('login-erro');
 
   if (obterToken()) {
-    window.location.href = 'index.html';
+    window.location.href = 'catalogo.html';
     return;
   }
 
@@ -17,7 +17,7 @@
     try {
       const resultado = await login(email, senha);
       salvarSessao(resultado.token, resultado.usuario);
-      window.location.href = 'index.html';
+      window.location.href = 'catalogo.html';
     } catch (erro) {
       campoErro.textContent = erro.message;
       campoErro.hidden = false;

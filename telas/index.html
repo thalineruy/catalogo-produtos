@@ -3,210 +3,46 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Catálogo de Produtos</title>
+  <title>Entrar — Catálogo de Produtos</title>
   <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="estilo.css">
 </head>
 <body>
-  <a class="pular-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
-
-  <div class="aplicacao">
-    <div class="lateral">
-      <div class="marca">
-        <img id="logo-barra-superior" src="logo-padrao.svg" alt="Logotipo padrão do sistema">
-        <strong>Catálogo de Produtos</strong>
+  <div class="entrada-sistema">
+    <div class="entrada-arte">
+      <div>
+        <p class="rotulo-destaque">Catálogo de Produtos</p>
+        <h1>Controle de estoque para a sua ótica</h1>
+        <p>Cadastre produtos, registre saídas e acompanhe tudo em um só lugar.</p>
       </div>
-      <nav class="menu" aria-label="Navegação principal">
-        <a href="index.html" aria-current="page">Catálogo</a>
-        <a href="saida.html">Saída de produtos</a>
-        <a href="logs.html">Logs</a>
-        <a href="relatorios.html">Relatórios</a>
-        <a href="administracao.html" id="link-administracao" hidden>Administração</a>
-      </nav>
+      <p class="apagado">Projeto Integrador II</p>
     </div>
 
-    <div class="area-principal">
-      <div class="topo">
-        <div class="topo-acoes">
-          <a href="login.html" id="link-entrar" class="botao botao-texto" hidden>Entrar</a>
-          <div class="usuario" id="usuario-logado" hidden>
-            <span class="inicial" id="usuario-inicial" aria-hidden="true"></span>
-            <span id="usuario-nome"></span>
-            <span class="nivel" id="usuario-nivel"></span>
-          </div>
-          <button type="button" id="botao-sair" class="botao botao-contorno" hidden>Sair</button>
-        </div>
-      </div>
+    <div class="entrada-forma">
+      <h2>Entrar</h2>
+      <p class="apagado">Use o e-mail e a senha cadastrados no sistema.</p>
 
-      <main id="conteudo-principal" class="conteudo">
-        <div class="titulo-tela">
-          <div>
-            <h1>Catálogo de Produtos</h1>
-            <p class="apagado">Controle de estoque — consulte, cadastre e mantenha os produtos da ótica.</p>
-          </div>
-          <div class="acoes">
-            <button type="button" id="botao-novo-produto" class="botao botao-principal">Novo produto</button>
-          </div>
-        </div>
-
-        <section class="painel" aria-label="Busca e filtros">
-          <form id="form-filtros">
-            <div class="filtros">
-              <div class="campo busca">
-                <label for="campo-busca" class="apenas-leitor">Buscar por nome, código ou descrição</label>
-                <input type="search" id="campo-busca" name="busca" placeholder="Buscar por nome, código ou descrição" autocomplete="off">
-              </div>
-
-              <div class="campo">
-                <label for="filtro-categoria">Categoria</label>
-                <select id="filtro-categoria" name="categoria" class="selecao">
-                  <option value="">Todas</option>
-                </select>
-              </div>
-
-              <div class="campo">
-                <label for="filtro-estoque">Estoque</label>
-                <select id="filtro-estoque" name="estoque" class="selecao">
-                  <option value="">Todos</option>
-                  <option value="baixo">Baixo</option>
-                  <option value="zerado">Zerado</option>
-                  <option value="acima">Acima de 20</option>
-                </select>
-              </div>
-
-              <div class="campo">
-                <label for="filtro-status">Status</label>
-                <select id="filtro-status" name="status" class="selecao">
-                  <option value="">Todos</option>
-                  <option value="ativo">Ativo</option>
-                  <option value="inativo">Inativo</option>
-                </select>
-              </div>
-
-              <div class="campo">
-                <label for="filtro-imagem">Imagem</label>
-                <select id="filtro-imagem" name="imagem" class="selecao">
-                  <option value="">Todos</option>
-                  <option value="com">Com imagem</option>
-                  <option value="sem">Sem imagem</option>
-                </select>
-              </div>
-
-              <button type="button" id="botao-limpar-filtros" class="botao botao-contorno">Limpar filtros</button>
-            </div>
-          </form>
-        </section>
-
-        <p id="resumo-resultados" class="rotulo" aria-live="polite" role="status"></p>
-
-        <div id="mensagem-erro" class="erro-geral" role="alert" hidden></div>
-
-        <div class="painel">
-          <div class="rolagem-tabela">
-            <table class="tabela">
-              <caption class="apenas-leitor">Lista de produtos do estoque, com imagem, nome, categoria, quantidade em estoque, estoque mínimo, status e ações</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Imagem</th>
-                  <th scope="col">Produto</th>
-                  <th scope="col" class="oculta-estreito">Categoria</th>
-                  <th scope="col">Estoque</th>
-                  <th scope="col" class="oculta-estreito">Estoque mínimo</th>
-                  <th scope="col" class="oculta-estreito">Status</th>
-                  <th scope="col">Ações</th>
-                </tr>
-              </thead>
-              <tbody id="corpo-tabela-produtos"></tbody>
-            </table>
-          </div>
-
-          <div id="estado-vazio" class="vazio" hidden>
-            <h3>Nenhum produto encontrado</h3>
-            <p>Nenhum produto corresponde aos filtros aplicados.</p>
-            <button type="button" id="botao-limpar-filtros-vazio" class="botao botao-contorno">Limpar filtros</button>
-          </div>
-        </div>
-      </main>
-    </div>
-  </div>
-
-  <div class="fundo-modal" id="fundo-modal-produto" hidden>
-    <form id="form-produto" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-produto-titulo" novalidate>
-      <div class="modal-cabeca">
-        <h2 id="modal-produto-titulo">Novo produto</h2>
-        <button type="button" id="botao-fechar-modal" class="botao-icone" aria-label="Fechar formulário">✕</button>
-      </div>
-
-      <div class="modal-corpo">
-        <input type="hidden" id="produto-id" name="id">
-
-        <div class="campo largura-total">
-          <label for="produto-nome">Nome *</label>
-          <input type="text" id="produto-nome" name="nome" class="entrada" required>
+      <form id="form-login" novalidate>
+        <div class="campo">
+          <label for="login-email">E-mail</label>
+          <input type="email" id="login-email" name="email" class="entrada" autocomplete="username" required>
         </div>
 
         <div class="campo">
-          <label for="produto-codigo">Código interno *</label>
-          <input type="text" id="produto-codigo" name="codigo_interno" class="entrada" required>
+          <label for="login-senha">Senha</label>
+          <input type="password" id="login-senha" name="senha" class="entrada" autocomplete="current-password" required>
         </div>
 
-        <div class="campo">
-          <label for="produto-categoria">Categoria *</label>
-          <select id="produto-categoria" name="categoria_id" class="selecao" required>
-            <option value="">Selecione</option>
-          </select>
-        </div>
+        <p id="login-erro" class="erro-geral" role="alert" hidden></p>
 
-        <div class="campo largura-total">
-          <label for="produto-descricao">Descrição</label>
-          <textarea id="produto-descricao" name="descricao" class="area" rows="3"></textarea>
-        </div>
-
-        <div class="campo">
-          <label for="produto-quantidade">Quantidade em estoque</label>
-          <input type="number" id="produto-quantidade" name="quantidade" class="entrada" min="0" step="1" value="0">
-        </div>
-
-        <div class="campo">
-          <label for="produto-estoque-minimo">Estoque mínimo</label>
-          <input type="number" id="produto-estoque-minimo" name="estoque_minimo" class="entrada" min="0" step="1" value="0">
-        </div>
-
-        <div class="campo">
-          <label for="produto-status">Status</label>
-          <select id="produto-status" name="status" class="selecao">
-            <option value="ativo">Ativo</option>
-            <option value="inativo">Inativo</option>
-          </select>
-        </div>
-
-        <div class="campo largura-total">
-          <label for="produto-imagem">URL da imagem</label>
-          <input type="url" id="produto-imagem" name="url_imagem" class="entrada" placeholder="https://...">
-        </div>
-
-        <p id="modal-erro" class="erro-geral largura-total" role="alert" hidden></p>
-      </div>
-
-      <div class="modal-pe">
-        <button type="button" id="botao-cancelar-modal" class="botao botao-contorno">Cancelar</button>
-        <button type="submit" class="botao botao-principal">Salvar</button>
-      </div>
-    </form>
-  </div>
-
-  <div class="aviso" id="toast-aviso" role="status" aria-live="polite" hidden></div>
-
-  <div class="barra-cookies" id="barra-cookies" hidden>
-    <div>
-      <p>Usamos cookies apenas para manter sua sessão neste sistema. Nenhum dado é compartilhado com terceiros.</p>
-      <button type="button" id="botao-aceitar-cookies" class="botao botao-principal">Entendi</button>
+        <button type="submit" class="botao botao-principal">Entrar</button>
+      </form>
     </div>
   </div>
 
   <script src="config.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/api.js"></script>
-  <script src="js/catalogo.js"></script>
+  <script src="js/login.js"></script>
 </body>
 </html>
