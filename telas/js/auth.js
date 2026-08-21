@@ -153,7 +153,6 @@ async function carregarLogoBarraSuperior() {
   const imagem = document.getElementById('logo-barra-superior');
   const sigla = document.getElementById('marca-sigla');
   const nome = document.getElementById('marca-nome');
-  const atalho = document.getElementById('marca-atalho');
   if (!imagem && !sigla) return;
 
   function mostrarSigla(empresa) {
@@ -180,9 +179,6 @@ async function carregarLogoBarraSuperior() {
     } else {
       mostrarSigla(empresa);
     }
-
-    const usuario = obterUsuario();
-    if (atalho) atalho.hidden = !usuario || usuario.nivel !== 'administrador';
   } catch (erro) {
     mostrarSigla(null);
   }

@@ -1080,18 +1080,6 @@ legend { margin-bottom: 10px; }
   font-weight: 800;
 }
 .marca-nome { font-size: 13px; font-weight: 800; line-height: 1.2; }
-.marca-atalho {
-  padding: 0;
-  border: 0;
-  background: none;
-  font: inherit;
-  font-size: 10px;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-  color: var(--destaque);
-  cursor: pointer;
-}
-.marca-atalho:hover { opacity: .7; }
 
 /* Itens do menu com ícone e realce de seção atual */
 .menu { flex: 1; overflow-y: auto; }
