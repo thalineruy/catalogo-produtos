@@ -1048,3 +1048,105 @@ legend { margin-bottom: 10px; }
   .botao,
   .menu a { min-height: var(--alvo); }
 }
+
+/* ---------- 18. Estrutura do mockup: menu lateral e topo ----------
+   O mockup tem um menu lateral com marca da empresa, ícones, rodapé de
+   alertas, e um topo com sobretítulo e nome da tela. Estas regras
+   reproduzem essa estrutura. */
+
+/* No mockup a janela não rola: o menu fica parado e só o conteúdo desce */
+.aplicacao { height: 100vh; overflow: hidden; }
+.area-principal { display: flex; flex-direction: column; overflow: hidden; }
+.conteudo { overflow: auto; flex: 1; padding: clamp(12px, 1.4vw, 18px); }
+.lateral { display: flex; flex-direction: column; overflow: hidden; }
+
+/* Marca: quadrado com a sigla + nome da empresa + atalho */
+.marca { align-items: center; gap: 12px; }
+.marca-sigla {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  background: var(--destaque);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+}
+.marca-nome { font-size: 13px; font-weight: 800; line-height: 1.2; }
+.marca-atalho {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--destaque);
+  cursor: pointer;
+}
+.marca-atalho:hover { opacity: .7; }
+
+/* Itens do menu com ícone e realce de seção atual */
+.menu { flex: 1; overflow-y: auto; }
+.menu a { gap: 10px; }
+.menu a svg { flex-shrink: 0; }
+.menu a[aria-current="page"] { background: var(--destaque-claro); }
+.menu .cadeado-menu { margin-left: auto; opacity: .6; flex-shrink: 0; }
+
+/* Rodapé do menu: alertas de estoque e sair */
+.lateral-rodape {
+  margin-top: auto;
+  border-top: 2px solid var(--divisor);
+  padding: 14px 16px;
+  flex-shrink: 0;
+}
+.lateral-rodape .rotulo { margin-bottom: 8px; }
+.alerta-estoque { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; }
+.alerta-estoque svg { flex-shrink: 0; margin-top: 2px; color: var(--destaque); }
+.botao-sair-conta {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 12px;
+  color: var(--apagado);
+  cursor: pointer;
+}
+.botao-sair-conta:hover { color: var(--destaque); }
+
+/* Topo: sobretítulo + nome da tela à esquerda, usuário à direita */
+.topo { padding: 12px clamp(14px, 2vw, 24px); flex-shrink: 0; }
+.topo-titulo { line-height: 1.25; }
+.topo-titulo .rotulo { display: block; }
+.topo-nome-tela { font-size: 15px; font-weight: 800; }
+.topo-acoes { margin-left: auto; }
+
+.usuario .identificacao { line-height: 1.25; }
+.usuario .identificacao #usuario-nome { display: block; font-size: 13px; font-weight: 800; }
+.usuario .nivel { display: block; }
+
+/* Telas estreitas: o menu vira uma tira horizontal só com os ícones */
+@media (max-width: 900px) {
+  .aplicacao { height: auto; overflow: visible; }
+  .area-principal { overflow: visible; }
+  .conteudo { overflow: visible; }
+  .lateral { flex-direction: row; align-items: center; gap: 8px; overflow-x: auto; }
+  .marca { border-bottom: 0; flex: none; padding: 10px 14px; }
+  .menu { flex-direction: row; padding: 0; gap: 0; flex: 1; min-width: 0; }
+  .menu a { flex: none; white-space: nowrap; padding: 12px; }
+  .menu a span { display: none; }
+  .menu a svg { width: 19px; height: 19px; }
+  .lateral-rodape { display: none; }
+}
+
+/* Havendo largura, o rótulo volta ao lado do ícone */
+@media (min-width: 640px) and (max-width: 900px) {
+  .menu a span { display: inline; }
+  .menu a { padding: 12px 14px; }
+}

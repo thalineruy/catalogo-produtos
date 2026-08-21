@@ -13,28 +13,48 @@
   <div class="aplicacao">
     <div class="lateral">
       <div class="marca">
-        <img id="logo-barra-superior" src="logo-padrao.svg" alt="Logotipo padrão do sistema">
-        <strong>Catálogo de Produtos</strong>
+        <span class="marca-sigla" id="marca-sigla" aria-hidden="true"></span>
+        <img id="logo-barra-superior" src="logo-padrao.svg" alt="Logotipo padrão do sistema" hidden>
+        <div>
+          <div class="marca-nome" id="marca-nome">Catálogo de Produtos</div>
+          <a class="marca-atalho" id="marca-atalho" href="administracao.html" hidden>Trocar logotipo</a>
+        </div>
       </div>
       <nav class="menu" aria-label="Navegação principal">
-        <a href="catalogo.html">Catálogo</a>
-        <a href="saida.html" aria-current="page">Saída de produtos</a>
-        <a href="logs.html">Logs</a>
-        <a href="relatorios.html">Relatórios</a>
-        <a href="administracao.html" id="link-administracao" hidden>Administração</a>
+        <a href="catalogo.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5Z"/><path d="m3 8 9 5 9-5"/><path d="M12 13v10"/></svg><span>Produtos</span></a>
+        <a href="saida.html" aria-current="page"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 21H5V3h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg><span>Saída Manual</span></a>
+        <a href="relatorios.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 3H6v18h12V7Z"/><path d="M14 3v4h4"/><path d="M9 13h6"/><path d="M9 17h6"/></svg><span>Relatórios</span></a>
+        <a href="logs.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 8v4l3 2"/></svg><span>Logs</span></a>
+        <a href="administracao.html" id="link-administracao"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/><circle cx="9" cy="7" r="2" fill="var(--bg)"/><circle cx="15" cy="12" r="2" fill="var(--bg)"/><circle cx="9" cy="17" r="2" fill="var(--bg)"/></svg><span>Administração</span><svg class="cadeado-menu" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></a>
       </nav>
+      <div class="lateral-rodape">
+        <p class="rotulo">Alertas de estoque</p>
+        <p class="alerta-estoque">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m12 3 9 16H3Z"/><path d="M12 9v5"/><path d="M12 17h.01"/></svg>
+          <span id="alerta-estoque-texto">Carregando alertas...</span>
+        </p>
+        <button type="button" id="botao-sair" class="botao-sair-conta" hidden>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 21H5V3h10"/><path d="m19 17-5-5 5-5"/><path d="M14 12h7"/></svg>
+          <span>Sair da conta</span>
+        </button>
+      </div>
     </div>
 
     <div class="area-principal">
       <div class="topo">
+        <div class="topo-titulo">
+          <span class="rotulo">Estoque empresarial</span>
+          <span class="topo-nome-tela">Saída de Produtos</span>
+        </div>
         <div class="topo-acoes">
           <a href="index.html" id="link-entrar" class="botao botao-texto" hidden>Entrar</a>
           <div class="usuario" id="usuario-logado" hidden>
             <span class="inicial" id="usuario-inicial" aria-hidden="true"></span>
-            <span id="usuario-nome"></span>
-            <span class="nivel" id="usuario-nivel"></span>
+            <div class="identificacao">
+              <span id="usuario-nome"></span>
+              <span class="nivel" id="usuario-nivel"></span>
+            </div>
           </div>
-          <button type="button" id="botao-sair" class="botao botao-contorno" hidden>Sair</button>
         </div>
       </div>
 

@@ -92,22 +92,77 @@ function aplicarLogotipo(imagem, empresa) {
   imagem.hidden = false;
 }
 
-// GET /empresa é pública, então isto funciona mesmo sem login (ex.: tela
-// de entrada, catálogo em modo anônimo) — não há dado sensível aqui.
+// Iniciais para o quadrado da marca, quando a empresa não cadastrou sigla
+function siglaDaEmpresa(empresa) {
+  if (empresa && empresa.sigla) return empresa.sigla.toUpperCase();
+  if (!empresa || !empresa.nome) return 'OV';
+  return empresa.nome
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((parte) => parte.charAt(0).toUpperCase())
+    .join('');
+}
+
+// Marca no alto do menu lateral: quadrado com a sigla quando não há
+// imagem enviada, ou o logotipo da empresa quando há. GET /empresa é
+// pública, então isto funciona mesmo antes do login.
 async function carregarLogoBarraSuperior() {
-  const elemento = document.getElementById('logo-barra-superior');
-  if (!elemento) return;
+  const imagem = document.getElementById('logo-barra-superior');
+  const sigla = document.getElementById('marca-sigla');
+  const nome = document.getElementById('marca-nome');
+  const atalho = document.getElementById('marca-atalho');
+  if (!imagem && !sigla) return;
+
+  function mostrarSigla(empresa) {
+    if (imagem) imagem.hidden = true;
+    if (sigla) {
+      sigla.textContent = siglaDaEmpresa(empresa);
+      sigla.hidden = false;
+    }
+  }
 
   if (typeof buscarEmpresa !== 'function') {
-    aplicarLogotipo(elemento, null);
+    mostrarSigla(null);
     return;
   }
 
   try {
     const empresa = await buscarEmpresa();
-    aplicarLogotipo(elemento, empresa);
+
+    if (nome && empresa && empresa.nome) nome.textContent = empresa.nome;
+
+    if (empresa && empresa.url_logotipo) {
+      if (sigla) sigla.hidden = true;
+      aplicarLogotipo(imagem, empresa);
+    } else {
+      mostrarSigla(empresa);
+    }
+
+    const usuario = obterUsuario();
+    if (atalho) atalho.hidden = !usuario || usuario.nivel !== 'administrador';
   } catch (erro) {
-    aplicarLogotipo(elemento, null);
+    mostrarSigla(null);
+  }
+}
+
+// Rodapé do menu: quantos produtos estão abaixo do mínimo cadastrado e
+// quantos zeraram. Silencioso em caso de falha — é informação auxiliar.
+async function carregarAlertaEstoque() {
+  const alvo = document.getElementById('alerta-estoque-texto');
+  if (!alvo || typeof listarProdutos !== 'function' || !obterToken()) return;
+
+  try {
+    const produtos = await listarProdutos();
+    const baixos = produtos.filter((p) => p.quantidade > 0 && p.quantidade <= p.estoque_minimo).length;
+    const zerados = produtos.filter((p) => p.quantidade === 0).length;
+
+    alvo.textContent =
+      baixos === 0 && zerados === 0
+        ? 'Nenhum produto abaixo do mínimo. Estoque em dia.'
+        : `${baixos} item(ns) abaixo do mínimo e ${zerados} zerado(s). Reposição sugerida.`;
+  } catch (erro) {
+    alvo.textContent = 'Não foi possível carregar os alertas de estoque.';
   }
 }
 
@@ -383,6 +438,7 @@ function montarBarraNavegacao({ exigirLogin = false } = {}) {
   }
 
   carregarLogoBarraSuperior();
+  carregarAlertaEstoque();
   iniciarBarraCookies();
 
   const elementoUsuario = document.getElementById('usuario-logado');
@@ -392,13 +448,26 @@ function montarBarraNavegacao({ exigirLogin = false } = {}) {
   const botaoSair = document.getElementById('botao-sair');
   const linkEntrar = document.getElementById('link-entrar');
   const linkAdministracao = document.getElementById('link-administracao');
+  const cadeadoAdministracao = linkAdministracao
+    ? linkAdministracao.querySelector('.cadeado-menu')
+    : null;
+
+  // Iniciais do nome, até duas, como no mockup
+  function iniciaisDe(nome) {
+    return nome
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((parte) => parte.charAt(0).toUpperCase())
+      .join('');
+  }
 
   if (usuario) {
-    const nivelTexto = usuario.nivel === 'administrador' ? 'Administrador' : 'Operador';
+    const ehAdministrador = usuario.nivel === 'administrador';
     if (elementoUsuario) elementoUsuario.hidden = false;
-    if (elementoInicial) elementoInicial.textContent = usuario.nome.trim().charAt(0).toUpperCase();
+    if (elementoInicial) elementoInicial.textContent = iniciaisDe(usuario.nome);
     if (elementoNome) elementoNome.textContent = usuario.nome;
-    if (elementoNivel) elementoNivel.textContent = nivelTexto;
+    if (elementoNivel) elementoNivel.textContent = ehAdministrador ? 'Administrador' : 'Operador';
     if (botaoSair) {
       botaoSair.hidden = false;
       botaoSair.addEventListener('click', () => {
@@ -407,7 +476,11 @@ function montarBarraNavegacao({ exigirLogin = false } = {}) {
       });
     }
     if (linkEntrar) linkEntrar.hidden = true;
-    if (linkAdministracao) linkAdministracao.hidden = usuario.nivel !== 'administrador';
+
+    // A Administração continua na lista para todos, com um cadeado quando
+    // o nível não permite — quem entrar sem ser administrador cai na
+    // mensagem de área restrita da própria tela.
+    if (cadeadoAdministracao) cadeadoAdministracao.hidden = ehAdministrador;
   } else {
     if (elementoUsuario) elementoUsuario.hidden = true;
     if (botaoSair) botaoSair.hidden = true;
