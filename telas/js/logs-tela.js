@@ -3,8 +3,11 @@
   if (!usuario) return;
 
   const form = document.getElementById('form-filtros-logs');
+  const campoPeriodo = document.getElementById('logs-periodo');
   const campoInicio = document.getElementById('logs-inicio');
   const campoFim = document.getElementById('logs-fim');
+  const blocoInicio = document.getElementById('campo-data-inicio');
+  const blocoFim = document.getElementById('campo-data-fim');
   const campoOperador = document.getElementById('logs-operador');
   const iconeCadeado = document.getElementById('icone-cadeado-operador');
   const explicacaoOperador = document.getElementById('logs-operador-explicacao');
@@ -33,12 +36,45 @@
     mensagemErro.hidden = true;
   }
 
+  function paraTextoData(data) {
+    const doisDigitos = (n) => String(n).padStart(2, '0');
+    return `${data.getFullYear()}-${doisDigitos(data.getMonth() + 1)}-${doisDigitos(data.getDate())}`;
+  }
+
+  // Traduz o atalho escolhido para o par de datas que a API espera.
+  // "personalizado" usa o que estiver nos dois campos de data.
+  function intervaloDoPeriodo() {
+    const escolha = campoPeriodo.value;
+
+    if (escolha === 'personalizado') {
+      return { inicio: campoInicio.value, fim: campoFim.value };
+    }
+    if (escolha === 'tudo') {
+      return { inicio: '', fim: '' };
+    }
+
+    const hoje = new Date();
+    const fim = paraTextoData(hoje);
+
+    if (escolha === 'mes') {
+      return { inicio: paraTextoData(new Date(hoje.getFullYear(), hoje.getMonth(), 1)), fim };
+    }
+
+    const dias = Number(escolha);
+    const inicio = new Date(hoje);
+    inicio.setDate(inicio.getDate() - (dias - 1));
+    return { inicio: paraTextoData(inicio), fim };
+  }
+
+  function atualizarVisibilidadeDatas() {
+    const personalizado = campoPeriodo.value === 'personalizado';
+    blocoInicio.hidden = !personalizado;
+    blocoFim.hidden = !personalizado;
+  }
+
   function filtrosAtuais() {
-    const filtros = {
-      tipo: campoTipo.value,
-      inicio: campoInicio.value,
-      fim: campoFim.value,
-    };
+    const { inicio, fim } = intervaloDoPeriodo();
+    const filtros = { tipo: campoTipo.value, inicio, fim };
     if (ehAdministrador) {
       filtros.operador = campoOperador.value;
     }
@@ -120,14 +156,21 @@
   }
 
   function limparFiltros() {
+    campoPeriodo.value = 'tudo';
     campoInicio.value = '';
     campoFim.value = '';
     campoTipo.value = '';
     if (ehAdministrador) campoOperador.value = '';
+    atualizarVisibilidadeDatas();
     carregarLogs();
   }
 
   form.addEventListener('submit', (evento) => evento.preventDefault());
+  campoPeriodo.addEventListener('change', () => {
+    atualizarVisibilidadeDatas();
+    // No modo personalizado só busca quando as datas forem preenchidas
+    if (campoPeriodo.value !== 'personalizado') carregarLogs();
+  });
   campoInicio.addEventListener('change', carregarLogs);
   campoFim.addEventListener('change', carregarLogs);
   campoTipo.addEventListener('change', carregarLogs);
@@ -137,6 +180,7 @@
   botaoLimpar.addEventListener('click', limparFiltros);
 
   (async function iniciar() {
+    atualizarVisibilidadeDatas();
     await configurarFiltroOperador();
     await carregarLogs();
   })();

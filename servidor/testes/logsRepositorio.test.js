@@ -36,6 +36,19 @@ describe('logsRepositorio.listar', () => {
     expect(params).toEqual([]);
   });
 
+  it('a data final inclui o dia inteiro, não apenas a meia-noite', async () => {
+    await logsRepositorio.listar({
+      usuarioIdSolicitante: 1,
+      nivelSolicitante: 'administrador',
+      fim: '2026-08-21',
+    });
+
+    const [sql, params] = pool.query.mock.calls[0];
+    expect(sql).toContain("interval '1 day'");
+    expect(sql).not.toMatch(/l\.criado_em <= \$\d/);
+    expect(params).toEqual(['2026-08-21']);
+  });
+
   it('administrador filtrando por operador específico recebe só daquele operador', async () => {
     await logsRepositorio.listar({
       usuarioIdSolicitante: 1,

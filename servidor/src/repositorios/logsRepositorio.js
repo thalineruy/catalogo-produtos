@@ -31,7 +31,10 @@ async function listar({ usuarioIdSolicitante, nivelSolicitante, operador, tipo, 
   }
   if (fim) {
     params.push(fim);
-    condicoes.push(`l.criado_em <= $${params.length}`);
+    // "até 21/08" precisa incluir o dia 21 inteiro. Comparar direto com a
+    // data equivale à meia-noite e deixaria de fora tudo o que aconteceu
+    // naquele dia.
+    condicoes.push(`l.criado_em < ($${params.length}::date + interval '1 day')`);
   }
 
   const where = condicoes.length ? `WHERE ${condicoes.join(' AND ')}` : '';

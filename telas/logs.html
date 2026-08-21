@@ -51,12 +51,23 @@
             <form id="form-filtros-logs">
               <div class="filtros">
                 <div class="campo">
-                  <label for="logs-inicio">Período — de</label>
+                  <label for="logs-periodo">Período</label>
+                  <select id="logs-periodo" name="periodo" class="selecao">
+                    <option value="7">Últimos 7 dias</option>
+                    <option value="30">Últimos 30 dias</option>
+                    <option value="mes">Este mês</option>
+                    <option value="tudo" selected>Todo o histórico</option>
+                    <option value="personalizado">Intervalo personalizado</option>
+                  </select>
+                </div>
+
+                <div class="campo" id="campo-data-inicio" hidden>
+                  <label for="logs-inicio">De</label>
                   <input type="date" id="logs-inicio" name="inicio" class="entrada">
                 </div>
 
-                <div class="campo">
-                  <label for="logs-fim">Período — até</label>
+                <div class="campo" id="campo-data-fim" hidden>
+                  <label for="logs-fim">Até</label>
                   <input type="date" id="logs-fim" name="fim" class="entrada">
                 </div>
 
@@ -64,7 +75,7 @@
                   <label for="logs-operador">Operador</label>
                   <div class="campo-linha">
                     <select id="logs-operador" name="operador" class="selecao">
-                      <option value="">Todos</option>
+                      <option value="">Todos os operadores</option>
                     </select>
                     <span class="restrito" id="icone-cadeado-operador" aria-hidden="true" hidden><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter"><rect x="5" y="11" width="14" height="9"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
                   </div>
@@ -76,11 +87,11 @@
                 <div class="campo">
                   <label for="logs-tipo">Tipo de ação</label>
                   <select id="logs-tipo" name="tipo" class="selecao">
-                    <option value="">Todos</option>
+                    <option value="">Todas as ações</option>
                     <option value="Cadastro">Cadastro</option>
                     <option value="Edição">Edição</option>
                     <option value="Exclusão">Exclusão</option>
-                    <option value="Saída">Saída</option>
+                    <option value="Saída">Saída de estoque</option>
                     <option value="Acesso">Acesso</option>
                     <option value="Relatório">Relatório</option>
                     <option value="Recuperação">Recuperação</option>
@@ -116,6 +127,10 @@
           <div id="logs-vazio" class="vazio" hidden>
             <h3>Nenhum log encontrado</h3>
             <p>Nenhum registro corresponde aos filtros aplicados.</p>
+          </div>
+
+          <div class="painel-pe">
+            <span>Retenção de logs: 24 meses</span>
           </div>
         </div>
       </main>
