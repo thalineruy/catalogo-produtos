@@ -210,6 +210,17 @@ h1, h2, h3 {
   background-color: var(--cor-fundo);
 }
 
+.botao:disabled {
+  background-color: var(--cor-fundo);
+  border-color: var(--cor-borda-suave);
+  color: #8a8785;
+  cursor: not-allowed;
+}
+
+.botao:disabled:hover {
+  background-color: var(--cor-fundo);
+}
+
 .botao-primario {
   background-color: var(--cor-destaque);
   color: #fff;
