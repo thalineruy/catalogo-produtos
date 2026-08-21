@@ -779,3 +779,56 @@ legend { padding: 0; font-size: 12px; color: var(--apagado); }
 .linha-optometrica:nth-child(2) .letras-optometricas { font-size: 20px; }
 .linha-optometrica:nth-child(3) .letras-optometricas { font-size: 16px; }
 .destaque-optometrico { color: var(--destaque); }
+
+/* Botão de largura total, com texto e ícone nas duas pontas —
+   usado nos CTAs principais da tela de entrada (login, recuperação). */
+.botao-largura-total { width: 100%; justify-content: space-between; }
+
+/* Link discreto (sem o peso de .botao-texto): usado onde o mockup
+   pede um texto sublinhado neutro que só destaca no hover. */
+.link-sutil {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-size: 12px;
+  color: var(--apagado);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.link-sutil:hover { color: var(--destaque); }
+
+/* Botão "voltar" no topo de um passo secundário (ex.: recuperar acesso) */
+.link-voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: none;
+  border: 0;
+  padding: 0;
+  margin-bottom: 16px;
+  font-size: 12px;
+  color: var(--apagado);
+  cursor: pointer;
+}
+.link-voltar:hover { color: var(--destaque); }
+
+/* Caixa de confirmação depois de enviar o pedido de recuperação de senha */
+.confirmacao-recuperacao {
+  display: flex;
+  gap: 10px;
+  border: 1px solid var(--divisor);
+  border-left: 3px solid var(--destaque);
+  background: var(--sobre);
+  padding: 12px 14px;
+  font-size: 13px;
+}
+.confirmacao-recuperacao strong { display: block; margin-bottom: 2px; }
+
+.nota-recuperacao {
+  border-top: 2px solid var(--divisor);
+  padding-top: 14px;
+  margin-top: 8px;
+  font-size: 12px;
+}

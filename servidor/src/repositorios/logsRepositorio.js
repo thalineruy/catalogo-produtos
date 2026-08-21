@@ -1,6 +1,6 @@
 const { pool } = require('../db');
 
-const TIPOS_VALIDOS = ['Cadastro', 'Edição', 'Exclusão', 'Saída', 'Acesso', 'Relatório'];
+const TIPOS_VALIDOS = ['Cadastro', 'Edição', 'Exclusão', 'Saída', 'Acesso', 'Relatório', 'Recuperação'];
 
 async function registrar({ usuarioId, tipo, detalhes }, executor = pool) {
   await executor.query(

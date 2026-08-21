@@ -130,3 +130,7 @@ async function resetarSenhaUsuario(id) {
 async function buscarEstatisticas() {
   return apiFetch('/estatisticas');
 }
+
+async function solicitarRecuperacaoSenha(email, motivo) {
+  return apiFetch('/recuperacao-senha', { method: 'POST', body: JSON.stringify({ email, motivo }) });
+}

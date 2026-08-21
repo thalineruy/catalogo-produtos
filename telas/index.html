@@ -33,28 +33,69 @@
     </div>
 
     <div class="entrada-forma">
-      <h2>Acessar o sistema</h2>
-      <p class="apagado">Use as credenciais fornecidas pelo administrador.</p>
+      <div id="passo-senha">
+        <h2>Acessar o sistema</h2>
+        <p class="apagado">Use as credenciais fornecidas pelo administrador.</p>
 
-      <form id="form-login" novalidate>
-        <div class="campo">
-          <label for="login-email">E-mail corporativo</label>
-          <input type="email" id="login-email" name="email" class="entrada" autocomplete="username" required>
+        <form id="form-login" novalidate>
+          <div class="campo">
+            <label for="login-email">E-mail corporativo</label>
+            <input type="email" id="login-email" name="email" class="entrada" autocomplete="username" required>
+          </div>
+
+          <div class="campo">
+            <label for="login-senha">Senha</label>
+            <input type="password" id="login-senha" name="senha" class="entrada" autocomplete="current-password" required>
+          </div>
+
+          <p id="login-erro" class="erro-geral" role="alert" hidden></p>
+
+          <button type="submit" class="botao botao-principal botao-largura-total">
+            Continuar
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+          </button>
+        </form>
+
+        <div class="rodape-entrada">
+          <button type="button" id="botao-esqueci-senha" class="link-sutil">Esqueci minha senha</button>
+          <span class="apagado">Versão 1.0</span>
         </div>
+      </div>
 
-        <div class="campo">
-          <label for="login-senha">Senha</label>
-          <input type="password" id="login-senha" name="senha" class="entrada" autocomplete="current-password" required>
-        </div>
+      <div id="passo-recuperar" hidden>
+        <button type="button" id="botao-voltar-senha" class="link-voltar">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M19 12H5"/><path d="m11 18-6-6 6-6"/></svg>
+          <span>Voltar ao acesso</span>
+        </button>
 
-        <p id="login-erro" class="erro-geral" role="alert" hidden></p>
+        <h2>Recuperar acesso</h2>
+        <p class="apagado">Informe o e-mail corporativo. O administrador recebe o pedido e envia uma senha temporária, válida por 24 horas.</p>
 
-        <button type="submit" class="botao botao-principal">Continuar <span aria-hidden="true">→</span></button>
-      </form>
+        <form id="form-recuperar" novalidate>
+          <div class="campo">
+            <label for="recuperar-email">E-mail corporativo</label>
+            <input type="email" id="recuperar-email" name="email" class="entrada" placeholder="nome@empresa.com" autocomplete="username" required>
+          </div>
 
-      <div class="rodape-entrada">
-        <button type="button" id="botao-esqueci-senha" class="botao botao-texto">Esqueci minha senha</button>
-        <span class="apagado">Versão 1.0</span>
+          <div class="campo">
+            <label for="recuperar-motivo">Motivo do pedido</label>
+            <select id="recuperar-motivo" name="motivo" class="selecao" required>
+              <option value="Esqueci a senha">Esqueci a senha</option>
+              <option value="Perdi o acesso ao Google Authenticator">Perdi o acesso ao Google Authenticator</option>
+              <option value="Troquei de celular">Troquei de celular</option>
+            </select>
+          </div>
+
+          <div id="recuperar-confirmacao" class="confirmacao-recuperacao" role="status" hidden></div>
+          <p id="recuperar-erro" class="erro-geral" role="alert" hidden></p>
+
+          <button type="submit" class="botao botao-principal botao-largura-total">
+            Enviar pedido de recuperação
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+          </button>
+        </form>
+
+        <p class="apagado nota-recuperacao">Se você perdeu o acesso ao Google Authenticator, o administrador precisa apagar o vínculo antigo. No primeiro acesso o sistema mostra um novo código para ler no aplicativo.</p>
       </div>
     </div>
   </div>
