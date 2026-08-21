@@ -31,8 +31,19 @@ function construirQuery(filtros) {
   return texto ? `?${texto}` : '';
 }
 
-async function login(email, senha) {
-  return apiFetch('/login', { method: 'POST', body: JSON.stringify({ email, senha }) });
+async function login(email, senha, dispositivoToken) {
+  return apiFetch('/login', { method: 'POST', body: JSON.stringify({ email, senha, dispositivoToken }) });
+}
+
+async function verificarCodigoLogin(tokenPendente, codigo, confiarDispositivo) {
+  return apiFetch('/login/verificar-codigo', {
+    method: 'POST',
+    body: JSON.stringify({ tokenPendente, codigo, confiarDispositivo }),
+  });
+}
+
+async function removerTotpUsuario(id) {
+  return apiFetch(`/usuarios/${id}/totp`, { method: 'DELETE' });
 }
 
 async function listarCategorias() {

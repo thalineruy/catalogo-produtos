@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 
 const usuariosRepositorio = require('../repositorios/usuariosRepositorio');
 const logsRepositorio = require('../repositorios/logsRepositorio');
+const dispositivosRepositorio = require('../repositorios/dispositivosConfiaveisRepositorio');
 const { autenticar } = require('../middleware/autenticacao');
 const { exigirAdministrador } = require('../middleware/autorizacao');
 const { gerarSenhaTemporaria } = require('../servicos/geradorSenha');
@@ -98,6 +99,28 @@ router.post('/:id/reset-senha', autenticar, exigirAdministrador, async (req, res
       .catch((erro) => console.error('falha ao registrar log de edição', erro));
 
     res.json({ senhaTemporaria });
+  } catch (erro) {
+    next(erro);
+  }
+});
+
+router.delete('/:id/totp', autenticar, exigirAdministrador, async (req, res, next) => {
+  try {
+    const alvo = await usuariosRepositorio.buscarPorId(req.params.id);
+    if (!alvo) return res.status(404).json({ erro: 'usuário não encontrado' });
+
+    await usuariosRepositorio.limparTotp(req.params.id);
+    await dispositivosRepositorio.excluirPorUsuario(req.params.id);
+
+    logsRepositorio
+      .registrar({
+        usuarioId: req.usuario.id,
+        tipo: 'Edição',
+        detalhes: `Removeu a verificação em duas etapas de ${alvo.nome}`,
+      })
+      .catch((erro) => console.error('falha ao registrar log de edição', erro));
+
+    res.status(204).send();
   } catch (erro) {
     next(erro);
   }

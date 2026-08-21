@@ -1,9 +1,21 @@
 const CHAVE_TOKEN = 'catalogo_token';
 const CHAVE_USUARIO = 'catalogo_usuario';
 const CHAVE_COOKIES = 'catalogo_cookies_aceitos';
+const CHAVE_DISPOSITIVO = 'catalogo_dispositivo_confiavel';
 
 function obterToken() {
   return localStorage.getItem(CHAVE_TOKEN);
+}
+
+// Token de "dispositivo confiável" (30 dias), guardado por fora da sessão:
+// sobrevive ao logout, para que o próximo login neste navegador possa
+// pular a verificação em duas etapas.
+function obterTokenDispositivo() {
+  return localStorage.getItem(CHAVE_DISPOSITIVO);
+}
+
+function salvarTokenDispositivo(token) {
+  localStorage.setItem(CHAVE_DISPOSITIVO, token);
 }
 
 function obterUsuario() {

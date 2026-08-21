@@ -1,10 +1,12 @@
 jest.mock('../src/repositorios/usuariosRepositorio');
 jest.mock('../src/repositorios/logsRepositorio');
+jest.mock('../src/repositorios/dispositivosConfiaveisRepositorio');
 
 const request = require('supertest');
 const app = require('../src/servidor');
 const usuariosRepositorio = require('../src/repositorios/usuariosRepositorio');
 const logsRepositorio = require('../src/repositorios/logsRepositorio');
+const dispositivosRepositorio = require('../src/repositorios/dispositivosConfiaveisRepositorio');
 const { gerarToken } = require('./ajudantes/token');
 
 const tokenOperador = `Bearer ${gerarToken({ id: 9, nivel: 'operador' })}`;
@@ -74,6 +76,43 @@ describe('PUT /usuarios/:id/nivel', () => {
 
     expect(resposta.status).toBe(403);
     expect(usuariosRepositorio.atualizarNivel).not.toHaveBeenCalled();
+  });
+});
+
+describe('DELETE /usuarios/:id/totp', () => {
+  beforeEach(() => {
+    logsRepositorio.registrar.mockResolvedValue();
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('responde 404 quando o usuário não existe', async () => {
+    usuariosRepositorio.buscarPorId.mockResolvedValue(null);
+
+    const resposta = await request(app).delete('/usuarios/99/totp').set('Authorization', tokenAdministrador);
+
+    expect(resposta.status).toBe(404);
+  });
+
+  it('limpa o TOTP e os dispositivos confiáveis do usuário', async () => {
+    usuariosRepositorio.buscarPorId.mockResolvedValue({ id: 2, nome: 'Beatriz' });
+    usuariosRepositorio.limparTotp.mockResolvedValue();
+    dispositivosRepositorio.excluirPorUsuario.mockResolvedValue();
+
+    const resposta = await request(app).delete('/usuarios/2/totp').set('Authorization', tokenAdministrador);
+
+    expect(resposta.status).toBe(204);
+    expect(usuariosRepositorio.limparTotp).toHaveBeenCalledWith('2');
+    expect(dispositivosRepositorio.excluirPorUsuario).toHaveBeenCalledWith('2');
+  });
+
+  it('responde 403 quando o token é de operador', async () => {
+    const resposta = await request(app).delete('/usuarios/2/totp').set('Authorization', tokenOperador);
+
+    expect(resposta.status).toBe(403);
+    expect(usuariosRepositorio.limparTotp).not.toHaveBeenCalled();
   });
 });
 

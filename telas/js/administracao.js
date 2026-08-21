@@ -331,6 +331,14 @@
     tdNivel.textContent = usuario.nivel === 'administrador' ? 'Administrador' : 'Operador';
     tr.appendChild(tdNivel);
 
+    const tdTotp = document.createElement('td');
+    tdTotp.className = 'oculta-estreito';
+    const etiquetaTotp = document.createElement('span');
+    etiquetaTotp.className = usuario.totp_ativo ? 'etiqueta' : 'etiqueta etiqueta-alerta';
+    etiquetaTotp.textContent = usuario.totp_ativo ? 'Ativa' : 'Pendente';
+    tdTotp.appendChild(etiquetaTotp);
+    tr.appendChild(tdTotp);
+
     const tdAcoes = document.createElement('td');
     const container = document.createElement('div');
     container.className = 'acoes-linha';
@@ -382,8 +390,34 @@
       }
     });
 
+    const botaoRedefinirTotp = document.createElement('button');
+    botaoRedefinirTotp.type = 'button';
+    botaoRedefinirTotp.className = 'botao botao-contorno';
+    botaoRedefinirTotp.innerHTML = `${ICONE_CADEADO} Redefinir 2FA`;
+    botaoRedefinirTotp.setAttribute('aria-label', `Apagar o vínculo de verificação em duas etapas de ${usuario.nome}`);
+    if (!usuario.totp_ativo) {
+      botaoRedefinirTotp.disabled = true;
+      botaoRedefinirTotp.title = 'Este usuário ainda não concluiu a configuração da verificação em duas etapas.';
+    }
+    botaoRedefinirTotp.addEventListener('click', async () => {
+      const confirmou = window.confirm(
+        `Apagar o vínculo de verificação em duas etapas de ${usuario.nome}? No próximo acesso, um novo código para o aplicativo será exibido.`,
+      );
+      if (!confirmou) return;
+      usuariosErro.hidden = true;
+      try {
+        await removerTotpUsuario(usuario.id);
+        exibirAviso(`Verificação em duas etapas de ${usuario.nome} redefinida.`);
+        await carregarUsuarios();
+      } catch (erro) {
+        usuariosErro.textContent = erro.message;
+        usuariosErro.hidden = false;
+      }
+    });
+
     container.appendChild(botaoNivel);
     container.appendChild(botaoReset);
+    container.appendChild(botaoRedefinirTotp);
     tdAcoes.appendChild(container);
     tr.appendChild(tdAcoes);
 

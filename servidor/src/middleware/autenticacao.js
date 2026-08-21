@@ -10,6 +10,9 @@ function autenticar(req, res, next) {
 
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
+    if (payload.pendente) {
+      return res.status(401).json({ erro: 'verificação em duas etapas ainda não concluída' });
+    }
     req.usuario = { id: payload.id, nome: payload.nome, nivel: payload.nivel };
     next();
   } catch (erro) {

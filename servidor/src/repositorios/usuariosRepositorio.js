@@ -2,7 +2,7 @@ const { pool } = require('../db');
 
 async function buscarPorEmail(email) {
   const { rows } = await pool.query(
-    'SELECT id, nome, email, senha_hash, nivel FROM usuarios WHERE email = $1',
+    'SELECT id, nome, email, senha_hash, nivel, totp_secret, totp_confirmado_em FROM usuarios WHERE email = $1',
     [email],
   );
   return rows[0] || null;
@@ -10,14 +10,17 @@ async function buscarPorEmail(email) {
 
 async function buscarPorId(id) {
   const { rows } = await pool.query(
-    'SELECT id, nome, email, nivel FROM usuarios WHERE id = $1',
+    'SELECT id, nome, email, nivel, totp_secret, totp_confirmado_em FROM usuarios WHERE id = $1',
     [id],
   );
   return rows[0] || null;
 }
 
 async function listar() {
-  const { rows } = await pool.query('SELECT id, nome, email, nivel FROM usuarios ORDER BY nome');
+  const { rows } = await pool.query(
+    `SELECT id, nome, email, nivel, (totp_confirmado_em IS NOT NULL) AS totp_ativo
+     FROM usuarios ORDER BY nome`,
+  );
   return rows;
 }
 
@@ -45,6 +48,18 @@ async function excluir(id) {
   await pool.query('DELETE FROM usuarios WHERE id = $1', [id]);
 }
 
+async function salvarTotpSecret(id, secret) {
+  await pool.query('UPDATE usuarios SET totp_secret = $1 WHERE id = $2', [secret, id]);
+}
+
+async function confirmarTotp(id) {
+  await pool.query('UPDATE usuarios SET totp_confirmado_em = now() WHERE id = $1', [id]);
+}
+
+async function limparTotp(id) {
+  await pool.query('UPDATE usuarios SET totp_secret = NULL, totp_confirmado_em = NULL WHERE id = $1', [id]);
+}
+
 module.exports = {
   buscarPorEmail,
   buscarPorId,
@@ -53,4 +68,7 @@ module.exports = {
   atualizarNivel,
   atualizarSenha,
   excluir,
+  salvarTotpSecret,
+  confirmarTotp,
+  limparTotp,
 };
