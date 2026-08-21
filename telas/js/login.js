@@ -18,6 +18,8 @@
     return;
   }
 
+  iniciarBarraCookies();
+
   function irParaRecuperar() {
     passoSenha.hidden = true;
     passoRecuperar.hidden = false;

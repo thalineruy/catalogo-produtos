@@ -18,6 +18,20 @@ const { gerarToken } = require('./ajudantes/token');
 const tokenOperador = `Bearer ${gerarToken({ id: 9, nivel: 'operador' })}`;
 const tokenAdministrador = `Bearer ${gerarToken({ id: 1, nivel: 'administrador' })}`;
 
+describe('GET /empresa', () => {
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('responde 200 sem token de acesso', async () => {
+    empresaRepositorio.buscar.mockResolvedValue({ nome: 'Ótica Visão', cnpj: '11.222.333/0001-81' });
+
+    const resposta = await request(app).get('/empresa');
+
+    expect(resposta.status).toBe(200);
+  });
+});
+
 describe('PUT /empresa', () => {
   beforeEach(() => {
     logsRepositorio.registrar.mockResolvedValue();

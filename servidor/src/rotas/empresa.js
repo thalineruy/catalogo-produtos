@@ -15,7 +15,11 @@ const {
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: TAMANHO_MAXIMO_BYTES } });
 
-router.get('/', autenticar, async (req, res, next) => {
+// Pública: a política de privacidade (mostrada antes do login) precisa
+// destes dados para identificar a empresa responsável pelo tratamento.
+// Nenhum campo aqui é sensível — é a mesma informação que apareceria
+// num cabeçalho de nota fiscal.
+router.get('/', async (req, res, next) => {
   try {
     const empresa = await empresaRepositorio.buscar();
     if (!empresa) return res.status(404).json({ erro: 'dados da empresa não cadastrados' });
