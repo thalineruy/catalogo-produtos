@@ -733,3 +733,10 @@ legend { padding: 0; font-size: 12px; color: var(--apagado); }
 
 /* Preserva quebras de linha de texto vindo do JS (ex.: endereço da empresa) */
 .pre-linha { white-space: pre-line; }
+
+/* .apagado assume fundo claro por padrão; sobre o fundo escuro de
+   .entrada-arte precisa da leitura clara, senão o texto some. */
+.entrada-arte .apagado { color: rgba(243, 242, 242, .6); }
+
+/* Linha de rodapé da tela de entrada: link à esquerda, texto auxiliar à direita */
+.rodape-entrada { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }

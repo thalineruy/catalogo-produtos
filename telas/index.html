@@ -11,20 +11,19 @@
   <div class="entrada-sistema">
     <div class="entrada-arte">
       <div>
-        <p class="rotulo-destaque">Catálogo de Produtos</p>
-        <h1>Controle de estoque para a sua ótica</h1>
-        <p>Cadastre produtos, registre saídas e acompanhe tudo em um só lugar.</p>
+        <h1>Catálogo de Produtos</h1>
+        <p class="apagado">Consulta de produtos com imagem, controle de quantidade e registro de saída.</p>
       </div>
       <p class="apagado">Projeto Integrador II</p>
     </div>
 
     <div class="entrada-forma">
-      <h2>Entrar</h2>
-      <p class="apagado">Use o e-mail e a senha cadastrados no sistema.</p>
+      <h2>Acessar o sistema</h2>
+      <p class="apagado">Use as credenciais fornecidas pelo administrador.</p>
 
       <form id="form-login" novalidate>
         <div class="campo">
-          <label for="login-email">E-mail</label>
+          <label for="login-email">E-mail corporativo</label>
           <input type="email" id="login-email" name="email" class="entrada" autocomplete="username" required>
         </div>
 
@@ -35,10 +34,17 @@
 
         <p id="login-erro" class="erro-geral" role="alert" hidden></p>
 
-        <button type="submit" class="botao botao-principal">Entrar</button>
+        <button type="submit" class="botao botao-principal">Continuar <span aria-hidden="true">→</span></button>
       </form>
+
+      <div class="rodape-entrada">
+        <button type="button" id="botao-esqueci-senha" class="botao botao-texto">Esqueci minha senha</button>
+        <span class="apagado">Versão 1.0</span>
+      </div>
     </div>
   </div>
+
+  <div class="aviso" id="toast-aviso" role="status" aria-live="polite" hidden></div>
 
   <script src="config.js"></script>
   <script src="js/auth.js"></script>
