@@ -11,11 +11,11 @@
 
   const resumoResultados = document.getElementById('resumo-resultados');
   const mensagemErro = document.getElementById('mensagem-erro');
-  const tabelaWrapper = document.querySelector('.tabela-wrapper');
+  const tabelaWrapper = document.querySelector('.rolagem-tabela');
   const corpoTabela = document.getElementById('corpo-tabela-produtos');
   const estadoVazio = document.getElementById('estado-vazio');
 
-  const modal = document.getElementById('modal-produto');
+  const fundoModal = document.getElementById('fundo-modal-produto');
   const formProduto = document.getElementById('form-produto');
   const modalTitulo = document.getElementById('modal-produto-titulo');
   const modalErro = document.getElementById('modal-erro');
@@ -56,23 +56,22 @@
 
   function informacaoEstoque(produto) {
     if (produto.quantidade === 0) {
-      return { texto: 'Sem estoque', classe: 'estoque-critico' };
+      return { texto: 'Sem estoque' };
     }
     if (produto.quantidade <= produto.estoque_minimo) {
-      return { texto: 'Estoque baixo', classe: 'estoque-baixo' };
+      return { texto: 'Estoque baixo' };
     }
     return null;
   }
 
   function criarCelulaImagem(produto) {
     const td = document.createElement('td');
-    td.className = 'col-imagem';
 
     if (produto.url_imagem) {
       const img = document.createElement('img');
       img.src = produto.url_imagem;
       img.alt = '';
-      img.className = 'produto-imagem';
+      img.className = 'miniatura';
       img.addEventListener('error', () => {
         img.replaceWith(criarPlaceholderImagem());
       });
@@ -86,7 +85,7 @@
 
   function criarPlaceholderImagem() {
     const span = document.createElement('span');
-    span.className = 'produto-imagem-padrao';
+    span.className = 'miniatura-vazia';
     span.setAttribute('aria-hidden', 'true');
     span.textContent = '🖼';
     return span;
@@ -94,42 +93,34 @@
 
   function criarCelulaProduto(produto) {
     const td = document.createElement('td');
-    td.className = 'col-produto';
 
     const nome = document.createElement('div');
-    nome.className = 'produto-nome';
     nome.textContent = produto.nome;
     td.appendChild(nome);
 
     const codigo = document.createElement('div');
-    codigo.className = 'produto-meta';
+    codigo.className = 'apagado';
     codigo.textContent = `Código: ${produto.codigo_interno}`;
     td.appendChild(codigo);
 
     if (produto.descricao) {
       const descricao = document.createElement('div');
-      descricao.className = 'produto-descricao';
+      descricao.className = 'apagado';
       descricao.textContent = produto.descricao;
       td.appendChild(descricao);
     }
-
-    const metaMobile = document.createElement('div');
-    metaMobile.className = 'produto-meta-mobile';
-    metaMobile.textContent = `${produto.categoria_nome} • ${produto.status === 'ativo' ? 'Ativo' : 'Inativo'}`;
-    td.appendChild(metaMobile);
 
     return td;
   }
 
   function criarCelulaEstoque(produto) {
     const td = document.createElement('td');
-    td.className = 'col-estoque';
     td.textContent = String(produto.quantidade);
 
     const info = informacaoEstoque(produto);
     if (info) {
       const etiqueta = document.createElement('div');
-      etiqueta.className = `etiqueta ${info.classe}`;
+      etiqueta.className = 'quantidade-alerta';
       etiqueta.textContent = info.texto;
       td.appendChild(etiqueta);
     }
@@ -139,10 +130,10 @@
 
   function criarCelulaStatus(produto) {
     const td = document.createElement('td');
-    td.className = 'col-status';
+    td.className = 'oculta-estreito';
 
     const badge = document.createElement('span');
-    badge.className = `badge-status ${produto.status}`;
+    badge.className = 'etiqueta';
     badge.textContent = produto.status === 'ativo' ? 'Ativo' : 'Inativo';
     td.appendChild(badge);
 
@@ -151,10 +142,9 @@
 
   function criarCelulaAcoes(produto) {
     const td = document.createElement('td');
-    td.className = 'col-acoes';
 
     const container = document.createElement('div');
-    container.className = 'linha-acoes';
+    container.className = 'acoes-linha';
 
     const botaoEditar = document.createElement('button');
     botaoEditar.type = 'button';
@@ -165,7 +155,7 @@
 
     const botaoExcluir = document.createElement('button');
     botaoExcluir.type = 'button';
-    botaoExcluir.className = 'botao-icone perigo';
+    botaoExcluir.className = 'botao-icone botao-icone-perigo';
     botaoExcluir.setAttribute('aria-label', `Excluir ${produto.nome}`);
     botaoExcluir.textContent = '🗑';
     botaoExcluir.addEventListener('click', () => confirmarExclusao(produto));
@@ -183,14 +173,14 @@
     tr.appendChild(criarCelulaProduto(produto));
 
     const tdCategoria = document.createElement('td');
-    tdCategoria.className = 'col-categoria';
+    tdCategoria.className = 'oculta-estreito';
     tdCategoria.textContent = produto.categoria_nome;
     tr.appendChild(tdCategoria);
 
     tr.appendChild(criarCelulaEstoque(produto));
 
     const tdMinimo = document.createElement('td');
-    tdMinimo.className = 'col-minimo';
+    tdMinimo.className = 'oculta-estreito';
     tdMinimo.textContent = String(produto.estoque_minimo);
     tr.appendChild(tdMinimo);
 
@@ -252,15 +242,22 @@
     campoBusca.focus();
   }
 
+  function fecharComEsc(evento) {
+    if (evento.key === 'Escape') fecharModal();
+  }
+
   function abrirModal(elementoQueAbriu) {
     elementoAbriuModal = elementoQueAbriu || document.activeElement;
     modalErro.hidden = true;
-    modal.showModal();
+    fundoModal.hidden = false;
+    document.addEventListener('keydown', fecharComEsc);
     document.getElementById('produto-nome').focus();
   }
 
   function fecharModal() {
-    modal.close();
+    fundoModal.hidden = true;
+    document.removeEventListener('keydown', fecharComEsc);
+    if (elementoAbriuModal) elementoAbriuModal.focus();
   }
 
   function exigirLoginParaEscrita() {
@@ -304,6 +301,7 @@
 
     try {
       await excluirProduto(produto.id);
+      exibirAviso(`Produto "${produto.nome}" excluído.`);
       await carregarProdutos();
     } catch (erro) {
       exibirErro(`Não foi possível excluir o produto: ${erro.message}`);
@@ -329,8 +327,10 @@
     try {
       if (id) {
         await atualizarProduto(id, dados);
+        exibirAviso(`Produto "${dados.nome}" atualizado.`);
       } else {
         await criarProduto(dados);
+        exibirAviso(`Produto "${dados.nome}" criado.`);
       }
       fecharModal();
       await carregarProdutos();
@@ -352,9 +352,6 @@
   botaoFecharModal.addEventListener('click', fecharModal);
   botaoCancelarModal.addEventListener('click', fecharModal);
   formProduto.addEventListener('submit', onSubmitFormProduto);
-  modal.addEventListener('close', () => {
-    if (elementoAbriuModal) elementoAbriuModal.focus();
-  });
 
   montarBarraNavegacao({ exigirLogin: false });
 

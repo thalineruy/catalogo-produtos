@@ -85,7 +85,7 @@
     const rotulos = config.campos
       .map((chave) => {
         const checkbox = checkboxesCampos.find((c) => c.value === chave);
-        return checkbox ? checkbox.closest('.campo-checkbox').querySelector('label').textContent : chave;
+        return checkbox ? checkbox.closest('.campo-marcador').querySelector('label').textContent : chave;
       })
       .join(', ');
     return `Campos selecionados: ${rotulos}.`;
@@ -258,22 +258,6 @@
   botaoExportarPdf.addEventListener('click', () =>
     acionarImpressao('Na janela de impressão, escolha "Salvar como PDF" (ou "Microsoft Print to PDF") como destino.'),
   );
-
-  window.addEventListener('beforeprint', () => {
-    const cabecalhoDocumento = document.querySelector('.documento-cabecalho');
-    const corpoDocumento = document.querySelector('.documento-corpo');
-    if (!cabecalhoDocumento || !corpoDocumento) return;
-
-    const altura = cabecalhoDocumento.getBoundingClientRect().height;
-    if (altura > 0) {
-      corpoDocumento.style.marginTop = `${altura + 24}px`;
-    }
-  });
-
-  window.addEventListener('afterprint', () => {
-    const corpoDocumento = document.querySelector('.documento-corpo');
-    if (corpoDocumento) corpoDocumento.style.marginTop = '';
-  });
 
   (async function iniciar() {
     atualizarResumoConfigVazio();

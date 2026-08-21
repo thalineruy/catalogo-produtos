@@ -65,7 +65,6 @@
 
   /* ---------- 2. Dados da Empresa ---------- */
   const formEmpresa = document.getElementById('form-empresa');
-  const empresaConfirmacao = document.getElementById('empresa-confirmacao');
   const empresaErro = document.getElementById('empresa-erro');
   let empresaAtual = null;
 
@@ -104,7 +103,6 @@
   formEmpresa.addEventListener('submit', async (evento) => {
     evento.preventDefault();
     empresaErro.hidden = true;
-    empresaConfirmacao.textContent = '';
 
     const dados = {
       nome: document.getElementById('empresa-nome').value.trim(),
@@ -118,7 +116,7 @@
     try {
       empresaAtual = await atualizarEmpresa(dados);
       preencherFormEmpresa(empresaAtual);
-      empresaConfirmacao.textContent = 'Dados da empresa salvos com sucesso.';
+      exibirAviso('Dados da empresa salvos com sucesso.');
     } catch (erro) {
       empresaErro.textContent = erro.message;
       empresaErro.hidden = false;
@@ -128,29 +126,27 @@
   document.getElementById('botao-descartar-empresa').addEventListener('click', () => {
     if (empresaAtual) preencherFormEmpresa(empresaAtual);
     empresaErro.hidden = true;
-    empresaConfirmacao.textContent = 'Alterações descartadas.';
+    exibirAviso('Alterações descartadas.');
   });
 
   /* ---------- 3. Logotipo ---------- */
   const areaArrastar = document.getElementById('area-arrastar-logo');
   const botaoSelecionarLogo = document.getElementById('botao-selecionar-logo');
   const campoLogo = document.getElementById('campo-logo');
-  const logotipoConfirmacao = document.getElementById('logotipo-confirmacao');
   const logotipoErro = document.getElementById('logotipo-erro');
 
   async function processarArquivoLogo(arquivo) {
     if (!arquivo) return;
     logotipoErro.hidden = true;
-    logotipoConfirmacao.textContent = 'Enviando logotipo...';
+    exibirAviso('Enviando logotipo...');
 
     try {
       const empresaAtualizada = await enviarLogotipoEmpresa(arquivo);
       empresaAtual = empresaAtualizada;
       atualizarPreviaLogotipo(empresaAtualizada);
-      logotipoConfirmacao.textContent = 'Logotipo atualizado com sucesso.';
+      exibirAviso('Logotipo atualizado com sucesso.');
       carregarLogoBarraSuperior();
     } catch (erro) {
-      logotipoConfirmacao.textContent = '';
       logotipoErro.textContent = erro.message;
       logotipoErro.hidden = false;
     }
@@ -192,7 +188,6 @@
   /* ---------- 4. Gerenciar Categorias ---------- */
   const formNovaCategoria = document.getElementById('form-nova-categoria');
   const corpoCategorias = document.getElementById('corpo-categorias');
-  const categoriasConfirmacao = document.getElementById('categorias-confirmacao');
   const categoriasErro = document.getElementById('categorias-erro');
   let categoriaEmEdicaoId = null;
 
@@ -213,17 +208,18 @@
     tr.appendChild(tdNome);
 
     const tdTotal = document.createElement('td');
+    tdTotal.className = 'direita';
     tdTotal.textContent = String(categoria.total_produtos);
     tr.appendChild(tdTotal);
 
     const tdAcoes = document.createElement('td');
     const container = document.createElement('div');
-    container.className = 'linha-acoes';
+    container.className = 'acoes-linha';
 
     if (categoriaEmEdicaoId === categoria.id) {
       const botaoSalvar = document.createElement('button');
       botaoSalvar.type = 'button';
-      botaoSalvar.className = 'botao botao-secundario';
+      botaoSalvar.className = 'botao botao-contorno';
       botaoSalvar.textContent = 'Salvar';
       botaoSalvar.addEventListener('click', async () => {
         const novoNome = document.getElementById(`editar-categoria-${categoria.id}`).value.trim();
@@ -231,7 +227,7 @@
         try {
           await atualizarCategoria(categoria.id, novoNome);
           categoriaEmEdicaoId = null;
-          categoriasConfirmacao.textContent = `Categoria renomeada para "${novoNome}".`;
+          exibirAviso(`Categoria renomeada para "${novoNome}".`);
           await carregarCategorias();
         } catch (erro) {
           categoriasErro.textContent = erro.message;
@@ -241,7 +237,7 @@
 
       const botaoCancelar = document.createElement('button');
       botaoCancelar.type = 'button';
-      botaoCancelar.className = 'botao botao-secundario';
+      botaoCancelar.className = 'botao botao-contorno';
       botaoCancelar.textContent = 'Cancelar';
       botaoCancelar.addEventListener('click', () => {
         categoriaEmEdicaoId = null;
@@ -264,7 +260,7 @@
 
       const botaoExcluir = document.createElement('button');
       botaoExcluir.type = 'button';
-      botaoExcluir.className = 'botao-icone perigo';
+      botaoExcluir.className = 'botao-icone botao-icone-perigo';
       botaoExcluir.setAttribute('aria-label', `Excluir categoria ${categoria.nome}`);
       botaoExcluir.textContent = '🗑';
       botaoExcluir.addEventListener('click', async () => {
@@ -273,7 +269,7 @@
         categoriasErro.hidden = true;
         try {
           await excluirCategoria(categoria.id);
-          categoriasConfirmacao.textContent = `Categoria "${categoria.nome}" excluída.`;
+          exibirAviso(`Categoria "${categoria.nome}" excluída.`);
           await carregarCategorias();
         } catch (erro) {
           categoriasErro.textContent = erro.message;
@@ -312,7 +308,7 @@
 
     try {
       await criarCategoria(nome);
-      categoriasConfirmacao.textContent = `Categoria "${nome}" criada.`;
+      exibirAviso(`Categoria "${nome}" criada.`);
       campoNome.value = '';
       await carregarCategorias();
     } catch (erro) {
@@ -324,7 +320,6 @@
   /* ---------- 5. Gerenciar Usuários ---------- */
   const formNovoUsuario = document.getElementById('form-novo-usuario');
   const corpoUsuarios = document.getElementById('corpo-usuarios');
-  const usuariosConfirmacao = document.getElementById('usuarios-confirmacao');
   const usuariosErro = document.getElementById('usuarios-erro');
 
   function criarLinhaUsuario(usuario) {
@@ -344,13 +339,13 @@
 
     const tdAcoes = document.createElement('td');
     const container = document.createElement('div');
-    container.className = 'linha-acoes';
+    container.className = 'acoes-linha';
 
     const ehVoceMesmo = String(usuario.id) === String(usuarioLogado.id);
 
     const botaoNivel = document.createElement('button');
     botaoNivel.type = 'button';
-    botaoNivel.className = 'botao botao-secundario';
+    botaoNivel.className = 'botao botao-contorno';
     botaoNivel.textContent = `🔒 Tornar ${usuario.nivel === 'administrador' ? 'Operador' : 'Administrador'}`;
     botaoNivel.setAttribute(
       'aria-label',
@@ -367,7 +362,7 @@
       usuariosErro.hidden = true;
       try {
         await alterarNivelUsuario(usuario.id, novoNivel);
-        usuariosConfirmacao.textContent = `Nível de ${usuario.nome} alterado para ${novoNivel}.`;
+        exibirAviso(`Nível de ${usuario.nome} alterado para ${novoNivel}.`);
         await carregarUsuarios();
       } catch (erro) {
         usuariosErro.textContent = erro.message;
@@ -377,7 +372,7 @@
 
     const botaoReset = document.createElement('button');
     botaoReset.type = 'button';
-    botaoReset.className = 'botao botao-secundario';
+    botaoReset.className = 'botao botao-contorno';
     botaoReset.textContent = '🔒 Resetar senha';
     botaoReset.setAttribute('aria-label', `Gerar senha temporária para ${usuario.nome}`);
     botaoReset.addEventListener('click', async () => {
@@ -386,7 +381,7 @@
       usuariosErro.hidden = true;
       try {
         const resultado = await resetarSenhaUsuario(usuario.id);
-        usuariosConfirmacao.textContent = `Senha temporária de ${usuario.nome}: ${resultado.senhaTemporaria} (informe ao usuário com segurança).`;
+        exibirAviso(`Senha temporária de ${usuario.nome}: ${resultado.senhaTemporaria} (informe ao usuário com segurança).`);
       } catch (erro) {
         usuariosErro.textContent = erro.message;
         usuariosErro.hidden = false;
@@ -419,7 +414,7 @@
 
     try {
       const resultado = await criarUsuario(dados);
-      usuariosConfirmacao.textContent = `Usuário ${resultado.nome} criado. Senha temporária: ${resultado.senhaTemporaria} (informe ao usuário com segurança).`;
+      exibirAviso(`Usuário ${resultado.nome} criado. Senha temporária: ${resultado.senhaTemporaria} (informe ao usuário com segurança).`);
       formNovoUsuario.reset();
       await carregarUsuarios();
     } catch (erro) {
@@ -445,14 +440,13 @@
     grade.innerHTML = '';
     CARTOES_ESTATISTICAS.forEach(({ chave, rotulo }) => {
       const cartao = document.createElement('div');
-      cartao.className = 'cartao-estatistica';
 
       const numero = document.createElement('span');
-      numero.className = 'cartao-estatistica-numero';
+      numero.className = 'valor';
       numero.textContent = estatisticas[chave];
 
       const rotuloEl = document.createElement('span');
-      rotuloEl.className = 'cartao-estatistica-rotulo';
+      rotuloEl.className = 'rotulo';
       rotuloEl.textContent = rotulo;
 
       cartao.appendChild(numero);
@@ -466,8 +460,13 @@
     corpo.innerHTML = '';
     saidasPorMes.forEach((item) => {
       const tr = document.createElement('tr');
-      [item.rotulo, item.registros, item.unidades].forEach((valor) => {
+      [
+        { valor: item.rotulo, direita: false },
+        { valor: item.registros, direita: true },
+        { valor: item.unidades, direita: true },
+      ].forEach(({ valor, direita }) => {
         const td = document.createElement('td');
+        if (direita) td.className = 'direita';
         td.textContent = valor;
         tr.appendChild(td);
       });
@@ -480,8 +479,12 @@
     corpo.innerHTML = '';
     estoquePorCategoria.forEach((item) => {
       const tr = document.createElement('tr');
-      [item.categoria, item.unidades].forEach((valor) => {
+      [
+        { valor: item.categoria, direita: false },
+        { valor: item.unidades, direita: true },
+      ].forEach(({ valor, direita }) => {
         const td = document.createElement('td');
+        if (direita) td.className = 'direita';
         td.textContent = valor;
         tr.appendChild(td);
       });

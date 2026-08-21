@@ -10,7 +10,6 @@
   const campoOperador = document.getElementById('saida-operador');
   const infoQuantidade = document.getElementById('saida-quantidade-info');
   const erroQuantidade = document.getElementById('saida-quantidade-erro');
-  const confirmacao = document.getElementById('saida-confirmacao');
   const erroGeral = document.getElementById('saida-erro-geral');
   const botaoRegistrar = document.getElementById('botao-registrar-saida');
   const botaoLimpar = document.getElementById('botao-limpar-saida');
@@ -24,7 +23,7 @@
   const resumoHistorico = document.getElementById('historico-resumo');
   const corpoHistorico = document.getElementById('corpo-historico');
   const historicoVazio = document.getElementById('historico-vazio');
-  const tabelaWrapperHistorico = document.querySelector('.tabela-wrapper-historico');
+  const tabelaWrapperHistorico = document.querySelector('.rolagem-tabela');
 
   let produtos = [];
   let saidas = [];
@@ -148,16 +147,17 @@
         tr.appendChild(tdProduto);
 
         const tdCategoria = document.createElement('td');
-        tdCategoria.className = 'col-categoria';
+        tdCategoria.className = 'oculta-estreito';
         tdCategoria.textContent = saida.categoria_nome;
         tr.appendChild(tdCategoria);
 
         const tdQuantidade = document.createElement('td');
+        tdQuantidade.className = 'direita';
         tdQuantidade.textContent = String(saida.quantidade);
         tr.appendChild(tdQuantidade);
 
         const tdMotivo = document.createElement('td');
-        tdMotivo.className = 'col-motivo';
+        tdMotivo.className = 'oculta-estreito';
         tdMotivo.textContent = saida.motivo;
         tr.appendChild(tdMotivo);
 
@@ -186,7 +186,6 @@
 
   function limparFormulario() {
     form.reset();
-    confirmacao.textContent = '';
     erroGeral.hidden = true;
     atualizarCartaoEstoque(null);
     atualizarPreviaEstoque();
@@ -207,7 +206,6 @@
   form.addEventListener('submit', async (evento) => {
     evento.preventDefault();
     erroGeral.hidden = true;
-    confirmacao.textContent = '';
 
     const produto = produtoSelecionado();
     const quantidade = Number(campoQuantidade.value);
@@ -249,7 +247,7 @@
       campoProduto.value = String(produto.id);
       atualizarCartaoEstoque(produto);
 
-      confirmacao.textContent = `Saída registrada: ${quantidade} un. de "${produto.nome}". Estoque atual: ${resultado.estoque_restante} un.`;
+      exibirAviso(`Saída registrada: ${quantidade} un. de "${produto.nome}". Estoque atual: ${resultado.estoque_restante} un.`);
 
       campoQuantidade.value = '';
       campoMotivo.value = '';

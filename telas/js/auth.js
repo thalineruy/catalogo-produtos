@@ -1,5 +1,6 @@
 const CHAVE_TOKEN = 'catalogo_token';
 const CHAVE_USUARIO = 'catalogo_usuario';
+const CHAVE_COOKIES = 'catalogo_cookies_aceitos';
 
 function obterToken() {
   return localStorage.getItem(CHAVE_TOKEN);
@@ -47,6 +48,38 @@ async function carregarLogoBarraSuperior() {
   }
 }
 
+let temporizadorAviso = null;
+
+function exibirAviso(mensagem) {
+  const toast = document.getElementById('toast-aviso');
+  if (!toast) return;
+  toast.textContent = mensagem;
+  toast.hidden = false;
+  clearTimeout(temporizadorAviso);
+  temporizadorAviso = setTimeout(() => {
+    toast.hidden = true;
+  }, 10000);
+}
+
+function iniciarBarraCookies() {
+  const barra = document.getElementById('barra-cookies');
+  if (!barra) return;
+
+  if (localStorage.getItem(CHAVE_COOKIES) === 'sim') {
+    barra.hidden = true;
+    return;
+  }
+
+  barra.hidden = false;
+  const botao = document.getElementById('botao-aceitar-cookies');
+  if (botao) {
+    botao.addEventListener('click', () => {
+      localStorage.setItem(CHAVE_COOKIES, 'sim');
+      barra.hidden = true;
+    });
+  }
+}
+
 function montarBarraNavegacao({ exigirLogin = false } = {}) {
   const usuario = obterUsuario();
 
@@ -56,18 +89,22 @@ function montarBarraNavegacao({ exigirLogin = false } = {}) {
   }
 
   carregarLogoBarraSuperior();
+  iniciarBarraCookies();
 
   const elementoUsuario = document.getElementById('usuario-logado');
+  const elementoInicial = document.getElementById('usuario-inicial');
+  const elementoNome = document.getElementById('usuario-nome');
+  const elementoNivel = document.getElementById('usuario-nivel');
   const botaoSair = document.getElementById('botao-sair');
   const linkEntrar = document.getElementById('link-entrar');
   const linkAdministracao = document.getElementById('link-administracao');
 
   if (usuario) {
-    if (elementoUsuario) {
-      const nivel = usuario.nivel === 'administrador' ? 'Administrador' : 'Operador';
-      elementoUsuario.textContent = `${usuario.nome} (${nivel})`;
-      elementoUsuario.hidden = false;
-    }
+    const nivelTexto = usuario.nivel === 'administrador' ? 'Administrador' : 'Operador';
+    if (elementoUsuario) elementoUsuario.hidden = false;
+    if (elementoInicial) elementoInicial.textContent = usuario.nome.trim().charAt(0).toUpperCase();
+    if (elementoNome) elementoNome.textContent = usuario.nome;
+    if (elementoNivel) elementoNivel.textContent = nivelTexto;
     if (botaoSair) {
       botaoSair.hidden = false;
       botaoSair.addEventListener('click', () => {

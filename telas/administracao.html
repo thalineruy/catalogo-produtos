@@ -4,254 +4,282 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Administração</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/estilo.css">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilo.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 </head>
 <body>
   <a class="pular-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
 
-  <header class="cabecalho">
-    <div class="cabecalho-conteudo">
-      <img id="logo-barra-superior" class="logo-barra-superior" alt="Logotipo da empresa" hidden>
-      <div>
-        <h1>Administração</h1>
-        <p class="cabecalho-subtitulo">Configurações da empresa, categorias, usuários e estatísticas gerais.</p>
+  <div class="aplicacao">
+    <div class="lateral">
+      <div class="marca">
+        <img id="logo-barra-superior" alt="Logotipo da empresa" hidden>
+        <strong>Catálogo de Produtos</strong>
       </div>
-    </div>
-  </header>
-
-  <nav class="barra-navegacao" aria-label="Navegação principal">
-    <a href="index.html">Catálogo</a>
-    <a href="saida.html">Saída de produtos</a>
-    <a href="logs.html">Logs</a>
-    <a href="relatorios.html">Relatórios</a>
-    <a href="administracao.html" id="link-administracao" aria-current="page" hidden>Administração</a>
-    <span class="usuario-logado" id="usuario-logado" hidden></span>
-    <button type="button" id="botao-sair" class="botao botao-secundario" hidden>Sair</button>
-  </nav>
-
-  <main id="conteudo-principal" class="conteudo">
-    <div id="area-restrita" class="estado-vazio" hidden>
-      <p><strong>Área restrita.</strong> Esta seção é exclusiva para usuários com nível Administrador.</p>
-      <p class="texto-auxiliar">Fale com um administrador do sistema se precisar de acesso.</p>
+      <nav class="menu" aria-label="Navegação principal">
+        <a href="index.html">Catálogo</a>
+        <a href="saida.html">Saída de produtos</a>
+        <a href="logs.html">Logs</a>
+        <a href="relatorios.html">Relatórios</a>
+        <a href="administracao.html" id="link-administracao" aria-current="page" hidden>Administração</a>
+      </nav>
     </div>
 
-    <div id="conteudo-administracao" hidden>
-      <!-- 1. Configurações Gerais -->
-      <section class="painel-admin" aria-labelledby="titulo-config-gerais">
-        <h2 id="titulo-config-gerais">1. Configurações Gerais</h2>
-
-        <div class="interruptor-linha">
-          <button type="button" id="interruptor-erp" class="interruptor-erp" role="switch" aria-pressed="false">
-            <span class="interruptor-trilho" aria-hidden="true"><span class="interruptor-bolinha"></span></span>
-            <span>Ativar modo de integração com ERP (demonstrativo)</span>
-          </button>
-          <span id="erp-estado-texto" class="rotulo-estado">Desativado</span>
+    <div class="area-principal">
+      <div class="topo">
+        <div class="topo-acoes">
+          <a href="login.html" id="link-entrar" class="botao botao-texto" hidden>Entrar</a>
+          <div class="usuario" id="usuario-logado" hidden>
+            <span class="inicial" id="usuario-inicial" aria-hidden="true"></span>
+            <span id="usuario-nome"></span>
+            <span class="nivel" id="usuario-nivel"></span>
+          </div>
+          <button type="button" id="botao-sair" class="botao botao-contorno" hidden>Sair</button>
         </div>
+      </div>
 
-        <div id="erp-simulacao" class="caixa-simulacao-erp" hidden>
-          <p><strong>Demonstrativo:</strong> esta é uma simulação visual. Nenhuma integração real está ativa.</p>
-          <p>
-            Em uma integração real, o sistema trocaria dados com o ERP da empresa por uma API autenticada por
-            token (enviado no cabeçalho <code>Authorization</code>), sincronizando produtos, estoque e saídas
-            automaticamente em intervalos regulares.
-          </p>
-          <div id="erp-log-simulado" class="erp-log-simulado" aria-live="polite"></div>
-        </div>
-      </section>
-
-      <!-- 2. Dados da Empresa -->
-      <section class="painel-admin" aria-labelledby="titulo-dados-empresa">
-        <h2 id="titulo-dados-empresa">2. Dados da Empresa</h2>
-
-        <form id="form-empresa" novalidate>
-          <div class="grade-filtros">
-            <div class="campo">
-              <label for="empresa-nome">Nome</label>
-              <input type="text" id="empresa-nome" name="nome" required>
-            </div>
-            <div class="campo">
-              <label for="empresa-cnpj">CNPJ</label>
-              <input type="text" id="empresa-cnpj" name="cnpj" placeholder="00.000.000/0000-00" required>
-            </div>
-            <div class="campo">
-              <label for="empresa-telefone">Telefone</label>
-              <input type="text" id="empresa-telefone" name="telefone">
-            </div>
-            <div class="campo">
-              <label for="empresa-email">E-mail</label>
-              <input type="email" id="empresa-email" name="email">
-            </div>
-          </div>
-          <div class="campo">
-            <label for="empresa-endereco">Endereço</label>
-            <input type="text" id="empresa-endereco" name="endereco">
-          </div>
-          <div class="campo">
-            <label for="empresa-responsavel">Responsável</label>
-            <input type="text" id="empresa-responsavel" name="responsavel">
-          </div>
-
-          <p id="empresa-confirmacao" class="confirmacao" aria-live="polite" role="status"></p>
-          <p id="empresa-erro" class="mensagem-erro" role="alert" hidden></p>
-
-          <div class="acoes-filtros">
-            <button type="button" id="botao-descartar-empresa" class="botao botao-secundario">Descartar</button>
-            <button type="submit" class="botao botao-primario">Salvar</button>
-          </div>
-        </form>
-      </section>
-
-      <!-- 3. Logotipo -->
-      <section class="painel-admin" aria-labelledby="titulo-logotipo">
-        <h2 id="titulo-logotipo">3. Logotipo</h2>
-
-        <div class="logotipo-layout">
+      <main id="conteudo-principal" class="conteudo">
+        <div class="titulo-tela">
           <div>
-            <p class="texto-auxiliar">Pré-visualização atual</p>
-            <div class="logotipo-preview-wrapper">
-              <img id="logotipo-preview" class="logotipo-preview" alt="Logotipo atual da empresa" hidden>
-              <span id="logotipo-preview-vazio" class="produto-imagem-padrao logotipo-preview-vazio" aria-hidden="true">🖼</span>
+            <h1>Administração</h1>
+            <p class="apagado">Configurações da empresa, categorias, usuários e estatísticas gerais.</p>
+          </div>
+        </div>
+
+        <div id="area-restrita" class="vazio" hidden>
+          <h3>Área restrita</h3>
+          <p>Esta seção é exclusiva para usuários com nível Administrador. Fale com um administrador do sistema se precisar de acesso.</p>
+        </div>
+
+        <div id="conteudo-administracao" hidden>
+          <!-- 1. Configurações Gerais -->
+          <section class="painel" aria-labelledby="titulo-config-gerais">
+            <div class="painel-cabeca" id="titulo-config-gerais">1. Configurações Gerais</div>
+            <div class="painel-corpo">
+              <div class="interruptor-linha">
+                <button type="button" id="interruptor-erp" class="interruptor-erp" role="switch" aria-pressed="false">
+                  <span class="interruptor-trilho" aria-hidden="true"><span class="interruptor-bolinha"></span></span>
+                  <span>Ativar modo de integração com ERP (demonstrativo)</span>
+                </button>
+                <span id="erp-estado-texto" class="rotulo-estado">Desativado</span>
+              </div>
+
+              <div id="erp-simulacao" class="caixa-simulacao-erp" hidden>
+                <p><strong>Demonstrativo:</strong> esta é uma simulação visual. Nenhuma integração real está ativa.</p>
+                <p>
+                  Em uma integração real, o sistema trocaria dados com o ERP da empresa por uma API autenticada
+                  por token (enviado no cabeçalho <code>Authorization</code>), sincronizando produtos, estoque e
+                  saídas automaticamente em intervalos regulares.
+                </p>
+                <div id="erp-log-simulado" class="erp-log-simulado" aria-live="polite"></div>
+              </div>
             </div>
-          </div>
+          </section>
 
-          <div class="area-arrastar" id="area-arrastar-logo" tabindex="0" role="button"
-               aria-label="Arraste uma imagem aqui ou pressione Enter para selecionar um arquivo">
-            <p>Arraste uma imagem aqui, ou</p>
-            <button type="button" id="botao-selecionar-logo" class="botao botao-secundario">Selecionar arquivo</button>
-            <input type="file" id="campo-logo" accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml" hidden>
-            <p class="texto-auxiliar">Formatos aceitos: PNG, JPG ou SVG. Tamanho máximo: 2 MB.</p>
-          </div>
+          <!-- 2. Dados da Empresa -->
+          <section class="painel" aria-labelledby="titulo-dados-empresa">
+            <div class="painel-cabeca" id="titulo-dados-empresa">2. Dados da Empresa</div>
+            <div class="painel-corpo">
+              <form id="form-empresa" novalidate>
+                <div class="filtros">
+                  <div class="campo">
+                    <label for="empresa-nome">Nome</label>
+                    <input type="text" id="empresa-nome" name="nome" class="entrada" required>
+                  </div>
+                  <div class="campo">
+                    <label for="empresa-cnpj">CNPJ</label>
+                    <input type="text" id="empresa-cnpj" name="cnpj" class="entrada" placeholder="00.000.000/0000-00" required>
+                  </div>
+                  <div class="campo">
+                    <label for="empresa-telefone">Telefone</label>
+                    <input type="text" id="empresa-telefone" name="telefone" class="entrada">
+                  </div>
+                  <div class="campo">
+                    <label for="empresa-email">E-mail</label>
+                    <input type="email" id="empresa-email" name="email" class="entrada">
+                  </div>
+                </div>
+                <div class="campo">
+                  <label for="empresa-endereco">Endereço</label>
+                  <input type="text" id="empresa-endereco" name="endereco" class="entrada">
+                </div>
+                <div class="campo">
+                  <label for="empresa-responsavel">Responsável</label>
+                  <input type="text" id="empresa-responsavel" name="responsavel" class="entrada">
+                </div>
+
+                <p id="empresa-erro" class="erro-geral" role="alert" hidden></p>
+
+                <div class="titulo-tela">
+                  <div class="acoes">
+                    <button type="button" id="botao-descartar-empresa" class="botao botao-contorno">Descartar</button>
+                    <button type="submit" class="botao botao-principal">Salvar</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <!-- 3. Logotipo -->
+          <section class="painel" aria-labelledby="titulo-logotipo">
+            <div class="painel-cabeca" id="titulo-logotipo">3. Logotipo</div>
+            <div class="painel-corpo">
+              <div class="logotipo-layout">
+                <div>
+                  <p class="rotulo">Pré-visualização atual</p>
+                  <img id="logotipo-preview" class="logotipo-preview" alt="Logotipo atual da empresa" hidden>
+                  <span id="logotipo-preview-vazio" class="logotipo-preview-vazio" aria-hidden="true">🖼</span>
+                </div>
+
+                <div class="area-arrastar" id="area-arrastar-logo" tabindex="0" role="button"
+                     aria-label="Arraste uma imagem aqui ou pressione Enter para selecionar um arquivo">
+                  <p>Arraste uma imagem aqui, ou</p>
+                  <button type="button" id="botao-selecionar-logo" class="botao botao-contorno">Selecionar arquivo</button>
+                  <input type="file" id="campo-logo" accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml" hidden>
+                  <p class="apagado">Formatos aceitos: PNG, JPG ou SVG. Tamanho máximo: 2 MB.</p>
+                </div>
+              </div>
+
+              <p id="logotipo-erro" class="erro-geral" role="alert" hidden></p>
+            </div>
+          </section>
+
+          <!-- 4. Gerenciar Categorias -->
+          <section class="painel" aria-labelledby="titulo-categorias">
+            <div class="painel-cabeca" id="titulo-categorias">4. Gerenciar Categorias</div>
+            <div class="painel-corpo">
+              <form id="form-nova-categoria" class="filtros">
+                <div class="campo">
+                  <label for="nova-categoria-nome">Nova categoria</label>
+                  <input type="text" id="nova-categoria-nome" name="nome" class="entrada" placeholder="Nome da categoria" required>
+                </div>
+                <button type="submit" class="botao botao-principal">Criar categoria</button>
+              </form>
+
+              <p id="categorias-erro" class="erro-geral" role="alert" hidden></p>
+
+              <div class="rolagem-tabela">
+                <table class="tabela">
+                  <caption class="apenas-leitor">Categorias cadastradas, com a quantidade de produtos vinculados</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Nome</th>
+                      <th scope="col" class="direita">Produtos vinculados</th>
+                      <th scope="col">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="corpo-categorias"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- 5. Gerenciar Usuários -->
+          <section class="painel" aria-labelledby="titulo-usuarios">
+            <div class="painel-cabeca" id="titulo-usuarios">5. Gerenciar Usuários</div>
+            <div class="painel-corpo">
+              <form id="form-novo-usuario" class="filtros">
+                <div class="campo">
+                  <label for="novo-usuario-nome">Nome</label>
+                  <input type="text" id="novo-usuario-nome" name="nome" class="entrada" required>
+                </div>
+                <div class="campo">
+                  <label for="novo-usuario-email">E-mail</label>
+                  <input type="email" id="novo-usuario-email" name="email" class="entrada" required>
+                </div>
+                <div class="campo">
+                  <label for="novo-usuario-nivel">Nível</label>
+                  <select id="novo-usuario-nivel" name="nivel" class="selecao">
+                    <option value="operador">Operador</option>
+                    <option value="administrador">Administrador</option>
+                  </select>
+                </div>
+                <button type="submit" class="botao botao-principal">Criar usuário</button>
+              </form>
+
+              <p id="usuarios-erro" class="erro-geral" role="alert" hidden></p>
+
+              <div class="rolagem-tabela">
+                <table class="tabela">
+                  <caption class="apenas-leitor">Usuários cadastrados, com nível de acesso e ações</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Nome</th>
+                      <th scope="col">E-mail</th>
+                      <th scope="col">Nível</th>
+                      <th scope="col">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="corpo-usuarios"></tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- 6. Estatísticas Gerais -->
+          <section class="painel" aria-labelledby="titulo-estatisticas">
+            <div class="painel-cabeca" id="titulo-estatisticas">6. Estatísticas Gerais</div>
+            <div class="painel-corpo">
+              <div class="indicadores" id="grade-estatisticas"></div>
+
+              <div class="duas-colunas">
+                <div class="painel">
+                  <div class="painel-corpo">
+                    <h3>Saídas por mês (últimos 6 meses)</h3>
+                    <canvas id="grafico-saidas-mes" role="img" aria-describedby="tabela-saidas-mes-titulo" height="220"></canvas>
+                    <details>
+                      <summary id="tabela-saidas-mes-titulo">Ver dados em tabela</summary>
+                      <table class="tabela">
+                        <caption class="apenas-leitor">Saídas por mês, com registros e unidades</caption>
+                        <thead>
+                          <tr>
+                            <th scope="col">Mês</th>
+                            <th scope="col" class="direita">Registros</th>
+                            <th scope="col" class="direita">Unidades</th>
+                          </tr>
+                        </thead>
+                        <tbody id="corpo-tabela-saidas-mes"></tbody>
+                      </table>
+                    </details>
+                  </div>
+                </div>
+
+                <div class="painel">
+                  <div class="painel-corpo">
+                    <h3>Unidades em estoque por categoria</h3>
+                    <canvas id="grafico-estoque-categoria" role="img" aria-describedby="tabela-estoque-categoria-titulo" height="220"></canvas>
+                    <details>
+                      <summary id="tabela-estoque-categoria-titulo">Ver dados em tabela</summary>
+                      <table class="tabela">
+                        <caption class="apenas-leitor">Unidades em estoque por categoria</caption>
+                        <thead>
+                          <tr>
+                            <th scope="col">Categoria</th>
+                            <th scope="col" class="direita">Unidades em estoque</th>
+                          </tr>
+                        </thead>
+                        <tbody id="corpo-tabela-estoque-categoria"></tbody>
+                      </table>
+                    </details>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
-
-        <p id="logotipo-confirmacao" class="confirmacao" aria-live="polite" role="status"></p>
-        <p id="logotipo-erro" class="mensagem-erro" role="alert" hidden></p>
-      </section>
-
-      <!-- 4. Gerenciar Categorias -->
-      <section class="painel-admin" aria-labelledby="titulo-categorias">
-        <h2 id="titulo-categorias">4. Gerenciar Categorias</h2>
-
-        <form id="form-nova-categoria" class="linha-formulario-inline">
-          <div class="campo campo-inline">
-            <label for="nova-categoria-nome">Nova categoria</label>
-            <input type="text" id="nova-categoria-nome" name="nome" placeholder="Nome da categoria" required>
-          </div>
-          <button type="submit" class="botao botao-primario">Criar categoria</button>
-        </form>
-
-        <p id="categorias-confirmacao" class="confirmacao" aria-live="polite" role="status"></p>
-        <p id="categorias-erro" class="mensagem-erro" role="alert" hidden></p>
-
-        <div class="tabela-wrapper">
-          <table class="tabela-produtos">
-            <caption class="visualmente-oculto">Categorias cadastradas, com a quantidade de produtos vinculados</caption>
-            <thead>
-              <tr>
-                <th scope="col">Nome</th>
-                <th scope="col">Produtos vinculados</th>
-                <th scope="col">Ações</th>
-              </tr>
-            </thead>
-            <tbody id="corpo-categorias"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- 5. Gerenciar Usuários -->
-      <section class="painel-admin" aria-labelledby="titulo-usuarios">
-        <h2 id="titulo-usuarios">5. Gerenciar Usuários</h2>
-
-        <form id="form-novo-usuario" class="grade-filtros">
-          <div class="campo">
-            <label for="novo-usuario-nome">Nome</label>
-            <input type="text" id="novo-usuario-nome" name="nome" required>
-          </div>
-          <div class="campo">
-            <label for="novo-usuario-email">E-mail</label>
-            <input type="email" id="novo-usuario-email" name="email" required>
-          </div>
-          <div class="campo">
-            <label for="novo-usuario-nivel">Nível</label>
-            <select id="novo-usuario-nivel" name="nivel">
-              <option value="operador">Operador</option>
-              <option value="administrador">Administrador</option>
-            </select>
-          </div>
-          <div class="campo campo-botao-alinhado">
-            <button type="submit" class="botao botao-primario">Criar usuário</button>
-          </div>
-        </form>
-
-        <p id="usuarios-confirmacao" class="confirmacao" aria-live="polite" role="status"></p>
-        <p id="usuarios-erro" class="mensagem-erro" role="alert" hidden></p>
-
-        <div class="tabela-wrapper">
-          <table class="tabela-produtos">
-            <caption class="visualmente-oculto">Usuários cadastrados, com nível de acesso e ações</caption>
-            <thead>
-              <tr>
-                <th scope="col">Nome</th>
-                <th scope="col">E-mail</th>
-                <th scope="col">Nível</th>
-                <th scope="col">Ações</th>
-              </tr>
-            </thead>
-            <tbody id="corpo-usuarios"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- 6. Estatísticas Gerais -->
-      <section class="painel-admin" aria-labelledby="titulo-estatisticas">
-        <h2 id="titulo-estatisticas">6. Estatísticas Gerais</h2>
-
-        <div class="grade-estatisticas" id="grade-estatisticas"></div>
-
-        <div class="grade-graficos">
-          <div class="cartao-grafico">
-            <h3>Saídas por mês (últimos 6 meses)</h3>
-            <canvas id="grafico-saidas-mes" role="img" aria-describedby="tabela-saidas-mes-titulo" height="220"></canvas>
-            <details class="detalhes-tabela-grafico">
-              <summary id="tabela-saidas-mes-titulo">Ver dados em tabela</summary>
-              <table class="tabela-produtos">
-                <caption class="visualmente-oculto">Saídas por mês, com registros e unidades</caption>
-                <thead>
-                  <tr>
-                    <th scope="col">Mês</th>
-                    <th scope="col">Registros</th>
-                    <th scope="col">Unidades</th>
-                  </tr>
-                </thead>
-                <tbody id="corpo-tabela-saidas-mes"></tbody>
-              </table>
-            </details>
-          </div>
-
-          <div class="cartao-grafico">
-            <h3>Unidades em estoque por categoria</h3>
-            <canvas id="grafico-estoque-categoria" role="img" aria-describedby="tabela-estoque-categoria-titulo" height="220"></canvas>
-            <details class="detalhes-tabela-grafico">
-              <summary id="tabela-estoque-categoria-titulo">Ver dados em tabela</summary>
-              <table class="tabela-produtos">
-                <caption class="visualmente-oculto">Unidades em estoque por categoria</caption>
-                <thead>
-                  <tr>
-                    <th scope="col">Categoria</th>
-                    <th scope="col">Unidades em estoque</th>
-                  </tr>
-                </thead>
-                <tbody id="corpo-tabela-estoque-categoria"></tbody>
-              </table>
-            </details>
-          </div>
-        </div>
-      </section>
+      </main>
     </div>
-  </main>
+  </div>
+
+  <div class="aviso" id="toast-aviso" role="status" aria-live="polite" hidden></div>
+
+  <div class="barra-cookies" id="barra-cookies" hidden>
+    <div>
+      <p>Usamos cookies apenas para manter sua sessão neste sistema. Nenhum dado é compartilhado com terceiros.</p>
+      <button type="button" id="botao-aceitar-cookies" class="botao botao-principal">Entendi</button>
+    </div>
+  </div>
 
   <script src="config.js"></script>
   <script src="js/auth.js"></script>

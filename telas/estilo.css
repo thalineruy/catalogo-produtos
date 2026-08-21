@@ -1,0 +1,740 @@
+/* ============================================================
+   Catálogo de Produtos — folha de estilo do sistema
+   Extraída do mockup aprovado. Copiar para telas/estilo.css e
+   referenciar em toda página: <link rel="stylesheet" href="estilo.css">
+
+   Regra de ouro: nenhuma tela escreve cor, fonte ou espaçamento
+   próprio. Tudo sai das variáveis e das classes abaixo. Se algo
+   não existe aqui, acrescente aqui — não na página.
+   ============================================================ */
+
+/* ---------- 1. Tokens ---------- */
+
+:root,
+[data-tema="claro"] {
+  --bg: #f3f2f2;
+  --superficie: #eae9e9;
+  --tinta: #201e1d;
+  --divisor: rgba(32, 30, 29, .4);
+  --linha: rgba(32, 30, 29, .18);
+  --apagado: rgba(32, 30, 29, .55);
+  --destaque: #ec3013;
+  --destaque-forte: #dd2b0f;
+  --destaque-claro: #fff2ef;
+  --destaque-escuro: #7c1405;
+  --neutro-claro: #f8f4f4;
+  --neutro-escuro: #444141;
+  --sobre: rgba(32, 30, 29, .05);
+
+  --passo: 4px;
+  --alvo: 44px;                 /* altura mínima de qualquer botão */
+  --sombra: 0 8px 24px rgba(45, 43, 43, .24);
+  --sombra-alta: 0 12px 32px rgba(45, 43, 43, .35);
+}
+
+[data-tema="escuro"] {
+  --bg: #201e1d;
+  --superficie: #2d2b2b;
+  --tinta: #f3f2f2;
+  --divisor: rgba(243, 242, 242, .34);
+  --linha: rgba(243, 242, 242, .16);
+  --apagado: rgba(243, 242, 242, .55);
+  --destaque: #ff563c;
+  --destaque-forte: #ff6f58;
+  --destaque-claro: #4d170e;
+  --destaque-escuro: #ffc4b8;
+  --neutro-claro: #444141;
+  --neutro-escuro: #eae7e7;
+  --sobre: rgba(243, 242, 242, .07);
+}
+
+/* ---------- 2. Base ---------- */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { margin: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--tinta);
+  font-family: "Archivo", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-family: inherit;
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -.015em;
+  text-wrap: pretty;
+}
+
+h1 { font-size: clamp(34px, 5.4vw, 56px); }
+h2 { font-size: clamp(24px, 3.4vw, 30px); }
+h3 { font-size: 20px; }
+
+p { margin: 0; text-wrap: pretty; }
+
+a { color: var(--destaque-escuro); text-underline-offset: 3px; }
+a:hover { color: var(--destaque); }
+
+img, svg { max-width: 100%; }
+
+button, input, select, textarea { font: inherit; color: inherit; }
+
+/* Cantos retos em todo o sistema, inclusive no que o navegador arredonda */
+button, input, select, textarea, .cartao, .painel { border-radius: 0; }
+
+select { appearance: none; background-image: none; }
+
+:focus { outline: none; }
+:focus-visible { outline: 2px solid var(--destaque); outline-offset: 2px; }
+::selection { background: rgba(236, 48, 19, .3); }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: rgba(128, 128, 128, .4); }
+
+/* Texto só para leitor de tela */
+.apenas-leitor {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ---------- 3. Rótulos e microtexto ---------- */
+
+.rotulo {
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--apagado);
+}
+.rotulo-destaque { color: var(--destaque); }
+.apagado { color: var(--apagado); }
+.mono { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; }
+.numero { font-variant-numeric: tabular-nums; }
+
+/* ---------- 4. Botões ---------- */
+
+.botao {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--alvo);
+  padding: 10px 16px;
+  border: 0;
+  background: none;
+  font-size: 14px;
+  font-weight: 800;
+  text-align: left;             /* rótulo sempre à esquerda */
+  cursor: pointer;
+}
+
+.botao-principal { background: var(--destaque); color: #fff; }
+.botao-principal:hover { background: var(--destaque-forte); }
+
+.botao-contorno { border: 1px solid var(--divisor); }
+.botao-contorno:hover { background: var(--sobre); }
+
+.botao-texto { min-height: auto; padding: 0; color: var(--destaque); font-size: 12px; }
+.botao-texto:hover { opacity: .7; }
+
+.botao-icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--alvo);
+  height: var(--alvo);
+  border: 1px solid var(--divisor);
+  background: none;
+  cursor: pointer;
+}
+.botao-icone:hover { background: var(--sobre); }
+.botao-icone-perigo { color: var(--destaque); }
+.botao-icone-perigo:hover { background: var(--destaque-claro); }
+
+.botao:disabled, .botao-icone:disabled { opacity: .45; cursor: not-allowed; }
+
+/* Cadeado de função restrita */
+.restrito {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--alvo);
+  height: var(--alvo);
+  border: 1px dashed var(--divisor);
+  color: var(--apagado);
+}
+
+/* ---------- 5. Campos ---------- */
+
+.campo { display: flex; flex-direction: column; gap: 5px; }
+
+.campo > label { font-size: 12px; color: var(--apagado); }
+
+.entrada, .selecao, .area {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1px solid var(--divisor);
+  color: var(--tinta);
+  font-size: 14px;
+}
+.area { min-height: 74px; resize: vertical; }
+
+.entrada:disabled, .selecao:disabled { opacity: .5; }
+
+/* Campo preenchido pelo sistema, não editável */
+.entrada-fixa {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 8px 10px;
+  background: var(--bg);
+  border: 1px dashed var(--divisor);
+  font-size: 14px;
+}
+
+/* Busca com lupa */
+.busca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 260px;
+  min-width: 0;
+  min-height: 40px;
+  padding: 0 12px;
+  background: var(--bg);
+  border: 1px solid var(--divisor);
+}
+.busca input { flex: 1; min-width: 0; padding: 8px 0; border: 0; background: transparent; font-size: 14px; }
+
+/* Erro de validação, sempre com texto — nunca só cor */
+.entrada[aria-invalid="true"] { border-color: var(--destaque); border-width: 2px; }
+.erro-campo { font-size: 12px; color: var(--destaque-escuro); font-weight: 600; }
+
+fieldset { margin: 0; padding: 0; border: 0; }
+legend { padding: 0; font-size: 12px; color: var(--apagado); }
+
+/* ---------- 6. Painéis ---------- */
+
+.painel { background: var(--superficie); border: 1px solid var(--divisor); }
+
+.painel-cabeca {
+  padding: 14px;
+  border-bottom: 2px solid var(--divisor);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.painel-corpo { padding: 16px; }
+.painel-pe {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  border-top: 2px solid var(--divisor);
+  font-size: 12px;
+  color: var(--apagado);
+}
+
+/* ---------- 7. Tabelas ---------- */
+
+.rolagem-tabela { overflow-x: auto; }
+
+.tabela { width: 100%; border-collapse: collapse; font-size: 14px; }
+.tabela caption { text-align: left; padding: 0 14px 10px; font-size: 12px; color: var(--apagado); }
+
+.tabela th {
+  padding: 10px 14px;
+  border-bottom: 2px solid var(--divisor);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--apagado);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.tabela td { padding: 11px 14px; border-bottom: 1px solid var(--linha); vertical-align: middle; }
+.tabela .direita, .tabela th.direita { text-align: right; }
+.tabela tbody tr:hover { background: var(--sobre); }
+
+/* Miniatura do produto; sem imagem, a padrão com ícone */
+.miniatura, .miniatura-vazia {
+  width: 48px; height: 48px;
+  border: 1px solid var(--divisor);
+  object-fit: cover;
+  display: block;
+}
+.miniatura-vazia {
+  display: flex; align-items: center; justify-content: center;
+  background: var(--neutro-claro);
+  color: var(--apagado);
+}
+
+/* ---------- 8. Etiquetas de estado ---------- */
+
+.etiqueta {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  font-size: 11px;
+  background: var(--neutro-claro);
+  color: var(--neutro-escuro);
+  white-space: nowrap;
+}
+.etiqueta-alerta { background: var(--destaque-claro); color: var(--destaque-escuro); }
+
+.quantidade-alerta { color: var(--destaque); font-weight: 600; }
+
+/* ---------- 9. Estrutura do sistema ---------- */
+
+.aplicacao {
+  display: grid;
+  grid-template-columns: clamp(196px, 19vw, 236px) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.lateral {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  border-right: 2px solid var(--divisor);
+}
+
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-bottom: 2px solid var(--divisor);
+}
+.marca img { width: 34px; height: 34px; object-fit: contain; }
+
+.menu { display: flex; flex-direction: column; padding: 8px 0; gap: 2px; }
+
+.menu a {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--alvo);
+  padding: 10px 16px;
+  color: var(--tinta);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.menu a:hover { background: var(--sobre); color: var(--tinta); }
+.menu a[aria-current="page"] { background: var(--destaque-claro); }
+.menu a[aria-current="page"]::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; background: var(--destaque);
+}
+.menu .cadeado { margin-left: auto; opacity: .6; }
+
+.topo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px clamp(14px, 2vw, 24px);
+  background: var(--bg);
+  border-bottom: 2px solid var(--divisor);
+}
+.topo-acoes { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+
+.usuario {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 12px;
+  border-left: 2px solid var(--divisor);
+}
+.usuario .inicial {
+  display: flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px;
+  background: var(--tinta); color: var(--bg);
+  font-size: 12px; font-weight: 800;
+}
+.usuario .nivel { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--destaque); }
+
+.conteudo { padding: clamp(14px, 2vw, 24px); min-width: 0; }
+
+.titulo-tela {
+  display: flex;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.titulo-tela .acoes { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ---------- 10. Grades ---------- */
+
+.filtros {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  align-items: end;
+  padding: 12px 14px;
+  border-bottom: 2px solid var(--divisor);
+}
+
+.duas-colunas { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; align-items: start; }
+.tres-colunas { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; align-items: start; }
+
+.indicadores { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); border-bottom: 2px solid var(--divisor); }
+.indicadores > div { padding: 16px; }
+.indicadores > div + div { border-left: 1px solid var(--linha); }
+.indicadores .valor { font-size: 30px; font-weight: 800; }
+.indicadores .valor-alerta { color: var(--destaque); }
+
+/* ---------- 11. Estado vazio ---------- */
+
+.vazio { padding: 56px 24px; border-top: 1px solid var(--linha); }
+.vazio h3 { margin: 14px 0 6px; }
+.vazio p { max-width: 44em; color: var(--apagado); font-size: 13px; }
+
+/* ---------- 12. Aviso, modal e cookies ---------- */
+
+.aviso {
+  position: fixed;
+  right: clamp(12px, 2vw, 24px);
+  bottom: 96px;
+  z-index: 55;
+  display: flex;
+  gap: 12px;
+  width: min(380px, calc(100vw - 24px));
+  padding: 14px 16px;
+  background: var(--superficie);
+  border: 1px solid var(--divisor);
+  border-left: 3px solid var(--destaque);
+  box-shadow: var(--sombra);
+  font-size: 13px;
+}
+
+.fundo-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: clamp(12px, 2.4vh, 24px);
+  background: rgba(45, 43, 43, .55);
+  overflow: auto;
+}
+.modal {
+  width: min(620px, 100%);
+  margin: auto;
+  background: var(--superficie);
+  border: 1px solid var(--divisor);
+  box-shadow: var(--sombra-alta);
+}
+.modal-cabeca,
+.modal-pe {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 16px;
+}
+.modal-cabeca { justify-content: space-between; border-bottom: 2px solid var(--divisor); }
+.modal-pe { border-top: 2px solid var(--divisor); }
+.modal-corpo { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; padding: 16px; }
+.modal-corpo .largura-total { grid-column: 1 / -1; }
+
+.barra-cookies {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 50;
+  background: var(--superficie);
+  border-top: 2px solid var(--divisor);
+  box-shadow: 0 -6px 24px rgba(45, 43, 43, .18);
+}
+.barra-cookies > div {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 14px clamp(14px, 2vw, 24px);
+}
+.barra-cookies p { flex: 1 1 260px; min-width: 0; font-size: 13px; }
+
+/* ---------- 13. Tela de entrada ---------- */
+
+.entrada-sistema { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); min-height: 100vh; }
+
+.entrada-arte {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 24px;
+  padding: clamp(24px, 4vw, 40px) clamp(20px, 4vw, 56px);
+  background: var(--tinta);
+  color: var(--bg);
+  border-right: 2px solid var(--divisor);
+  overflow: hidden;
+}
+.entrada-arte a { color: var(--bg); }
+
+.entrada-forma {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 520px;
+  padding: clamp(24px, 4vw, 40px) clamp(20px, 4vw, 56px);
+}
+
+/* Código de seis dígitos */
+.codigo { display: flex; gap: clamp(4px, 1vw, 8px); }
+.codigo input {
+  width: 100%;
+  min-width: 0;
+  min-height: 52px;
+  padding: 8px 2px;
+  background: var(--superficie);
+  border: 1px solid var(--divisor);
+  color: var(--tinta);
+  font-family: ui-monospace, monospace;
+  font-size: clamp(17px, 3.2vw, 22px);
+  font-weight: 800;
+  text-align: center;
+}
+.codigo input:focus-visible { border-color: var(--destaque); }
+
+/* ---------- 14. Telas estreitas ---------- */
+
+@media (max-width: 900px) {
+  .aplicacao { grid-template-columns: 1fr; }
+  .lateral { border-right: 0; border-bottom: 2px solid var(--divisor); }
+  .menu { flex-direction: row; overflow-x: auto; }
+  .menu a[aria-current="page"]::before { top: auto; right: 0; bottom: 0; width: auto; height: 3px; }
+}
+
+/* Some a coluna dispensável antes de recorrer à rolagem lateral */
+@media (max-width: 720px) {
+  .tabela .oculta-estreito { display: none; }
+}
+
+/* ---------- 15. Impressão do relatório ---------- */
+
+@media print {
+  @page { size: A4 portrait; margin: 14mm; }
+
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+  .lateral, .topo, .barra-cookies, .aviso,
+  .construtor, .nao-imprimir { display: none !important; }
+
+  .aplicacao { display: block; }
+  .conteudo { padding: 0; }
+  body { background: #fff; font-size: 11pt; }
+
+  .documento { border: 0; box-shadow: none; }
+  .documento thead { display: table-header-group; }
+  .documento tr { break-inside: avoid; }
+  .documento .cabecalho-empresa { border-bottom: 2px solid var(--tinta); }
+}
+
+/* ---------- 16. Acréscimos do sistema ----------
+   Classes que a folha original não cobria e as telas precisavam.
+   Seguem os mesmos tokens e o mesmo padrão de nomes das seções acima. */
+
+/* Restaura a precedência do atributo hidden: várias classes da folha
+   (.usuario, .botao, .fundo-modal, .aviso, .interruptor-erp...) definem
+   display:flex/inline-flex, e CSS de autor sempre vence o display:none
+   padrão do navegador para [hidden]. Sem esta regra, elementos "hidden"
+   com uma dessas classes continuam visíveis. */
+[hidden] { display: none !important; }
+
+/* Link "pular para o conteúdo": oculto até receber foco pelo teclado */
+.pular-conteudo {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 12px 16px;
+  background: var(--destaque);
+  color: #fff;
+  font-weight: 800;
+}
+.pular-conteudo:focus { left: 0; }
+
+/* Coluna do conteúdo dentro de .aplicacao (.lateral + esta) */
+.area-principal { display: flex; flex-direction: column; min-width: 0; }
+
+/* Aviso geral de formulário/tela, sempre com texto — nunca só cor.
+   Mesmo tratamento visual de .etiqueta-alerta, em formato de faixa. */
+.erro-geral {
+  padding: 10px 14px;
+  background: var(--destaque-claro);
+  border: 1px solid var(--destaque);
+  color: var(--destaque-escuro);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* Iniciais do usuário logado, dentro de .usuario */
+.usuario .inicial { border: 1px solid var(--divisor); }
+
+/* Botão de dispensar a barra de cookies */
+.barra-cookies .botao { flex-shrink: 0; }
+
+/* Grupo de botões de ícone numa linha de tabela */
+.acoes-linha { display: flex; gap: 6px; }
+
+/* Número em destaque avulso, mesmo tratamento de .indicadores .valor */
+.numero-grande { font-size: 30px; font-weight: 800; }
+
+/* Linha horizontal dentro de .campo, ex.: seleção + ícone de restrito */
+.campo-linha { display: flex; align-items: center; gap: 8px; }
+.campo-linha .selecao { flex: 1; }
+
+/* Caixa de marcação (checkbox) com o rótulo ao lado, em uma linha */
+.campo-marcador {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--alvo);
+}
+.campo-marcador input { width: 18px; height: 18px; flex-shrink: 0; }
+
+/* Documento do relatório: a folha só define o que a impressão remove dele
+   (.documento { border:0; box-shadow:none } em @media print); a aparência
+   de tela — o "papel" — é definida aqui. */
+.documento {
+  background: #fff;
+  border: 1px solid var(--divisor);
+  box-shadow: var(--sombra);
+  padding: 20px;
+}
+
+.cabecalho-empresa {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid var(--divisor);
+}
+.cabecalho-empresa img { width: 56px; height: 56px; object-fit: contain; border: 1px solid var(--divisor); }
+
+.documento-rodape {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid var(--linha);
+  font-size: 13px;
+  color: var(--apagado);
+}
+
+/* Interruptor (switch): a folha não define um; TAREFA 5 permite
+   <button role="switch" aria-pressed>, então o estado nunca fica só na cor
+   (tem o texto ao lado, sempre atualizado). */
+.interruptor-linha { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+.interruptor-erp {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: 0;
+  padding: 8px 0;
+  min-height: var(--alvo);
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+
+.interruptor-trilho {
+  width: 48px;
+  height: 26px;
+  border: 1px solid var(--divisor);
+  background: #fff;
+  position: relative;
+  flex-shrink: 0;
+}
+.interruptor-bolinha {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background: var(--divisor);
+  transition: transform .15s ease, background-color .15s ease;
+}
+.interruptor-erp[aria-pressed="true"] .interruptor-trilho { background: var(--destaque); border-color: var(--destaque); }
+.interruptor-erp[aria-pressed="true"] .interruptor-bolinha { transform: translateX(20px); background: #fff; }
+
+.rotulo-estado { font-weight: 800; font-size: 12px; }
+
+.caixa-simulacao-erp {
+  margin-top: 14px;
+  border: 1px solid var(--divisor);
+  background: var(--bg);
+  padding: 14px;
+}
+.caixa-simulacao-erp p { margin-bottom: 8px; }
+.erp-log-simulado {
+  margin-top: 10px;
+  border-top: 1px solid var(--linha);
+  padding-top: 10px;
+  font-family: ui-monospace, monospace;
+  font-size: 13px;
+  min-height: 60px;
+}
+.erp-log-simulado p { margin-bottom: 4px; }
+
+/* Área de arrastar arquivo, operável por teclado (tabindex + Enter no JS) */
+.area-arrastar {
+  border: 1px dashed var(--divisor);
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+}
+.area-arrastar:focus-visible,
+.area-arrastar.arrastando {
+  outline: 2px solid var(--destaque);
+  outline-offset: 2px;
+  background: var(--sobre);
+}
+.area-arrastar p { margin-bottom: 10px; }
+
+.logotipo-layout { display: grid; grid-template-columns: minmax(120px, 160px) 1fr; gap: 20px; align-items: start; }
+
+.logotipo-preview,
+.logotipo-preview-vazio {
+  width: 140px;
+  height: 140px;
+  border: 1px solid var(--divisor);
+  object-fit: contain;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+}
+.logotipo-preview-vazio { color: var(--apagado); font-size: 22px; }
+
+/* Preserva quebras de linha de texto vindo do JS (ex.: endereço da empresa) */
+.pre-linha { white-space: pre-line; }

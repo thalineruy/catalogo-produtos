@@ -13,7 +13,7 @@
 
   const resumo = document.getElementById('logs-resumo');
   const mensagemErro = document.getElementById('logs-erro');
-  const tabelaWrapper = document.querySelector('.tabela-wrapper');
+  const tabelaWrapper = document.querySelector('.rolagem-tabela');
   const corpoLogs = document.getElementById('corpo-logs');
   const estadoVazio = document.getElementById('logs-vazio');
 

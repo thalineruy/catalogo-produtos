@@ -4,133 +4,170 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Saída de Produtos</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/estilo.css">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilo.css">
 </head>
 <body>
   <a class="pular-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
 
-  <header class="cabecalho">
-    <div class="cabecalho-conteudo">
-      <img id="logo-barra-superior" class="logo-barra-superior" alt="Logotipo da empresa" hidden>
-      <div>
-        <h1>Saída de Produtos</h1>
-        <p class="cabecalho-subtitulo">Registre a baixa manual de estoque.</p>
+  <div class="aplicacao">
+    <div class="lateral">
+      <div class="marca">
+        <img id="logo-barra-superior" alt="Logotipo da empresa" hidden>
+        <strong>Catálogo de Produtos</strong>
       </div>
+      <nav class="menu" aria-label="Navegação principal">
+        <a href="index.html">Catálogo</a>
+        <a href="saida.html" aria-current="page">Saída de produtos</a>
+        <a href="logs.html">Logs</a>
+        <a href="relatorios.html">Relatórios</a>
+        <a href="administracao.html" id="link-administracao" hidden>Administração</a>
+      </nav>
     </div>
-  </header>
 
-  <nav class="barra-navegacao" aria-label="Navegação principal">
-    <a href="index.html">Catálogo</a>
-    <a href="saida.html" aria-current="page">Saída de produtos</a>
-    <a href="logs.html">Logs</a>
-    <a href="relatorios.html">Relatórios</a>
-    <a href="administracao.html" id="link-administracao" hidden>Administração</a>
-    <span class="usuario-logado" id="usuario-logado" hidden></span>
-    <button type="button" id="botao-sair" class="botao botao-secundario" hidden>Sair</button>
-  </nav>
-
-  <main id="conteudo-principal" class="conteudo layout-saida">
-    <section class="painel-formulario" aria-label="Registrar saída">
-      <h2>Registrar saída</h2>
-      <form id="form-saida" novalidate>
-        <div class="campo">
-          <label for="saida-produto">Produto</label>
-          <select id="saida-produto" name="produto_id" required>
-            <option value="">Selecione um produto</option>
-          </select>
+    <div class="area-principal">
+      <div class="topo">
+        <div class="topo-acoes">
+          <a href="login.html" id="link-entrar" class="botao botao-texto" hidden>Entrar</a>
+          <div class="usuario" id="usuario-logado" hidden>
+            <span class="inicial" id="usuario-inicial" aria-hidden="true"></span>
+            <span id="usuario-nome"></span>
+            <span class="nivel" id="usuario-nivel"></span>
+          </div>
+          <button type="button" id="botao-sair" class="botao botao-contorno" hidden>Sair</button>
         </div>
-
-        <div class="campo">
-          <label for="saida-quantidade">Quantidade</label>
-          <input
-            type="number"
-            id="saida-quantidade"
-            name="quantidade"
-            min="1"
-            step="1"
-            aria-describedby="saida-quantidade-info saida-quantidade-erro"
-            aria-invalid="false"
-          >
-          <p id="saida-quantidade-info" class="texto-auxiliar">Selecione um produto para ver o estoque.</p>
-          <p id="saida-quantidade-erro" class="mensagem-erro" role="alert" hidden></p>
-        </div>
-
-        <div class="campo">
-          <label for="saida-motivo">Motivo</label>
-          <select id="saida-motivo" name="motivo" required>
-            <option value="">Selecione</option>
-            <option value="venda em loja">Venda em loja</option>
-            <option value="transferência entre lojas">Transferência entre lojas</option>
-            <option value="perda ou avaria">Perda ou avaria</option>
-            <option value="uso interno ou demonstração">Uso interno ou demonstração</option>
-          </select>
-        </div>
-
-        <div class="campo">
-          <label for="saida-observacao">Observação (opcional)</label>
-          <textarea id="saida-observacao" name="observacao" rows="3"></textarea>
-        </div>
-
-        <div class="campo">
-          <label for="saida-operador">Operador</label>
-          <input type="text" id="saida-operador" name="operador" disabled>
-        </div>
-
-        <p id="saida-confirmacao" class="confirmacao" aria-live="polite" role="status"></p>
-        <p id="saida-erro-geral" class="mensagem-erro" role="alert" hidden></p>
-
-        <div class="acoes-filtros">
-          <button type="button" id="botao-limpar-saida" class="botao botao-secundario">Limpar</button>
-          <button type="submit" id="botao-registrar-saida" class="botao botao-primario">Registrar Saída</button>
-        </div>
-      </form>
-    </section>
-
-    <aside class="painel-lateral" aria-label="Estoque e histórico">
-      <div class="cartao-estoque" id="cartao-estoque" hidden>
-        <h2>Estoque atual</h2>
-        <p id="estoque-produto-nome"></p>
-        <p id="estoque-produto-quantidade" class="estoque-numero-grande"></p>
       </div>
 
-      <h2>Histórico de saídas</h2>
-      <div class="campo">
-        <label for="historico-busca">Buscar por produto</label>
-        <input type="search" id="historico-busca" autocomplete="off">
-      </div>
-      <div class="campo">
-        <label for="historico-categoria">Categoria</label>
-        <select id="historico-categoria">
-          <option value="">Todas</option>
-        </select>
-      </div>
+      <main id="conteudo-principal" class="conteudo">
+        <div class="titulo-tela">
+          <div>
+            <h1>Saída de Produtos</h1>
+            <p class="apagado">Registre a baixa manual de estoque.</p>
+          </div>
+        </div>
 
-      <p id="historico-resumo" class="resumo-resultados" aria-live="polite" role="status"></p>
+        <div class="duas-colunas">
+          <section class="painel" aria-label="Registrar saída">
+            <div class="painel-cabeca">Registrar saída</div>
+            <div class="painel-corpo">
+              <form id="form-saida" novalidate>
+                <div class="campo">
+                  <label for="saida-produto">Produto</label>
+                  <select id="saida-produto" name="produto_id" class="selecao" required>
+                    <option value="">Selecione um produto</option>
+                  </select>
+                </div>
 
-      <div class="tabela-wrapper tabela-wrapper-historico">
-        <table class="tabela-produtos">
-          <caption class="visualmente-oculto">Histórico de saídas de produtos</caption>
-          <thead>
-            <tr>
-              <th scope="col">Data</th>
-              <th scope="col">Produto</th>
-              <th scope="col" class="col-categoria">Categoria</th>
-              <th scope="col">Quantidade</th>
-              <th scope="col" class="col-motivo">Motivo</th>
-              <th scope="col">Operador</th>
-            </tr>
-          </thead>
-          <tbody id="corpo-historico"></tbody>
-        </table>
-      </div>
-      <div id="historico-vazio" class="estado-vazio" hidden>
-        <p>Nenhuma saída encontrada.</p>
-      </div>
-    </aside>
-  </main>
+                <div class="campo">
+                  <label for="saida-quantidade">Quantidade</label>
+                  <input
+                    type="number"
+                    id="saida-quantidade"
+                    name="quantidade"
+                    class="entrada"
+                    min="1"
+                    step="1"
+                    aria-describedby="saida-quantidade-info saida-quantidade-erro"
+                    aria-invalid="false"
+                  >
+                  <p id="saida-quantidade-info" class="apagado">Selecione um produto para ver o estoque.</p>
+                  <p id="saida-quantidade-erro" class="erro-campo" role="alert" hidden></p>
+                </div>
+
+                <div class="campo">
+                  <label for="saida-motivo">Motivo</label>
+                  <select id="saida-motivo" name="motivo" class="selecao" required>
+                    <option value="">Selecione</option>
+                    <option value="venda em loja">Venda em loja</option>
+                    <option value="transferência entre lojas">Transferência entre lojas</option>
+                    <option value="perda ou avaria">Perda ou avaria</option>
+                    <option value="uso interno ou demonstração">Uso interno ou demonstração</option>
+                  </select>
+                </div>
+
+                <div class="campo">
+                  <label for="saida-observacao">Observação (opcional)</label>
+                  <textarea id="saida-observacao" name="observacao" class="area" rows="3"></textarea>
+                </div>
+
+                <div class="campo">
+                  <label for="saida-operador">Operador</label>
+                  <input type="text" id="saida-operador" name="operador" class="entrada-fixa" readonly>
+                </div>
+
+                <p id="saida-erro-geral" class="erro-geral" role="alert" hidden></p>
+
+                <div class="titulo-tela">
+                  <div class="acoes">
+                    <button type="button" id="botao-limpar-saida" class="botao botao-contorno">Limpar</button>
+                    <button type="submit" id="botao-registrar-saida" class="botao botao-principal">Registrar Saída</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <aside class="painel" aria-label="Estoque e histórico">
+            <div class="painel-cabeca">Estoque e histórico</div>
+            <div class="painel-corpo">
+              <div class="painel" id="cartao-estoque" hidden>
+                <div class="painel-corpo">
+                  <p class="rotulo">Estoque atual</p>
+                  <p id="estoque-produto-nome"></p>
+                  <p id="estoque-produto-quantidade" class="numero-grande"></p>
+                </div>
+              </div>
+
+              <h3>Histórico de saídas</h3>
+              <div class="filtros">
+                <div class="campo busca">
+                  <label for="historico-busca" class="apenas-leitor">Buscar por produto</label>
+                  <input type="search" id="historico-busca" placeholder="Buscar por produto" autocomplete="off">
+                </div>
+                <div class="campo">
+                  <label for="historico-categoria">Categoria</label>
+                  <select id="historico-categoria" class="selecao">
+                    <option value="">Todas</option>
+                  </select>
+                </div>
+              </div>
+
+              <p id="historico-resumo" class="rotulo" aria-live="polite" role="status"></p>
+
+              <div class="rolagem-tabela">
+                <table class="tabela">
+                  <caption class="apenas-leitor">Histórico de saídas de produtos</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Data</th>
+                      <th scope="col">Produto</th>
+                      <th scope="col" class="oculta-estreito">Categoria</th>
+                      <th scope="col" class="direita">Quantidade</th>
+                      <th scope="col" class="oculta-estreito">Motivo</th>
+                      <th scope="col">Operador</th>
+                    </tr>
+                  </thead>
+                  <tbody id="corpo-historico"></tbody>
+                </table>
+              </div>
+              <div id="historico-vazio" class="vazio" hidden>
+                <p>Nenhuma saída encontrada.</p>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="aviso" id="toast-aviso" role="status" aria-live="polite" hidden></div>
+
+  <div class="barra-cookies" id="barra-cookies" hidden>
+    <div>
+      <p>Usamos cookies apenas para manter sua sessão neste sistema. Nenhum dado é compartilhado com terceiros.</p>
+      <button type="button" id="botao-aceitar-cookies" class="botao botao-principal">Entendi</button>
+    </div>
+  </div>
 
   <script src="config.js"></script>
   <script src="js/auth.js"></script>

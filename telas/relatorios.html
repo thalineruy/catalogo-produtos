@@ -4,178 +4,209 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Construtor de Relatórios</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/estilo.css">
-  <link rel="stylesheet" href="css/impressao.css" media="print">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilo.css">
 </head>
 <body>
-  <a class="pular-conteudo no-imprimir" href="#conteudo-principal">Pular para o conteúdo</a>
+  <a class="pular-conteudo nao-imprimir" href="#conteudo-principal">Pular para o conteúdo</a>
 
-  <header class="cabecalho no-imprimir">
-    <div class="cabecalho-conteudo">
-      <img id="logo-barra-superior" class="logo-barra-superior" alt="Logotipo da empresa" hidden>
-      <div>
-        <h1>Construtor de Relatórios</h1>
-        <p class="cabecalho-subtitulo">Monte relatórios de saída de produtos, com os campos e filtros que você escolher.</p>
+  <div class="aplicacao">
+    <div class="lateral">
+      <div class="marca">
+        <img id="logo-barra-superior" alt="Logotipo da empresa" hidden>
+        <strong>Catálogo de Produtos</strong>
       </div>
+      <nav class="menu" aria-label="Navegação principal">
+        <a href="index.html">Catálogo</a>
+        <a href="saida.html">Saída de produtos</a>
+        <a href="logs.html">Logs</a>
+        <a href="relatorios.html" aria-current="page">Relatórios</a>
+        <a href="administracao.html" id="link-administracao" hidden>Administração</a>
+      </nav>
     </div>
-  </header>
 
-  <nav class="barra-navegacao no-imprimir" aria-label="Navegação principal">
-    <a href="index.html">Catálogo</a>
-    <a href="saida.html">Saída de produtos</a>
-    <a href="logs.html">Logs</a>
-    <a href="relatorios.html" aria-current="page">Relatórios</a>
-    <a href="administracao.html" id="link-administracao" hidden>Administração</a>
-    <span class="usuario-logado" id="usuario-logado" hidden></span>
-    <button type="button" id="botao-sair" class="botao botao-secundario" hidden>Sair</button>
-  </nav>
-
-  <main id="conteudo-principal" class="conteudo layout-relatorios">
-    <section class="painel-construtor no-imprimir" aria-label="Construtor de relatório">
-      <h2>Construtor</h2>
-      <form id="form-relatorio" novalidate>
-        <fieldset class="campo-fieldset">
-          <legend>Campos do relatório</legend>
-          <div class="grade-checkboxes">
-            <div class="campo-checkbox">
-              <input type="checkbox" id="campo-nome" name="campos" value="nome" checked>
-              <label for="campo-nome">Nome</label>
-            </div>
-            <div class="campo-checkbox">
-              <input type="checkbox" id="campo-codigoInterno" name="campos" value="codigoInterno" checked>
-              <label for="campo-codigoInterno">Código interno</label>
-            </div>
-            <div class="campo-checkbox">
-              <input type="checkbox" id="campo-categoria" name="campos" value="categoria" checked>
-              <label for="campo-categoria">Categoria</label>
-            </div>
-            <div class="campo-checkbox">
-              <input type="checkbox" id="campo-estoque" name="campos" value="estoque">
-              <label for="campo-estoque">Estoque</label>
-            </div>
-            <div class="campo-checkbox">
-              <input type="checkbox" id="campo-operador" name="campos" value="operador" checked>
-              <label for="campo-operador">Operador</label>
-            </div>
-            <div class="campo-checkbox">
-              <input type="checkbox" id="campo-dataSaida" name="campos" value="dataSaida" checked>
-              <label for="campo-dataSaida">Data de saída</label>
-            </div>
-            <div class="campo-checkbox">
-              <input type="checkbox" id="campo-motivo" name="campos" value="motivo" checked>
-              <label for="campo-motivo">Motivo</label>
-            </div>
-            <div class="campo-checkbox">
-              <input type="checkbox" id="campo-status" name="campos" value="status">
-              <label for="campo-status">Status</label>
-            </div>
+    <div class="area-principal">
+      <div class="topo">
+        <div class="topo-acoes">
+          <a href="login.html" id="link-entrar" class="botao botao-texto" hidden>Entrar</a>
+          <div class="usuario" id="usuario-logado" hidden>
+            <span class="inicial" id="usuario-inicial" aria-hidden="true"></span>
+            <span id="usuario-nome"></span>
+            <span class="nivel" id="usuario-nivel"></span>
           </div>
-        </fieldset>
-
-        <fieldset class="campo-fieldset">
-          <legend>Filtros</legend>
-          <div class="grade-filtros">
-            <div class="campo">
-              <label for="relatorio-data-inicial">Data inicial</label>
-              <input type="date" id="relatorio-data-inicial" name="dataInicial">
-            </div>
-            <div class="campo">
-              <label for="relatorio-data-final">Data final</label>
-              <input type="date" id="relatorio-data-final" name="dataFinal">
-            </div>
-            <div class="campo">
-              <label for="relatorio-operador">Operador</label>
-              <select id="relatorio-operador" name="operador">
-                <option value="">Todos</option>
-              </select>
-            </div>
-            <div class="campo">
-              <label for="relatorio-categoria">Categoria</label>
-              <select id="relatorio-categoria" name="categoria">
-                <option value="">Todas</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="campo-checkbox campo-checkbox-linha">
-            <input type="checkbox" id="relatorio-estoque-minimo" name="estoqueMinimo">
-            <label for="relatorio-estoque-minimo">Somente produtos com estoque no mínimo ou abaixo</label>
-          </div>
-        </fieldset>
-
-        <p id="relatorio-erro" class="mensagem-erro" role="alert" hidden></p>
-
-        <div class="acoes-filtros">
-          <button type="submit" class="botao botao-primario">Gerar Relatório</button>
-          <button type="button" id="botao-imprimir" class="botao botao-secundario">Imprimir</button>
-          <button type="button" id="botao-exportar-pdf" class="botao botao-secundario">Exportar PDF</button>
+          <button type="button" id="botao-sair" class="botao botao-contorno" hidden>Sair</button>
         </div>
-      </form>
-    </section>
-
-    <section class="painel-previsualizacao" aria-label="Pré-visualização do relatório">
-      <p id="relatorio-desatualizado" class="aviso-desatualizado no-imprimir" role="status" hidden>
-        A configuração mudou desde a última emissão. Gere o relatório novamente para atualizar a pré-visualização.
-      </p>
-
-      <div id="relatorio-conteudo" aria-live="polite">
-        <div id="relatorio-vazio" class="estado-vazio">
-          <p>Escolha os campos desejados e clique em "Gerar Relatório" para ver a pré-visualização aqui.</p>
-          <p id="relatorio-resumo-config" class="texto-auxiliar"></p>
-        </div>
-
-        <article id="documento-relatorio" class="documento-relatorio" hidden>
-          <header class="documento-cabecalho">
-            <img id="documento-logo" class="documento-logo" alt="" hidden>
-            <div>
-              <h2 id="documento-empresa-nome"></h2>
-              <p id="documento-empresa-detalhes" class="documento-empresa-detalhes"></p>
-            </div>
-          </header>
-
-          <div class="documento-corpo">
-            <h3 class="documento-titulo">Relatório de Saídas de Produtos</h3>
-            <p id="documento-emissao" class="documento-meta"></p>
-            <p id="documento-recorte" class="documento-meta"></p>
-
-            <div class="documento-resumo">
-              <div class="documento-resumo-item">
-                <span class="documento-resumo-numero" id="resumo-registros"></span>
-                <span class="documento-resumo-rotulo">Registros</span>
-              </div>
-              <div class="documento-resumo-item">
-                <span class="documento-resumo-numero" id="resumo-unidades"></span>
-                <span class="documento-resumo-rotulo">Unidades saídas</span>
-              </div>
-              <div class="documento-resumo-item">
-                <span class="documento-resumo-numero" id="resumo-categorias"></span>
-                <span class="documento-resumo-rotulo">Categorias</span>
-              </div>
-              <div class="documento-resumo-item">
-                <span class="documento-resumo-numero" id="resumo-operadores"></span>
-                <span class="documento-resumo-rotulo">Operadores</span>
-              </div>
-            </div>
-
-            <div class="tabela-wrapper">
-              <table class="tabela-produtos tabela-relatorio">
-                <caption class="visualmente-oculto">Linhas do relatório de saídas de produtos</caption>
-                <thead id="documento-cabecalho-tabela"></thead>
-                <tbody id="documento-corpo-tabela"></tbody>
-              </table>
-            </div>
-
-            <footer class="documento-rodape">
-              <p>Responsável: <span id="documento-responsavel"></span></p>
-            </footer>
-          </div>
-        </article>
       </div>
-    </section>
-  </main>
+
+      <main id="conteudo-principal" class="conteudo">
+        <div class="titulo-tela">
+          <div>
+            <h1>Construtor de Relatórios</h1>
+            <p class="apagado">Monte relatórios de saída de produtos, com os campos e filtros que você escolher.</p>
+          </div>
+        </div>
+
+        <div class="duas-colunas">
+          <section class="painel construtor" aria-label="Construtor de relatório">
+            <div class="painel-cabeca">Construtor</div>
+            <div class="painel-corpo">
+              <form id="form-relatorio" novalidate>
+                <fieldset>
+                  <legend>Campos do relatório</legend>
+                  <div class="tres-colunas">
+                    <div class="campo-marcador">
+                      <input type="checkbox" id="campo-nome" name="campos" value="nome" checked>
+                      <label for="campo-nome">Nome</label>
+                    </div>
+                    <div class="campo-marcador">
+                      <input type="checkbox" id="campo-codigoInterno" name="campos" value="codigoInterno" checked>
+                      <label for="campo-codigoInterno">Código interno</label>
+                    </div>
+                    <div class="campo-marcador">
+                      <input type="checkbox" id="campo-categoria" name="campos" value="categoria" checked>
+                      <label for="campo-categoria">Categoria</label>
+                    </div>
+                    <div class="campo-marcador">
+                      <input type="checkbox" id="campo-estoque" name="campos" value="estoque">
+                      <label for="campo-estoque">Estoque</label>
+                    </div>
+                    <div class="campo-marcador">
+                      <input type="checkbox" id="campo-operador" name="campos" value="operador" checked>
+                      <label for="campo-operador">Operador</label>
+                    </div>
+                    <div class="campo-marcador">
+                      <input type="checkbox" id="campo-dataSaida" name="campos" value="dataSaida" checked>
+                      <label for="campo-dataSaida">Data de saída</label>
+                    </div>
+                    <div class="campo-marcador">
+                      <input type="checkbox" id="campo-motivo" name="campos" value="motivo" checked>
+                      <label for="campo-motivo">Motivo</label>
+                    </div>
+                    <div class="campo-marcador">
+                      <input type="checkbox" id="campo-status" name="campos" value="status">
+                      <label for="campo-status">Status</label>
+                    </div>
+                  </div>
+                </fieldset>
+
+                <fieldset>
+                  <legend>Filtros</legend>
+                  <div class="filtros">
+                    <div class="campo">
+                      <label for="relatorio-data-inicial">Data inicial</label>
+                      <input type="date" id="relatorio-data-inicial" name="dataInicial" class="entrada">
+                    </div>
+                    <div class="campo">
+                      <label for="relatorio-data-final">Data final</label>
+                      <input type="date" id="relatorio-data-final" name="dataFinal" class="entrada">
+                    </div>
+                    <div class="campo">
+                      <label for="relatorio-operador">Operador</label>
+                      <select id="relatorio-operador" name="operador" class="selecao">
+                        <option value="">Todos</option>
+                      </select>
+                    </div>
+                    <div class="campo">
+                      <label for="relatorio-categoria">Categoria</label>
+                      <select id="relatorio-categoria" name="categoria" class="selecao">
+                        <option value="">Todas</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="campo-marcador">
+                    <input type="checkbox" id="relatorio-estoque-minimo" name="estoqueMinimo">
+                    <label for="relatorio-estoque-minimo">Somente produtos com estoque no mínimo ou abaixo</label>
+                  </div>
+                </fieldset>
+
+                <p id="relatorio-erro" class="erro-geral" role="alert" hidden></p>
+
+                <div class="titulo-tela">
+                  <div class="acoes">
+                    <button type="submit" class="botao botao-principal">Gerar Relatório</button>
+                    <button type="button" id="botao-imprimir" class="botao botao-contorno">Imprimir</button>
+                    <button type="button" id="botao-exportar-pdf" class="botao botao-contorno">Exportar PDF</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <section class="painel" aria-label="Pré-visualização do relatório">
+            <div class="painel-cabeca">Pré-visualização</div>
+            <div class="painel-corpo">
+              <p id="relatorio-desatualizado" class="erro-geral nao-imprimir" role="status" hidden>
+                A configuração mudou desde a última emissão. Gere o relatório novamente para atualizar a pré-visualização.
+              </p>
+
+              <div id="relatorio-conteudo" aria-live="polite">
+                <div id="relatorio-vazio" class="vazio">
+                  <h3>Nenhum relatório gerado ainda</h3>
+                  <p>Escolha os campos desejados e clique em "Gerar Relatório" para ver a pré-visualização aqui.</p>
+                  <p id="relatorio-resumo-config" class="apagado"></p>
+                </div>
+
+                <article id="documento-relatorio" class="documento" hidden>
+                  <header class="cabecalho-empresa">
+                    <img id="documento-logo" alt="" hidden>
+                    <div>
+                      <h2 id="documento-empresa-nome"></h2>
+                      <p id="documento-empresa-detalhes" class="apagado pre-linha"></p>
+                    </div>
+                  </header>
+
+                  <h3>Relatório de Saídas de Produtos</h3>
+                  <p id="documento-emissao" class="apagado"></p>
+                  <p id="documento-recorte" class="apagado"></p>
+
+                  <div class="indicadores">
+                    <div>
+                      <span class="valor" id="resumo-registros"></span>
+                      <span class="rotulo">Registros</span>
+                    </div>
+                    <div>
+                      <span class="valor" id="resumo-unidades"></span>
+                      <span class="rotulo">Unidades saídas</span>
+                    </div>
+                    <div>
+                      <span class="valor" id="resumo-categorias"></span>
+                      <span class="rotulo">Categorias</span>
+                    </div>
+                    <div>
+                      <span class="valor" id="resumo-operadores"></span>
+                      <span class="rotulo">Operadores</span>
+                    </div>
+                  </div>
+
+                  <div class="rolagem-tabela">
+                    <table class="tabela">
+                      <caption class="apenas-leitor">Linhas do relatório de saídas de produtos</caption>
+                      <thead id="documento-cabecalho-tabela"></thead>
+                      <tbody id="documento-corpo-tabela"></tbody>
+                    </table>
+                  </div>
+
+                  <footer class="documento-rodape">
+                    <p>Responsável: <span id="documento-responsavel"></span></p>
+                  </footer>
+                </article>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="aviso nao-imprimir" id="toast-aviso" role="status" aria-live="polite" hidden></div>
+
+  <div class="barra-cookies nao-imprimir" id="barra-cookies" hidden>
+    <div>
+      <p>Usamos cookies apenas para manter sua sessão neste sistema. Nenhum dado é compartilhado com terceiros.</p>
+      <button type="button" id="botao-aceitar-cookies" class="botao botao-principal">Entendi</button>
+    </div>
+  </div>
 
   <script src="config.js"></script>
   <script src="js/auth.js"></script>
