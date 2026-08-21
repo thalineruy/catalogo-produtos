@@ -69,11 +69,13 @@ function aplicarLogotipo(imagem, empresa) {
   imagem.hidden = false;
 }
 
+// GET /empresa é pública, então isto funciona mesmo sem login (ex.: tela
+// de entrada, catálogo em modo anônimo) — não há dado sensível aqui.
 async function carregarLogoBarraSuperior() {
   const elemento = document.getElementById('logo-barra-superior');
   if (!elemento) return;
 
-  if (!obterToken() || typeof buscarEmpresa !== 'function') {
+  if (typeof buscarEmpresa !== 'function') {
     aplicarLogotipo(elemento, null);
     return;
   }
@@ -83,6 +85,34 @@ async function carregarLogoBarraSuperior() {
     aplicarLogotipo(elemento, empresa);
   } catch (erro) {
     aplicarLogotipo(elemento, null);
+  }
+}
+
+// Marca da empresa na tela de entrada (login): logo + nome no topo do
+// painel escuro, e o nome de novo na tarja no fim da ilustração. Só
+// aparece se os dados da empresa carregarem — sem nome fixo aqui.
+async function carregarMarcaEntrada() {
+  const marca = document.getElementById('marca-entrada');
+  const logo = document.getElementById('logo-entrada');
+  const nomeMarca = document.getElementById('marca-entrada-nome');
+  const tag = document.getElementById('tag-empresa');
+  const nomeTag = document.getElementById('tag-empresa-nome');
+  if (!marca || typeof buscarEmpresa !== 'function') return;
+
+  try {
+    const empresa = await buscarEmpresa();
+    if (!empresa || !empresa.nome) return;
+
+    aplicarLogotipo(logo, empresa);
+    nomeMarca.textContent = empresa.nome;
+    marca.hidden = false;
+
+    if (tag && nomeTag) {
+      nomeTag.textContent = empresa.nome;
+      tag.hidden = false;
+    }
+  } catch (erro) {
+    // Sem dados da empresa, a tela de entrada segue só com o nome do sistema.
   }
 }
 

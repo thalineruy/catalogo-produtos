@@ -881,3 +881,24 @@ legend { padding: 0; font-size: 12px; color: var(--apagado); }
 
 #codigo-qr { display: block; border: 1px solid var(--divisor); margin: 12px 0; }
 .chave-manual { font-size: 13px; margin-bottom: 20px; }
+
+/* Marca da empresa no topo da tela de entrada — só some quando os
+   dados da empresa carregam (ver carregarMarcaEntrada em auth.js) */
+.marca-entrada { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+.marca-entrada img { width: 34px; height: 34px; object-fit: contain; }
+.marca-entrada strong { font-size: 13px; letter-spacing: .04em; text-transform: uppercase; }
+
+/* Tarja com o nome da empresa ao fim da ilustração de tabela optométrica */
+.tag-empresa {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(243, 242, 242, .2);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.tag-empresa-tick { width: 16px; height: 2px; background: var(--destaque); flex-shrink: 0; }

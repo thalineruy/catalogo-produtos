@@ -33,6 +33,7 @@
   }
 
   iniciarBarraCookies();
+  carregarMarcaEntrada();
 
   let tokenPendente = null;
 
