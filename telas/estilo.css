@@ -759,6 +759,25 @@ legend { padding: 0; font-size: 12px; color: var(--apagado); }
 #conteudo-administracao > * + * { margin-top: 16px; }
 .conteudo > .titulo-tela + * { margin-top: 0; }
 
+/* Rótulo de campo que não pertence a um controle de formulário
+   (ex.: o operador da saída, que é só exibição) */
+.rotulo-campo { font-size: 12px; color: var(--apagado); }
+
+/* Avatar com as iniciais do operador, no mesmo tratamento do avatar
+   do usuário logado na barra superior */
+.inicial-operador {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  background: var(--tinta);
+  color: var(--bg);
+  font-size: 11px;
+  font-weight: 800;
+}
+
 /* Resumo de resultados com os selos ao lado, como no mockup */
 .linha-resumo { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .linha-resumo .rotulo { margin: 0; }

@@ -59,7 +59,7 @@
                 </div>
 
                 <div class="campo">
-                  <label for="saida-quantidade">Quantidade</label>
+                  <label for="saida-quantidade">Quantidade de saída</label>
                   <input
                     type="number"
                     id="saida-quantidade"
@@ -75,13 +75,15 @@
                 </div>
 
                 <div class="campo">
-                  <label for="saida-motivo">Motivo</label>
+                  <label for="saida-motivo">Motivo da saída</label>
+                  <!-- Os value= são gravados no banco e usados na validação do
+                       servidor: só o texto exibido acompanha o mockup. -->
                   <select id="saida-motivo" name="motivo" class="selecao" required>
                     <option value="">Selecione</option>
                     <option value="venda em loja">Venda em loja</option>
                     <option value="transferência entre lojas">Transferência entre lojas</option>
-                    <option value="perda ou avaria">Perda ou avaria</option>
-                    <option value="uso interno ou demonstração">Uso interno ou demonstração</option>
+                    <option value="perda ou avaria">Perda / avaria</option>
+                    <option value="uso interno ou demonstração">Uso interno / demonstração</option>
                   </select>
                 </div>
 
@@ -91,8 +93,11 @@
                 </div>
 
                 <div class="campo">
-                  <label for="saida-operador">Operador</label>
-                  <input type="text" id="saida-operador" name="operador" class="entrada-fixa" readonly>
+                  <span class="rotulo-campo" id="rotulo-operador">Operador responsável (preenchido automaticamente)</span>
+                  <div class="entrada-fixa" role="group" aria-labelledby="rotulo-operador">
+                    <span class="inicial-operador" id="saida-operador-inicial" aria-hidden="true"></span>
+                    <span id="saida-operador-nome"></span>
+                  </div>
                 </div>
 
                 <p id="saida-erro-geral" class="erro-geral" role="alert" hidden></p>

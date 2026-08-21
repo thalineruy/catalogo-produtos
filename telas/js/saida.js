@@ -7,7 +7,8 @@
   const campoQuantidade = document.getElementById('saida-quantidade');
   const campoMotivo = document.getElementById('saida-motivo');
   const campoObservacao = document.getElementById('saida-observacao');
-  const campoOperador = document.getElementById('saida-operador');
+  const operadorInicial = document.getElementById('saida-operador-inicial');
+  const operadorNome = document.getElementById('saida-operador-nome');
   const infoQuantidade = document.getElementById('saida-quantidade-info');
   const erroQuantidade = document.getElementById('saida-quantidade-erro');
   const erroGeral = document.getElementById('saida-erro-geral');
@@ -28,7 +29,16 @@
   let produtos = [];
   let saidas = [];
 
-  campoOperador.value = `${usuario.nome} (${usuario.nivel === 'administrador' ? 'Administrador' : 'Operador'})`;
+  // Iniciais do nome (até duas), como o avatar da barra superior
+  const iniciais = usuario.nome
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((parte) => parte.charAt(0).toUpperCase())
+    .join('');
+
+  operadorInicial.textContent = iniciais;
+  operadorNome.textContent = `${usuario.nome} (${usuario.nivel === 'administrador' ? 'Administrador' : 'Operador'})`;
 
   function produtoSelecionado() {
     const id = campoProduto.value;
