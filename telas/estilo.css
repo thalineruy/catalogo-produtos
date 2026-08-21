@@ -723,18 +723,13 @@ legend { padding: 0; font-size: 12px; color: var(--apagado); }
 
 .logotipo-layout { display: grid; grid-template-columns: minmax(120px, 160px) 1fr; gap: 20px; align-items: start; }
 
-.logotipo-preview,
-.logotipo-preview-vazio {
+.logotipo-preview {
   width: 140px;
   height: 140px;
   border: 1px solid var(--divisor);
   object-fit: contain;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background: var(--bg);
 }
-.logotipo-preview-vazio { color: var(--apagado); font-size: 22px; }
 
 /* Preserva quebras de linha de texto vindo do JS (ex.: endereço da empresa) */
 .pre-linha { white-space: pre-line; }

@@ -30,21 +30,47 @@ function exigirSessao() {
   return usuario;
 }
 
+const LOGOTIPO_PADRAO = 'logo-padrao.svg';
+
+// Logotipo é sempre imagem: se a empresa tem um gravado, usa o endereço dela;
+// senão, ou se ele falhar ao carregar, cai para o padrão do sistema.
+function aplicarLogotipo(imagem, empresa) {
+  if (!imagem) return;
+
+  function usarPadrao() {
+    imagem.src = LOGOTIPO_PADRAO;
+    imagem.alt = 'Logotipo padrão do sistema';
+  }
+
+  imagem.onerror = () => {
+    imagem.onerror = null;
+    usarPadrao();
+  };
+
+  if (empresa && empresa.url_logotipo) {
+    imagem.alt = `Logotipo da ${empresa.nome}`;
+    imagem.src = empresa.url_logotipo;
+  } else {
+    usarPadrao();
+  }
+
+  imagem.hidden = false;
+}
+
 async function carregarLogoBarraSuperior() {
   const elemento = document.getElementById('logo-barra-superior');
-  if (!elemento || !obterToken() || typeof buscarEmpresa !== 'function') return;
+  if (!elemento) return;
+
+  if (!obterToken() || typeof buscarEmpresa !== 'function') {
+    aplicarLogotipo(elemento, null);
+    return;
+  }
 
   try {
     const empresa = await buscarEmpresa();
-    if (empresa && empresa.url_logotipo) {
-      elemento.addEventListener('error', () => {
-        elemento.hidden = true;
-      });
-      elemento.src = empresa.url_logotipo;
-      elemento.hidden = false;
-    }
+    aplicarLogotipo(elemento, empresa);
   } catch (erro) {
-    elemento.hidden = true;
+    aplicarLogotipo(elemento, null);
   }
 }
 

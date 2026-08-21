@@ -146,15 +146,7 @@
       .join('\n');
     documentoResponsavel.textContent = empresa.responsavel || '—';
 
-    if (empresa.url_logotipo) {
-      documentoLogo.src = empresa.url_logotipo;
-      documentoLogo.hidden = false;
-      documentoLogo.addEventListener('error', () => {
-        documentoLogo.hidden = true;
-      });
-    } else {
-      documentoLogo.hidden = true;
-    }
+    aplicarLogotipo(documentoLogo, empresa);
   }
 
   function renderizarTabela(relatorio) {

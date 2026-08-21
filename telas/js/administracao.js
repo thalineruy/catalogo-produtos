@@ -78,20 +78,7 @@
   }
 
   function atualizarPreviaLogotipo(empresa) {
-    const imagem = document.getElementById('logotipo-preview');
-    const vazio = document.getElementById('logotipo-preview-vazio');
-    if (empresa.url_logotipo) {
-      imagem.src = empresa.url_logotipo;
-      imagem.hidden = false;
-      vazio.hidden = true;
-      imagem.addEventListener('error', () => {
-        imagem.hidden = true;
-        vazio.hidden = false;
-      });
-    } else {
-      imagem.hidden = true;
-      vazio.hidden = false;
-    }
+    aplicarLogotipo(document.getElementById('logotipo-preview'), empresa);
   }
 
   async function carregarEmpresa() {
