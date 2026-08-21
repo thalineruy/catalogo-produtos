@@ -68,6 +68,8 @@ Execute os scripts na pasta `banco/`, **em ordem**, no SQL Editor do Supabase:
 5. `05-autenticacao-duas-etapas.sql` — segredo TOTP e dispositivos confiáveis.
 6. `06-ultimo-acesso-e-sigla.sql` — último acesso do usuário e sigla da marca.
 7. `07-senha-atualizada-em.sql` — data da última troca de senha.
+8. `08-busca-sem-acento.sql` — habilita a extensão `unaccent`, usada pela
+   busca do catálogo e do histórico de saídas.
 
 Todos usam `IF NOT EXISTS`, então rodar de novo num banco já criado não
 quebra nem apaga nada. Pular qualquer um dos scripts a partir do 05 faz o
