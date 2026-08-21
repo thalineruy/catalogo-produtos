@@ -750,6 +750,19 @@ legend { padding: 0; font-size: 12px; color: var(--apagado); }
 /* Só o botão do login ganha o respiro extra, como no mockup */
 #form-login .botao { margin-top: 8px; }
 
+/* Espaçamento entre os blocos das telas do sistema. Mesma causa da tela
+   de entrada: painéis, resumos e formulários ficavam colados uns nos
+   outros (medido 0px). O mockup usa 16px entre painéis e 12px entre
+   campos de formulário. .titulo-tela já traz a própria margem, então o
+   bloco seguinte a ele não recebe margem extra. */
+.conteudo > * + *,
+#conteudo-administracao > * + * { margin-top: 16px; }
+.conteudo > .titulo-tela + * { margin-top: 0; }
+
+.painel-corpo form { display: flex; flex-direction: column; gap: 12px; }
+.painel-corpo fieldset + fieldset { margin-top: 8px; }
+legend { margin-bottom: 10px; }
+
 /* Linha de rodapé da tela de entrada: link à esquerda, texto auxiliar à direita */
 .rodape-entrada {
   display: flex;
