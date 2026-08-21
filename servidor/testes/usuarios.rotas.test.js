@@ -1,12 +1,14 @@
 jest.mock('../src/repositorios/usuariosRepositorio');
 jest.mock('../src/repositorios/logsRepositorio');
 jest.mock('../src/repositorios/dispositivosConfiaveisRepositorio');
+jest.mock('bcrypt', () => ({ compare: jest.fn(), hash: jest.fn() }));
 
 const request = require('supertest');
 const app = require('../src/servidor');
 const usuariosRepositorio = require('../src/repositorios/usuariosRepositorio');
 const logsRepositorio = require('../src/repositorios/logsRepositorio');
 const dispositivosRepositorio = require('../src/repositorios/dispositivosConfiaveisRepositorio');
+const bcrypt = require('bcrypt');
 const { gerarToken } = require('./ajudantes/token');
 
 const tokenOperador = `Bearer ${gerarToken({ id: 9, nivel: 'operador' })}`;
@@ -128,5 +130,95 @@ describe('DELETE /usuarios/:id', () => {
 
     expect(resposta.status).toBe(409);
     expect(usuariosRepositorio.excluir).not.toHaveBeenCalled();
+  });
+});
+
+describe('PUT /usuarios/eu/senha', () => {
+  beforeEach(() => {
+    logsRepositorio.registrar.mockResolvedValue();
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('responde 400 sem a senha atual', async () => {
+    const resposta = await request(app)
+      .put('/usuarios/eu/senha')
+      .set('Authorization', tokenOperador)
+      .send({ novaSenha: 'Otica2026Segura' });
+
+    expect(resposta.status).toBe(400);
+    expect(usuariosRepositorio.atualizarSenha).not.toHaveBeenCalled();
+  });
+
+  it('responde 401 quando a senha atual está errada', async () => {
+    usuariosRepositorio.buscarPorIdComSenha.mockResolvedValue({
+      id: 9, nome: 'Beatriz Alves', email: 'beatriz@x.com', senha_hash: 'hash',
+    });
+    bcrypt.compare.mockResolvedValue(false);
+
+    const resposta = await request(app)
+      .put('/usuarios/eu/senha')
+      .set('Authorization', tokenOperador)
+      .send({ senhaAtual: 'errada', novaSenha: 'Otica2026Segura' });
+
+    expect(resposta.status).toBe(401);
+    expect(usuariosRepositorio.atualizarSenha).not.toHaveBeenCalled();
+  });
+
+  it('responde 400 quando a nova senha não atende aos critérios', async () => {
+    usuariosRepositorio.buscarPorIdComSenha.mockResolvedValue({
+      id: 9, nome: 'Beatriz Alves', email: 'beatriz@x.com', senha_hash: 'hash',
+    });
+    bcrypt.compare.mockResolvedValue(true);
+
+    const resposta = await request(app)
+      .put('/usuarios/eu/senha')
+      .set('Authorization', tokenOperador)
+      .send({ senhaAtual: 'certa', novaSenha: 'abc' });
+
+    expect(resposta.status).toBe(400);
+    expect(resposta.body.erro).toMatch(/10 caracteres/);
+    expect(usuariosRepositorio.atualizarSenha).not.toHaveBeenCalled();
+  });
+
+  it('recusa repetir a senha atual', async () => {
+    usuariosRepositorio.buscarPorIdComSenha.mockResolvedValue({
+      id: 9, nome: 'Beatriz Alves', email: 'beatriz@x.com', senha_hash: 'hash',
+    });
+    // confere a atual e depois compara a nova com a mesma hash
+    bcrypt.compare.mockResolvedValue(true);
+
+    const resposta = await request(app)
+      .put('/usuarios/eu/senha')
+      .set('Authorization', tokenOperador)
+      .send({ senhaAtual: 'Otica2026Segura', novaSenha: 'Otica2026Segura' });
+
+    expect(resposta.status).toBe(400);
+    expect(resposta.body.erro).toMatch(/diferente da atual/);
+    expect(usuariosRepositorio.atualizarSenha).not.toHaveBeenCalled();
+  });
+
+  it('troca a senha quando tudo está certo', async () => {
+    usuariosRepositorio.buscarPorIdComSenha.mockResolvedValue({
+      id: 9, nome: 'Beatriz Alves', email: 'beatriz@x.com', senha_hash: 'hash',
+    });
+    bcrypt.compare.mockResolvedValueOnce(true).mockResolvedValueOnce(false);
+    bcrypt.hash.mockResolvedValue('hash-novo');
+    usuariosRepositorio.atualizarSenha.mockResolvedValue();
+
+    const resposta = await request(app)
+      .put('/usuarios/eu/senha')
+      .set('Authorization', tokenOperador)
+      .send({ senhaAtual: 'antiga', novaSenha: 'Otica2026Segura' });
+
+    expect(resposta.status).toBe(204);
+    expect(usuariosRepositorio.atualizarSenha).toHaveBeenCalledWith(9, 'hash-novo');
+  });
+
+  it('responde 401 sem token', async () => {
+    const resposta = await request(app).put('/usuarios/eu/senha').send({ senhaAtual: 'a', novaSenha: 'b' });
+    expect(resposta.status).toBe(401);
   });
 });

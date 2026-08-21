@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Minha senha</title>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+  <a class="pular-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
+
+  <div class="aplicacao">
+    <div class="lateral">
+      <div class="marca">
+        <span class="marca-sigla" id="marca-sigla" aria-hidden="true"></span>
+        <img id="logo-barra-superior" src="logo-padrao.svg" alt="Logotipo padrão do sistema" hidden>
+        <div>
+          <div class="marca-nome" id="marca-nome">Catálogo de Produtos</div>
+          <a class="marca-atalho" id="marca-atalho" href="administracao.html" hidden>Trocar logotipo</a>
+        </div>
+      </div>
+      <nav class="menu" aria-label="Navegação principal">
+        <a href="catalogo.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 8 12 3 3 8v8l9 5 9-5Z"/><path d="m3 8 9 5 9-5"/><path d="M12 13v10"/></svg><span>Produtos</span></a>
+        <a href="saida.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M9 21H5V3h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg><span>Saída Manual</span></a>
+        <a href="relatorios.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 3H6v18h12V7Z"/><path d="M14 3v4h4"/><path d="M9 13h6"/><path d="M9 17h6"/></svg><span>Relatórios</span></a>
+        <a href="logs.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/><path d="M12 8v4l3 2"/></svg><span>Logs</span></a>
+        <a href="administracao.html" id="link-administracao"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/><circle cx="9" cy="7" r="2" fill="var(--bg)"/><circle cx="15" cy="12" r="2" fill="var(--bg)"/><circle cx="9" cy="17" r="2" fill="var(--bg)"/></svg><span>Administração</span><svg class="cadeado-menu" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="10"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></a>
+      </nav>
+      <div class="lateral-rodape">
+        <p class="rotulo">Avisos do sistema</p>
+        <div id="avisos-sistema" class="avisos-sistema"></div>
+        <a class="link-trocar-senha" href="senha.html">Trocar minha senha</a>
+        <button type="button" id="botao-sair" class="botao-sair-conta" hidden>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M15 21H5V3h10"/><path d="m19 17-5-5 5-5"/><path d="M14 12h7"/></svg>
+          <span>Sair da conta</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="area-principal">
+      <div class="topo">
+        <div class="topo-titulo">
+          <span class="rotulo">Estoque empresarial</span>
+          <span class="topo-nome-tela">Minha senha</span>
+        </div>
+        <div class="topo-acoes">
+          <a href="index.html" id="link-entrar" class="botao botao-texto" hidden>Entrar</a>
+          <button type="button" id="botao-tema" class="botao-tema" aria-label="Mudar para o tema escuro" title="Mudar para o tema escuro">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9"/></svg>
+          </button>
+          <div class="sino-area">
+            <button type="button" id="botao-sino" class="sino" aria-label="Notificações de estoque" aria-expanded="false" hidden>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg>
+              <span class="sino-contador" id="sino-contador" hidden>0</span>
+            </button>
+            <div class="painel-notificacoes" id="painel-notificacoes" role="dialog" aria-label="Notificações de estoque" hidden>
+              <div class="notificacoes-cabeca">
+                <span class="rotulo">Notificações</span>
+                <button type="button" id="botao-fechar-notificacoes" class="fechar-notificacoes" aria-label="Fechar notificações">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+              </div>
+              <div id="lista-notificacoes"></div>
+            </div>
+          </div>
+          <div class="usuario" id="usuario-logado" hidden>
+            <span class="inicial" id="usuario-inicial" aria-hidden="true"></span>
+            <div class="identificacao">
+              <span id="usuario-nome"></span>
+              <span class="nivel" id="usuario-nivel"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <main id="conteudo-principal" class="conteudo">
+        <div class="titulo-tela">
+          <div>
+            <h1>Minha senha</h1>
+            <p class="apagado">Troque a senha da sua conta. A nova senha passa a valer no próximo acesso.</p>
+          </div>
+        </div>
+
+        <div class="duas-colunas">
+          <section class="painel" aria-label="Trocar senha">
+            <div class="painel-cabeca">Trocar senha</div>
+            <div class="painel-corpo">
+              <form id="form-senha" novalidate>
+                <div class="campo">
+                  <label for="senha-atual">Senha atual</label>
+                  <input type="password" id="senha-atual" class="entrada" autocomplete="current-password" required>
+                </div>
+
+                <div class="campo">
+                  <label for="senha-nova">Nova senha</label>
+                  <input type="password" id="senha-nova" class="entrada" autocomplete="new-password" aria-describedby="lista-criterios" required>
+                </div>
+
+                <div class="campo">
+                  <label for="senha-confirma">Repita a nova senha</label>
+                  <input type="password" id="senha-confirma" class="entrada" autocomplete="new-password" required>
+                </div>
+
+                <p id="senha-erro" class="erro-geral" role="alert" hidden></p>
+
+                <div class="titulo-tela">
+                  <div class="acoes">
+                    <button type="submit" id="botao-trocar-senha" class="botao botao-principal">Trocar senha</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </section>
+
+          <aside class="painel" aria-label="Critérios da senha">
+            <div class="painel-cabeca">Critérios</div>
+            <div class="painel-corpo">
+              <p class="apagado">A nova senha precisa atender a tudo abaixo:</p>
+              <ul class="lista-criterios" id="lista-criterios"></ul>
+
+              <p class="apagado nota-recuperacao" id="situacao-senha"></p>
+            </div>
+          </aside>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="aviso" id="toast-aviso" role="status" aria-live="polite" hidden></div>
+
+  <div class="barra-cookies" id="barra-cookies" hidden>
+    <div>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 3 3 0 0 1-4-4 3 3 0 0 1-5-5"/><path d="M9 10h.01"/><path d="M14 14h.01"/><path d="M9.5 15.5h.01"/></svg>
+      <p>Usamos cookies para manter você conectado e lembrar suas preferências de filtro e tema. Não usamos cookies de publicidade. <button type="button" id="botao-politica-privacidade" class="link-politica">Ver a política de privacidade</button></p>
+      <div class="acoes-cookies">
+        <button type="button" id="botao-recusar-cookies" class="botao botao-contorno">Só os necessários</button>
+        <button type="button" id="botao-aceitar-cookies" class="botao botao-principal">Aceitar cookies</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/senha.js"></script>
+</body>
+</html>

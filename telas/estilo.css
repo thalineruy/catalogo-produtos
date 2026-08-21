@@ -1268,3 +1268,36 @@ legend { margin-bottom: 10px; }
   cursor: pointer;
 }
 .botao-tema:hover { background: var(--sobre); }
+
+/* ---------- 21. Avisos do sistema e troca de senha ----------
+   O sino cuida do estoque; o rodapé do menu cuida da conta e da
+   comunicação com o servidor. */
+
+.avisos-sistema { display: flex; flex-direction: column; gap: 8px; }
+
+.aviso-sistema {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--apagado);
+}
+.aviso-sistema svg { flex-shrink: 0; margin-top: 2px; }
+.aviso-sistema.grave { color: var(--tinta); }
+.aviso-sistema.grave svg { color: var(--destaque); }
+
+.link-trocar-senha {
+  display: inline-block;
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--destaque);
+}
+
+/* Lista de critérios da senha: o sinal nunca é só a cor, vem sempre
+   acompanhado do símbolo e de um texto para o leitor de tela. */
+.lista-criterios { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+
+.criterio { display: flex; align-items: baseline; gap: 8px; font-size: 13px; color: var(--apagado); }
+.criterio-marca { width: 14px; flex-shrink: 0; font-weight: 800; text-align: center; }
+.criterio.atendido { color: var(--tinta); }
+.criterio.atendido .criterio-marca { color: var(--destaque); }

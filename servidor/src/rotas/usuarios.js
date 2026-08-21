@@ -7,9 +7,67 @@ const dispositivosRepositorio = require('../repositorios/dispositivosConfiaveisR
 const { autenticar } = require('../middleware/autenticacao');
 const { exigirAdministrador } = require('../middleware/autorizacao');
 const { gerarSenhaTemporaria } = require('../servicos/geradorSenha');
+const { conferirSenha } = require('../servicos/validacaoSenha');
 
 const router = express.Router();
 const NIVEIS_VALIDOS = ['administrador', 'operador'];
+
+// Dados da própria conta, usados pelo aviso de senha no menu.
+// Precisa vir antes de "/:id" para o "eu" não ser lido como um id.
+router.get('/eu', autenticar, async (req, res, next) => {
+  try {
+    const usuario = await usuariosRepositorio.buscarPorId(req.usuario.id);
+    if (!usuario) return res.status(404).json({ erro: 'usuário não encontrado' });
+
+    res.json({
+      id: usuario.id,
+      nome: usuario.nome,
+      email: usuario.email,
+      nivel: usuario.nivel,
+      senha_atualizada_em: usuario.senha_atualizada_em,
+    });
+  } catch (erro) {
+    next(erro);
+  }
+});
+
+// Troca da própria senha: exige a senha atual, para que uma sessão
+// esquecida aberta não permita tomar a conta.
+router.put('/eu/senha', autenticar, async (req, res, next) => {
+  try {
+    const { senhaAtual, novaSenha } = req.body;
+
+    if (!senhaAtual || !novaSenha) {
+      return res.status(400).json({ erro: 'informe a senha atual e a nova senha' });
+    }
+
+    const usuario = await usuariosRepositorio.buscarPorIdComSenha(req.usuario.id);
+    if (!usuario) return res.status(404).json({ erro: 'usuário não encontrado' });
+
+    const confere = await bcrypt.compare(senhaAtual, usuario.senha_hash);
+    if (!confere) return res.status(401).json({ erro: 'senha atual incorreta' });
+
+    const pendentes = conferirSenha(novaSenha, { nome: usuario.nome, email: usuario.email });
+    if (pendentes.length) {
+      return res.status(400).json({ erro: `a nova senha precisa de: ${pendentes.join('; ')}` });
+    }
+
+    const igualAAtual = await bcrypt.compare(novaSenha, usuario.senha_hash);
+    if (igualAAtual) {
+      return res.status(400).json({ erro: 'a nova senha precisa ser diferente da atual' });
+    }
+
+    await usuariosRepositorio.atualizarSenha(usuario.id, await bcrypt.hash(novaSenha, 10));
+
+    logsRepositorio
+      .registrar({ usuarioId: usuario.id, tipo: 'Edição', detalhes: `${usuario.nome} trocou a própria senha` })
+      .catch((erro) => console.error('falha ao registrar log de troca de senha', erro));
+
+    res.status(204).send();
+  } catch (erro) {
+    next(erro);
+  }
+});
 
 router.get('/', autenticar, exigirAdministrador, async (req, res, next) => {
   try {

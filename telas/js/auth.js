@@ -299,30 +299,102 @@ function montarNotificacoes(produtos) {
   if (botaoFechar) botaoFechar.addEventListener('click', fechar);
 }
 
-// Rodapé do menu: quantos produtos estão abaixo do mínimo cadastrado e
-// quantos zeraram. A mesma consulta alimenta o sino do topo.
-// Silencioso em caso de falha — é informação auxiliar.
+// Alertas de estoque vivem no sino. O rodapé do menu ficou para os
+// avisos do sistema, que são de outra natureza (conta e infraestrutura).
 async function carregarAlertaEstoque() {
-  const alvo = document.getElementById('alerta-estoque-texto');
   const sino = document.getElementById('botao-sino');
-  if ((!alvo && !sino) || typeof listarProdutos !== 'function' || !obterToken()) return;
+  if (!sino || typeof listarProdutos !== 'function' || !obterToken()) return;
 
   try {
-    const produtos = await listarProdutos();
-    const baixos = produtos.filter((p) => p.quantidade > 0 && p.quantidade <= p.estoque_minimo).length;
-    const zerados = produtos.filter((p) => p.quantidade === 0).length;
-
-    if (alvo) {
-      alvo.textContent =
-        baixos === 0 && zerados === 0
-          ? 'Nenhum produto abaixo do mínimo. Estoque em dia.'
-          : `${baixos} item(ns) abaixo do mínimo e ${zerados} zerado(s). Reposição sugerida.`;
-    }
-
-    montarNotificacoes(produtos);
+    montarNotificacoes(await listarProdutos());
   } catch (erro) {
-    if (alvo) alvo.textContent = 'Não foi possível carregar os alertas de estoque.';
+    // Sem estoque para mostrar, o sino simplesmente não aparece; a falha
+    // de comunicação é anunciada pelos avisos do sistema.
   }
+}
+
+/* ---------- Avisos do sistema (rodapé do menu) ---------- */
+
+const DIAS_PARA_TROCAR_SENHA = 60;
+const DIAS_DE_ANTECEDENCIA = 10;
+
+function desenharAvisos(avisos) {
+  const area = document.getElementById('avisos-sistema');
+  if (!area) return;
+
+  area.innerHTML = '';
+
+  if (avisos.length === 0) {
+    const item = document.createElement('p');
+    item.className = 'aviso-sistema';
+    item.textContent = 'Nenhum aviso no momento.';
+    area.appendChild(item);
+    return;
+  }
+
+  avisos.forEach((aviso) => {
+    const item = document.createElement('p');
+    item.className = aviso.grave ? 'aviso-sistema grave' : 'aviso-sistema';
+
+    const icone = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    icone.setAttribute('width', '15');
+    icone.setAttribute('height', '15');
+    icone.setAttribute('viewBox', '0 0 24 24');
+    icone.setAttribute('fill', 'none');
+    icone.setAttribute('stroke', 'currentColor');
+    icone.setAttribute('stroke-width', '2');
+    icone.setAttribute('aria-hidden', 'true');
+    icone.innerHTML = '<path d="m12 3 9 16H3Z"/><path d="M12 9v5"/><path d="M12 17h.01"/>';
+
+    const texto = document.createElement('span');
+    texto.textContent = aviso.texto;
+
+    item.append(icone, texto);
+    area.appendChild(item);
+  });
+}
+
+function avisoDeSenha(contaSenhaAtualizadaEm) {
+  if (!contaSenhaAtualizadaEm) return null;
+
+  const dias = Math.floor((Date.now() - new Date(contaSenhaAtualizadaEm).getTime()) / 86400000);
+  const faltam = DIAS_PARA_TROCAR_SENHA - dias;
+
+  if (faltam <= 0) {
+    return { texto: `Sua senha tem ${dias} dias. Recomendamos trocar.`, grave: true };
+  }
+  if (faltam <= DIAS_DE_ANTECEDENCIA) {
+    return { texto: `Sua senha completa ${DIAS_PARA_TROCAR_SENHA} dias em ${faltam} dia(s).`, grave: false };
+  }
+  return null;
+}
+
+// Conexão e conta. Nada aqui bloqueia o uso do sistema: o objetivo é
+// explicar para quem usa que o problema não está do lado dele.
+async function carregarAvisosDoSistema() {
+  const area = document.getElementById('avisos-sistema');
+  if (!area || typeof conferirSaudeDoServidor !== 'function' || !obterToken()) return;
+
+  const avisos = [];
+  const saude = await conferirSaudeDoServidor();
+
+  if (saude.servidor === 'fora') {
+    avisos.push({ texto: 'Sem comunicação com o servidor. O problema não é no seu acesso.', grave: true });
+  } else if (saude.banco === 'fora') {
+    avisos.push({ texto: 'O servidor respondeu, mas está sem acesso ao banco de dados.', grave: true });
+  }
+
+  if (saude.servidor === 'ok' && saude.banco === 'ok' && typeof buscarMinhaConta === 'function') {
+    try {
+      const conta = await buscarMinhaConta();
+      const senha = avisoDeSenha(conta.senha_atualizada_em);
+      if (senha) avisos.push(senha);
+    } catch (erro) {
+      avisos.push({ texto: 'Não foi possível conferir a situação da sua senha.', grave: false });
+    }
+  }
+
+  desenharAvisos(avisos);
 }
 
 // Marca da empresa na tela de entrada (login): logo + nome no topo do
@@ -598,6 +670,7 @@ function montarBarraNavegacao({ exigirLogin = false } = {}) {
 
   carregarLogoBarraSuperior();
   carregarAlertaEstoque();
+  carregarAvisosDoSistema();
   iniciarBotaoTema();
   iniciarBarraCookies();
 

@@ -10,7 +10,17 @@ async function buscarPorEmail(email) {
 
 async function buscarPorId(id) {
   const { rows } = await pool.query(
-    'SELECT id, nome, email, nivel, totp_secret, totp_confirmado_em FROM usuarios WHERE id = $1',
+    `SELECT id, nome, email, nivel, totp_secret, totp_confirmado_em, senha_atualizada_em
+     FROM usuarios WHERE id = $1`,
+    [id],
+  );
+  return rows[0] || null;
+}
+
+// Só para conferir a senha atual na troca feita pelo próprio usuário
+async function buscarPorIdComSenha(id) {
+  const { rows } = await pool.query(
+    'SELECT id, nome, email, senha_hash FROM usuarios WHERE id = $1',
     [id],
   );
   return rows[0] || null;
@@ -44,8 +54,12 @@ async function atualizarNivel(id, nivel) {
   return rows[0] || null;
 }
 
+// Marca a data da troca junto: é ela que alimenta o aviso de senha antiga
 async function atualizarSenha(id, senhaHash) {
-  await pool.query('UPDATE usuarios SET senha_hash = $1 WHERE id = $2', [senhaHash, id]);
+  await pool.query('UPDATE usuarios SET senha_hash = $1, senha_atualizada_em = now() WHERE id = $2', [
+    senhaHash,
+    id,
+  ]);
 }
 
 async function excluir(id) {
@@ -67,6 +81,7 @@ async function limparTotp(id) {
 module.exports = {
   buscarPorEmail,
   buscarPorId,
+  buscarPorIdComSenha,
   listar,
   criar,
   atualizarNivel,

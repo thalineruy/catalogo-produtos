@@ -145,3 +145,27 @@ async function buscarEstatisticas() {
 async function solicitarRecuperacaoSenha(email, motivo) {
   return apiFetch('/recuperacao-senha', { method: 'POST', body: JSON.stringify({ email, motivo }) });
 }
+
+async function buscarMinhaConta() {
+  return apiFetch('/usuarios/eu');
+}
+
+async function trocarMinhaSenha(senhaAtual, novaSenha) {
+  return apiFetch('/usuarios/eu/senha', {
+    method: 'PUT',
+    body: JSON.stringify({ senhaAtual, novaSenha }),
+  });
+}
+
+// Não passa pelo apiFetch: aqui a falha é a informação que interessa,
+// então o erro é devolvido em vez de lançado.
+async function conferirSaudeDoServidor() {
+  try {
+    const resposta = await fetch(`${API_URL}/saude`);
+    const dados = await resposta.json().catch(() => null);
+    if (resposta.ok) return { servidor: 'ok', banco: (dados && dados.banco) || 'ok' };
+    return { servidor: 'ok', banco: (dados && dados.banco) || 'fora' };
+  } catch (erro) {
+    return { servidor: 'fora', banco: 'desconhecido' };
+  }
+}

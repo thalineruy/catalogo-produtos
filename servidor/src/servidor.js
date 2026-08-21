@@ -3,6 +3,8 @@ require('dotenv').config({ quiet: true });
 const express = require('express');
 const cors = require('cors');
 
+const { pool } = require('./db');
+
 const produtosRotas = require('./rotas/produtos');
 const categoriasRotas = require('./rotas/categorias');
 const saidasRotas = require('./rotas/saidas');
@@ -19,8 +21,16 @@ const app = express();
 app.use(cors({ origin: process.env.CORS_ORIGIN }));
 app.use(express.json());
 
-app.get('/saude', (req, res) => {
-  res.json({ status: 'ok' });
+// Confere o banco de verdade: antes esta rota respondia "ok" mesmo com o
+// banco inacessível, que é justamente quando ela precisa avisar.
+app.get('/saude', async (req, res) => {
+  try {
+    await pool.query('SELECT 1');
+    res.json({ status: 'ok', banco: 'ok' });
+  } catch (erro) {
+    console.error('falha ao consultar o banco em /saude', erro);
+    res.status(503).json({ status: 'degradado', banco: 'fora' });
+  }
 });
 
 app.use('/produtos', produtosRotas);
