@@ -12,6 +12,10 @@ function validarDadosEmpresa(dados = {}) {
   if (dados.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(dados.email)) {
     erros.push('email inválido');
   }
+  // A sigla vira o logotipo de reserva, então precisa caber no quadrado
+  if (dados.sigla && !/^\p{L}{1,3}$/u.test(String(dados.sigla).trim())) {
+    erros.push('sigla deve ter de 1 a 3 letras');
+  }
 
   return erros;
 }

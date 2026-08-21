@@ -1,6 +1,6 @@
 const { pool } = require('../db');
 
-const COLUNAS = 'nome, cnpj, endereco, telefone, email, responsavel, url_logotipo';
+const COLUNAS = 'nome, cnpj, endereco, telefone, email, responsavel, url_logotipo, sigla';
 
 async function buscar() {
   const { rows } = await pool.query(`SELECT ${COLUNAS} FROM empresa ORDER BY id LIMIT 1`);
@@ -8,13 +8,21 @@ async function buscar() {
 }
 
 async function atualizar(dados) {
-  const { nome, cnpj, endereco, telefone, email, responsavel } = dados;
+  const { nome, cnpj, endereco, telefone, email, responsavel, sigla } = dados;
   const { rows } = await pool.query(
     `UPDATE empresa
-     SET nome = $1, cnpj = $2, endereco = $3, telefone = $4, email = $5, responsavel = $6
+     SET nome = $1, cnpj = $2, endereco = $3, telefone = $4, email = $5, responsavel = $6, sigla = $7
      WHERE id = (SELECT id FROM empresa ORDER BY id LIMIT 1)
      RETURNING ${COLUNAS}`,
-    [nome, cnpj, endereco || null, telefone || null, email || null, responsavel || null],
+    [
+      nome,
+      cnpj,
+      endereco || null,
+      telefone || null,
+      email || null,
+      responsavel || null,
+      sigla ? String(sigla).trim().toUpperCase() : null,
+    ],
   );
   return rows[0] || null;
 }

@@ -56,6 +56,10 @@ router.post('/', async (req, res, next) => {
       if (dispositivo) {
         const token = assinarSessao(usuario);
 
+        usuariosRepositorio
+          .registrarAcesso(usuario.id)
+          .catch((erro) => console.error('falha ao registrar último acesso', erro));
+
         logsRepositorio
           .registrar({ usuarioId: usuario.id, tipo: 'Acesso', detalhes: `Login realizado por ${usuario.nome} (dispositivo confiável)` })
           .catch((erro) => console.error('falha ao registrar log de acesso', erro));
@@ -114,6 +118,10 @@ router.post('/verificar-codigo', async (req, res, next) => {
     }
 
     const token = assinarSessao(usuario);
+
+    usuariosRepositorio
+      .registrarAcesso(usuario.id)
+      .catch((erro) => console.error('falha ao registrar último acesso', erro));
 
     logsRepositorio
       .registrar({ usuarioId: usuario.id, tipo: 'Acesso', detalhes: `Login com verificação em duas etapas realizado por ${usuario.nome}` })

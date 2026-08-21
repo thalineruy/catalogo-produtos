@@ -18,10 +18,14 @@ async function buscarPorId(id) {
 
 async function listar() {
   const { rows } = await pool.query(
-    `SELECT id, nome, email, nivel, (totp_confirmado_em IS NOT NULL) AS totp_ativo
+    `SELECT id, nome, email, nivel, ultimo_acesso, (totp_confirmado_em IS NOT NULL) AS totp_ativo
      FROM usuarios ORDER BY nome`,
   );
   return rows;
+}
+
+async function registrarAcesso(id) {
+  await pool.query('UPDATE usuarios SET ultimo_acesso = now() WHERE id = $1', [id]);
 }
 
 async function criar({ nome, email, nivel, senhaHash }) {
@@ -71,4 +75,5 @@ module.exports = {
   salvarTotpSecret,
   confirmarTotp,
   limparTotp,
+  registrarAcesso,
 };

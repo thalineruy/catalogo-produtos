@@ -20,6 +20,7 @@ const usuarioBase = { id: 1, nome: 'Ana Souza', email: 'ana@x.com', senha_hash: 
 describe('POST /login', () => {
   beforeEach(() => {
     logsRepositorio.registrar.mockResolvedValue();
+    usuariosRepositorio.registrarAcesso.mockResolvedValue();
   });
 
   afterEach(() => {
@@ -101,6 +102,7 @@ describe('POST /login', () => {
 describe('POST /login/verificar-codigo', () => {
   beforeEach(() => {
     logsRepositorio.registrar.mockResolvedValue();
+    usuariosRepositorio.registrarAcesso.mockResolvedValue();
   });
 
   afterEach(() => {

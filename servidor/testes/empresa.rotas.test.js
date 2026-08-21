@@ -64,6 +64,30 @@ describe('PUT /empresa', () => {
     expect(empresaRepositorio.atualizar).toHaveBeenCalledTimes(1);
   });
 
+  it('responde 400 quando a sigla tem mais de três letras', async () => {
+    const resposta = await request(app).put('/empresa').set('Authorization', tokenAdministrador).send({
+      nome: 'Ótica Visão',
+      cnpj: '11.222.333/0001-81',
+      sigla: 'ABCD',
+    });
+
+    expect(resposta.status).toBe(400);
+    expect(empresaRepositorio.atualizar).not.toHaveBeenCalled();
+  });
+
+  it('aceita sigla de até três letras', async () => {
+    empresaRepositorio.atualizar.mockResolvedValue({ nome: 'Ótica Visão', sigla: 'OV' });
+
+    const resposta = await request(app).put('/empresa').set('Authorization', tokenAdministrador).send({
+      nome: 'Ótica Visão',
+      cnpj: '11.222.333/0001-81',
+      sigla: 'OV',
+    });
+
+    expect(resposta.status).toBe(200);
+    expect(empresaRepositorio.atualizar).toHaveBeenCalledWith(expect.objectContaining({ sigla: 'OV' }));
+  });
+
   it('responde 403 quando o token é de operador', async () => {
     const resposta = await request(app).put('/empresa').set('Authorization', tokenOperador).send({
       nome: 'Ótica Visão',

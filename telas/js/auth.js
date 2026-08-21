@@ -44,26 +44,49 @@ function exigirSessao() {
 
 const LOGOTIPO_PADRAO = 'logo-padrao.svg';
 
+function escaparXml(texto) {
+  return String(texto).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// Monta o logotipo de reserva a partir da sigla cadastrada pela empresa.
+// Continua sendo uma imagem (SVG), e não texto dentro de um quadrado no
+// HTML, para que sirva igual em qualquer lugar onde o logotipo aparece.
+function logotipoDaSigla(sigla) {
+  const texto = escaparXml(String(sigla).trim().toUpperCase().slice(0, 3));
+  const tamanhoFonte = texto.length >= 3 ? 34 : 46;
+  const svg =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">' +
+    '<rect width="120" height="120" fill="#ec3013"></rect>' +
+    `<text x="60" y="60" fill="#ffffff" font-family="Archivo, system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="${tamanhoFonte}" font-weight="800" letter-spacing="1" text-anchor="middle" dominant-baseline="central">${texto}</text>` +
+    '</svg>';
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
 // Logotipo é sempre imagem: se a empresa tem um gravado, usa o endereço dela;
-// senão, ou se ele falhar ao carregar, cai para o padrão do sistema.
+// senão usa a sigla cadastrada; sem sigla, cai no padrão do sistema.
 function aplicarLogotipo(imagem, empresa) {
   if (!imagem) return;
 
-  function usarPadrao() {
-    imagem.src = LOGOTIPO_PADRAO;
-    imagem.alt = 'Logotipo padrão do sistema';
+  function usarReserva() {
+    if (empresa && empresa.sigla) {
+      imagem.src = logotipoDaSigla(empresa.sigla);
+      imagem.alt = `Logotipo da ${empresa.nome}`;
+    } else {
+      imagem.src = LOGOTIPO_PADRAO;
+      imagem.alt = 'Logotipo padrão do sistema';
+    }
   }
 
   imagem.onerror = () => {
     imagem.onerror = null;
-    usarPadrao();
+    usarReserva();
   };
 
   if (empresa && empresa.url_logotipo) {
     imagem.alt = `Logotipo da ${empresa.nome}`;
     imagem.src = empresa.url_logotipo;
   } else {
-    usarPadrao();
+    usarReserva();
   }
 
   imagem.hidden = false;

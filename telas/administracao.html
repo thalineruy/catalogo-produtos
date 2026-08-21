@@ -137,6 +137,15 @@ Content-Type: application/json</code></pre>
                   <p class="rotulo">Preview atual da marca</p>
                   <img id="logotipo-preview" class="logotipo-preview" src="logo-padrao.svg" alt="Logotipo padrão do sistema">
                   <p class="apagado nota-logotipo">Aplicado na barra superior, no menu e no cabeçalho dos relatórios.</p>
+
+                  <div class="campo sigla-marca">
+                    <label for="empresa-sigla">Sigla da marca (até 3 letras)</label>
+                    <div class="campo-linha">
+                      <input type="text" id="empresa-sigla" class="entrada" maxlength="3" autocomplete="off">
+                      <button type="button" id="botao-aplicar-sigla" class="botao botao-contorno">Aplicar</button>
+                    </div>
+                    <p class="apagado">Usada como logotipo enquanto a empresa não envia uma imagem própria.</p>
+                  </div>
                 </div>
 
                 <div class="area-arrastar" id="area-arrastar-logo" tabindex="0" role="button"
@@ -217,6 +226,7 @@ Content-Type: application/json</code></pre>
                       <th scope="col">Nome</th>
                       <th scope="col">E-mail</th>
                       <th scope="col">Nível</th>
+                      <th scope="col" class="oculta-estreito">Último acesso</th>
                       <th scope="col" class="oculta-estreito">Verificação em duas etapas</th>
                       <th scope="col">Ações</th>
                     </tr>

@@ -84,6 +84,7 @@
     document.getElementById('empresa-email').value = empresa.email || '';
     document.getElementById('empresa-endereco').value = empresa.endereco || '';
     document.getElementById('empresa-responsavel').value = empresa.responsavel || '';
+    document.getElementById('empresa-sigla').value = empresa.sigla || '';
   }
 
   function atualizarPreviaLogotipo(empresa) {
@@ -107,12 +108,41 @@
       email: document.getElementById('empresa-email').value.trim(),
       endereco: document.getElementById('empresa-endereco').value.trim(),
       responsavel: document.getElementById('empresa-responsavel').value.trim(),
+      sigla: document.getElementById('empresa-sigla').value.trim(),
     };
 
     try {
       empresaAtual = await atualizarEmpresa(dados);
       preencherFormEmpresa(empresaAtual);
+      atualizarPreviaLogotipo(empresaAtual);
       exibirAviso('Dados da empresa salvos com sucesso.');
+    } catch (erro) {
+      empresaErro.textContent = erro.message;
+      empresaErro.hidden = false;
+    }
+  });
+
+  // O botão "Aplicar" da sigla salva junto com os demais dados da empresa,
+  // usando o que já está no formulário, para não gravar pela metade.
+  document.getElementById('botao-aplicar-sigla').addEventListener('click', async () => {
+    empresaErro.hidden = true;
+
+    const dados = {
+      nome: document.getElementById('empresa-nome').value.trim(),
+      cnpj: document.getElementById('empresa-cnpj').value.trim(),
+      telefone: document.getElementById('empresa-telefone').value.trim(),
+      email: document.getElementById('empresa-email').value.trim(),
+      endereco: document.getElementById('empresa-endereco').value.trim(),
+      responsavel: document.getElementById('empresa-responsavel').value.trim(),
+      sigla: document.getElementById('empresa-sigla').value.trim(),
+    };
+
+    try {
+      empresaAtual = await atualizarEmpresa(dados);
+      preencherFormEmpresa(empresaAtual);
+      atualizarPreviaLogotipo(empresaAtual);
+      carregarLogoBarraSuperior();
+      exibirAviso('Sigla aplicada. Ela aparece como logotipo enquanto não houver uma imagem enviada.');
     } catch (erro) {
       empresaErro.textContent = erro.message;
       empresaErro.hidden = false;
@@ -332,6 +362,13 @@
     const tdNivel = document.createElement('td');
     tdNivel.textContent = usuario.nivel === 'administrador' ? 'Administrador' : 'Operador';
     tr.appendChild(tdNivel);
+
+    const tdUltimoAcesso = document.createElement('td');
+    tdUltimoAcesso.className = 'oculta-estreito';
+    tdUltimoAcesso.textContent = usuario.ultimo_acesso
+      ? new Date(usuario.ultimo_acesso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
+      : 'Nunca acessou';
+    tr.appendChild(tdUltimoAcesso);
 
     const tdTotp = document.createElement('td');
     tdTotp.className = 'oculta-estreito';
