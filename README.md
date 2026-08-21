@@ -34,6 +34,14 @@ Node.js, Express, API REST, PostgreSQL no Supabase, HTML, CSS, JavaScript com Fe
 Execute os scripts na pasta `banco/`, em ordem, no SQL Editor do Supabase:
 1. `01-tabelas.sql` — cria as tabelas.
 2. `02-dados-exemplo.sql` — popula dados de exemplo.
+3. `03-saidas-observacao.sql` — adiciona o campo de observação às saídas.
+
+## Login para testes locais
+
+Os usuários de exemplo em `02-dados-exemplo.sql` usam a senha `senha123`
+(hash bcrypt já incluído no script). Faça login em `telas/login.html` com
+qualquer um dos e-mails cadastrados (ex.: `ana.souza@oticavisao.com` como
+administrador, `beatriz.alves@oticavisao.com` como operador).
 
 ## Como rodar os testes
 

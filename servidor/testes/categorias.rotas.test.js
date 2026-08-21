@@ -1,10 +1,19 @@
 jest.mock('../src/repositorios/categoriasRepositorio');
+jest.mock('../src/repositorios/logsRepositorio');
 
 const request = require('supertest');
 const app = require('../src/servidor');
 const categoriasRepositorio = require('../src/repositorios/categoriasRepositorio');
+const logsRepositorio = require('../src/repositorios/logsRepositorio');
+const { gerarToken } = require('./ajudantes/token');
+
+const tokenOperador = `Bearer ${gerarToken({ id: 9, nivel: 'operador' })}`;
 
 describe('DELETE /categorias/:id', () => {
+  beforeEach(() => {
+    logsRepositorio.registrar.mockResolvedValue();
+  });
+
   afterEach(() => {
     jest.resetAllMocks();
   });
@@ -13,7 +22,7 @@ describe('DELETE /categorias/:id', () => {
     categoriasRepositorio.buscarPorId.mockResolvedValue({ id: 1, nome: 'Armações' });
     categoriasRepositorio.contarProdutosVinculados.mockResolvedValue(3);
 
-    const resposta = await request(app).delete('/categorias/1');
+    const resposta = await request(app).delete('/categorias/1').set('Authorization', tokenOperador);
 
     expect(resposta.status).toBe(409);
     expect(resposta.body).toEqual({ erro: expect.any(String) });
@@ -25,9 +34,16 @@ describe('DELETE /categorias/:id', () => {
     categoriasRepositorio.contarProdutosVinculados.mockResolvedValue(0);
     categoriasRepositorio.excluir.mockResolvedValue();
 
-    const resposta = await request(app).delete('/categorias/2');
+    const resposta = await request(app).delete('/categorias/2').set('Authorization', tokenOperador);
 
     expect(resposta.status).toBe(204);
     expect(categoriasRepositorio.excluir).toHaveBeenCalledWith('2');
+  });
+
+  it('responde 401 quando não há token de acesso', async () => {
+    const resposta = await request(app).delete('/categorias/2');
+
+    expect(resposta.status).toBe(401);
+    expect(categoriasRepositorio.excluir).not.toHaveBeenCalled();
   });
 });

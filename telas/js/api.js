@@ -1,7 +1,11 @@
 async function apiFetch(caminho, opcoes = {}) {
+  const token = typeof obterToken === 'function' ? obterToken() : null;
+  const cabecalhos = { 'Content-Type': 'application/json', ...(opcoes.headers || {}) };
+  if (token) cabecalhos.Authorization = `Bearer ${token}`;
+
   const resposta = await fetch(`${API_URL}${caminho}`, {
-    headers: { 'Content-Type': 'application/json' },
     ...opcoes,
+    headers: cabecalhos,
   });
 
   if (resposta.status === 204) {
@@ -27,6 +31,10 @@ function construirQuery(filtros) {
   return texto ? `?${texto}` : '';
 }
 
+async function login(email, senha) {
+  return apiFetch('/login', { method: 'POST', body: JSON.stringify({ email, senha }) });
+}
+
 async function listarCategorias() {
   return apiFetch('/categorias');
 }
@@ -49,4 +57,20 @@ async function atualizarProduto(id, dados) {
 
 async function excluirProduto(id) {
   return apiFetch(`/produtos/${id}`, { method: 'DELETE' });
+}
+
+async function registrarSaida(dados) {
+  return apiFetch('/saidas', { method: 'POST', body: JSON.stringify(dados) });
+}
+
+async function listarSaidas(filtros = {}) {
+  return apiFetch(`/saidas${construirQuery(filtros)}`);
+}
+
+async function listarLogs(filtros = {}) {
+  return apiFetch(`/logs${construirQuery(filtros)}`);
+}
+
+async function listarUsuarios() {
+  return apiFetch('/usuarios');
 }

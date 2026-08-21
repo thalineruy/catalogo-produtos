@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logs de Auditoria</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+  <a class="pular-conteudo" href="#conteudo-principal">Pular para o conteúdo</a>
+
+  <header class="cabecalho">
+    <h1>Logs de Auditoria</h1>
+    <p class="cabecalho-subtitulo">Histórico de operações realizadas no sistema.</p>
+  </header>
+
+  <nav class="barra-navegacao" aria-label="Navegação principal">
+    <a href="index.html">Catálogo</a>
+    <a href="saida.html">Saída de produtos</a>
+    <a href="logs.html" aria-current="page">Logs</a>
+    <span class="usuario-logado" id="usuario-logado" hidden></span>
+    <button type="button" id="botao-sair" class="botao botao-secundario" hidden>Sair</button>
+  </nav>
+
+  <main id="conteudo-principal" class="conteudo">
+    <section class="painel-filtros" aria-label="Filtros de logs">
+      <form id="form-filtros-logs">
+        <div class="grade-filtros">
+          <div class="campo">
+            <label for="logs-inicio">Período — de</label>
+            <input type="date" id="logs-inicio" name="inicio">
+          </div>
+
+          <div class="campo">
+            <label for="logs-fim">Período — até</label>
+            <input type="date" id="logs-fim" name="fim">
+          </div>
+
+          <div class="campo" id="campo-operador-wrapper">
+            <label for="logs-operador">Operador</label>
+            <div class="campo-bloqueado">
+              <select id="logs-operador" name="operador">
+                <option value="">Todos</option>
+              </select>
+              <span class="icone-cadeado" id="icone-cadeado-operador" aria-hidden="true" hidden>🔒</span>
+            </div>
+            <p id="logs-operador-explicacao" class="texto-auxiliar" hidden>
+              Você só pode ver as suas próprias operações.
+            </p>
+          </div>
+
+          <div class="campo">
+            <label for="logs-tipo">Tipo de ação</label>
+            <select id="logs-tipo" name="tipo">
+              <option value="">Todos</option>
+              <option value="Cadastro">Cadastro</option>
+              <option value="Edição">Edição</option>
+              <option value="Exclusão">Exclusão</option>
+              <option value="Saída">Saída</option>
+              <option value="Acesso">Acesso</option>
+              <option value="Relatório">Relatório</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="acoes-filtros">
+          <button type="button" id="botao-limpar-filtros-logs" class="botao botao-secundario">Limpar filtros</button>
+        </div>
+      </form>
+    </section>
+
+    <p id="logs-resumo" class="resumo-resultados" aria-live="polite" role="status"></p>
+
+    <div id="logs-erro" class="mensagem-erro" role="alert" hidden></div>
+
+    <div class="tabela-wrapper">
+      <table class="tabela-produtos">
+        <caption class="visualmente-oculto">Registros de auditoria: data e hora, operador, tipo de ação e detalhes</caption>
+        <thead>
+          <tr>
+            <th scope="col">Data e hora</th>
+            <th scope="col">Operador</th>
+            <th scope="col">Tipo de ação</th>
+            <th scope="col">Detalhes</th>
+          </tr>
+        </thead>
+        <tbody id="corpo-logs"></tbody>
+      </table>
+    </div>
+
+    <div id="logs-vazio" class="estado-vazio" hidden>
+      <p>Nenhum log encontrado com os filtros aplicados.</p>
+    </div>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/logs-tela.js"></script>
+</body>
+</html>

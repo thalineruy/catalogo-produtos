@@ -2,8 +2,10 @@ const express = require('express');
 
 const repositorio = require('../repositorios/produtosRepositorio');
 const categoriasRepositorio = require('../repositorios/categoriasRepositorio');
+const logsRepositorio = require('../repositorios/logsRepositorio');
 const { aplicarFiltros } = require('../servicos/filtroProdutos');
 const { validarProduto } = require('../servicos/validacaoProdutos');
+const { autenticar } = require('../middleware/autenticacao');
 
 const router = express.Router();
 
@@ -26,7 +28,7 @@ router.get('/:id', async (req, res, next) => {
   }
 });
 
-router.post('/', async (req, res, next) => {
+router.post('/', autenticar, async (req, res, next) => {
   try {
     const erros = validarProduto(req.body);
     if (erros.length) return res.status(400).json({ erro: erros.join('; ') });
@@ -38,13 +40,22 @@ router.post('/', async (req, res, next) => {
     if (existente) return res.status(409).json({ erro: 'já existe um produto com este código interno' });
 
     const produto = await repositorio.criar(req.body);
+
+    logsRepositorio
+      .registrar({
+        usuarioId: req.usuario.id,
+        tipo: 'Cadastro',
+        detalhes: `Cadastrou o produto "${produto.nome}" (${produto.codigo_interno})`,
+      })
+      .catch((erro) => console.error('falha ao registrar log de cadastro', erro));
+
     res.status(201).json(produto);
   } catch (erro) {
     next(erro);
   }
 });
 
-router.put('/:id', async (req, res, next) => {
+router.put('/:id', autenticar, async (req, res, next) => {
   try {
     const atual = await repositorio.buscarPorId(req.params.id);
     if (!atual) return res.status(404).json({ erro: 'produto não encontrado' });
@@ -59,18 +70,36 @@ router.put('/:id', async (req, res, next) => {
     if (duplicado) return res.status(409).json({ erro: 'já existe um produto com este código interno' });
 
     const produto = await repositorio.atualizar(req.params.id, req.body);
+
+    logsRepositorio
+      .registrar({
+        usuarioId: req.usuario.id,
+        tipo: 'Edição',
+        detalhes: `Editou o produto "${produto.nome}" (${produto.codigo_interno})`,
+      })
+      .catch((erro) => console.error('falha ao registrar log de edição', erro));
+
     res.json(produto);
   } catch (erro) {
     next(erro);
   }
 });
 
-router.delete('/:id', async (req, res, next) => {
+router.delete('/:id', autenticar, async (req, res, next) => {
   try {
     const atual = await repositorio.buscarPorId(req.params.id);
     if (!atual) return res.status(404).json({ erro: 'produto não encontrado' });
 
     await repositorio.excluir(req.params.id);
+
+    logsRepositorio
+      .registrar({
+        usuarioId: req.usuario.id,
+        tipo: 'Exclusão',
+        detalhes: `Excluiu o produto "${atual.nome}" (${atual.codigo_interno})`,
+      })
+      .catch((erro) => console.error('falha ao registrar log de exclusão', erro));
+
     res.status(204).send();
   } catch (erro) {
     next(erro);

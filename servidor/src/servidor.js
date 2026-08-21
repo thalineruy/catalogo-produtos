@@ -5,6 +5,10 @@ const cors = require('cors');
 
 const produtosRotas = require('./rotas/produtos');
 const categoriasRotas = require('./rotas/categorias');
+const saidasRotas = require('./rotas/saidas');
+const logsRotas = require('./rotas/logs');
+const authRotas = require('./rotas/auth');
+const usuariosRotas = require('./rotas/usuarios');
 
 const app = express();
 
@@ -17,6 +21,10 @@ app.get('/saude', (req, res) => {
 
 app.use('/produtos', produtosRotas);
 app.use('/categorias', categoriasRotas);
+app.use('/saidas', saidasRotas);
+app.use('/logs', logsRotas);
+app.use('/login', authRotas);
+app.use('/usuarios', usuariosRotas);
 
 app.use((req, res) => {
   res.status(404).json({ erro: 'rota não encontrada' });

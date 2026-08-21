@@ -263,7 +263,16 @@
     modal.close();
   }
 
+  function exigirLoginParaEscrita() {
+    if (!obterToken()) {
+      window.location.href = 'login.html';
+      return false;
+    }
+    return true;
+  }
+
   function abrirModalNovo() {
+    if (!exigirLoginParaEscrita()) return;
     formProduto.reset();
     document.getElementById('produto-id').value = '';
     document.getElementById('produto-quantidade').value = '0';
@@ -273,6 +282,7 @@
   }
 
   function abrirModalEdicao(produto, botaoOrigem) {
+    if (!exigirLoginParaEscrita()) return;
     formProduto.reset();
     document.getElementById('produto-id').value = produto.id;
     document.getElementById('produto-nome').value = produto.nome;
@@ -288,6 +298,7 @@
   }
 
   async function confirmarExclusao(produto) {
+    if (!exigirLoginParaEscrita()) return;
     const confirmou = window.confirm(`Excluir o produto "${produto.nome}"? Esta ação não pode ser desfeita.`);
     if (!confirmou) return;
 
@@ -344,6 +355,8 @@
   modal.addEventListener('close', () => {
     if (elementoAbriuModal) elementoAbriuModal.focus();
   });
+
+  montarBarraNavegacao({ exigirLogin: false });
 
   (async function iniciar() {
     try {

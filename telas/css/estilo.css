@@ -83,11 +83,49 @@ h1, h2, h3 {
   color: #d8d6d5;
 }
 
+/* Barra de navegação */
+.barra-navegacao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+  background-color: var(--cor-fundo-elevado);
+  border-bottom: var(--espessura-divisor) solid var(--cor-borda);
+  padding: 0.75rem 1.25rem;
+}
+
+.barra-navegacao a {
+  color: var(--cor-texto);
+  font-weight: 600;
+  text-decoration: none;
+  padding: 0.4rem 0;
+  border-bottom: 2px solid transparent;
+}
+
+.barra-navegacao a:hover,
+.barra-navegacao a:focus-visible {
+  border-bottom-color: var(--cor-destaque);
+}
+
+.barra-navegacao a[aria-current="page"] {
+  border-bottom-color: var(--cor-destaque);
+}
+
+.usuario-logado {
+  margin-left: auto;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 /* Layout principal */
 .conteudo {
   padding: 1.25rem;
   max-width: 1400px;
   margin: 0;
+}
+
+.conteudo-estreito {
+  max-width: 26rem;
 }
 
 /* Painel de filtros */
@@ -382,7 +420,88 @@ h1, h2, h3 {
   padding-top: 1rem;
 }
 
+/* Tela de saída manual */
+.layout-saida {
+  display: grid;
+  grid-template-columns: minmax(280px, 420px) 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.painel-formulario,
+.painel-lateral {
+  background-color: var(--cor-fundo-elevado);
+  border: var(--espessura-divisor) solid var(--cor-borda);
+  padding: 1rem;
+}
+
+.painel-formulario h2,
+.painel-lateral h2 {
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+}
+
+.texto-auxiliar {
+  font-size: 0.85rem;
+  color: #4a4746;
+  margin-top: 0.25rem;
+}
+
+.cartao-estoque {
+  border: var(--espessura-divisor) solid var(--cor-borda);
+  padding: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.estoque-numero-grande {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-top: 0.25rem;
+}
+
+.confirmacao {
+  font-weight: 600;
+  min-height: 1px;
+}
+
+.confirmacao:not(:empty) {
+  border: var(--espessura-divisor) solid var(--cor-texto);
+  padding: 0.5rem 0.75rem;
+  margin: 0.5rem 0;
+}
+
+input[aria-invalid="true"] {
+  border-color: var(--cor-destaque);
+}
+
+.tabela-wrapper-historico {
+  max-height: 32rem;
+  overflow-y: auto;
+}
+
+.campo-desabilitado input:disabled {
+  background-color: var(--cor-fundo);
+  color: #4a4746;
+}
+
+/* Cadeado de filtro desabilitado (tela de logs) */
+.campo-bloqueado {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.campo-bloqueado .icone-cadeado {
+  font-size: 1rem;
+}
+
 /* Responsividade: esconde colunas dispensáveis antes de rolar horizontalmente */
+@media (max-width: 1100px) {
+  .layout-saida {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 900px) {
   .col-minimo {
     display: none;
@@ -391,7 +510,8 @@ h1, h2, h3 {
 
 @media (max-width: 600px) {
   .col-categoria,
-  .col-status {
+  .col-status,
+  .col-motivo {
     display: none;
   }
 
