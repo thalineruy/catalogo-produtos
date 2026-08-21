@@ -759,3 +759,23 @@ legend { padding: 0; font-size: 12px; color: var(--apagado); }
 .rolagem-tabela::-webkit-scrollbar { height: 8px; }
 .rolagem-tabela::-webkit-scrollbar-track { background: var(--sobre); }
 .rolagem-tabela::-webkit-scrollbar-thumb { background: var(--destaque); }
+
+/* Ilustração decorativa da tela de entrada, temática de ótica — não
+   representa nenhuma empresa específica, só o ramo do sistema. Fica
+   dentro de .entrada-arte (fundo escuro): a cor das letras herda
+   var(--bg), que .entrada-arte já usa como cor de texto ali. */
+.tabela-optometrica {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(243, 242, 242, .2);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.linha-optometrica { display: flex; align-items: baseline; gap: 16px; }
+.linha-optometrica .numero-optometrico { width: 24px; font-size: 12px; font-weight: 600; }
+.letras-optometricas { font-family: ui-monospace, "Cascadia Mono", Consolas, monospace; font-weight: 800; letter-spacing: .3em; }
+.linha-optometrica:nth-child(1) .letras-optometricas { font-size: 26px; }
+.linha-optometrica:nth-child(2) .letras-optometricas { font-size: 20px; }
+.linha-optometrica:nth-child(3) .letras-optometricas { font-size: 16px; }
+.destaque-optometrico { color: var(--destaque); }
