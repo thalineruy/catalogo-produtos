@@ -84,6 +84,16 @@ web_modules/
 .env.*
 !.env.example
 
+# Qualquer arquivo terminado em .env, inclusive cópias de segurança feitas
+# à mão (" - Copia.env", "backup.env"). As regras acima só pegam arquivos
+# chamados exatamente ".env", e um deles guardava a senha do banco.
+*.env
+
+# Cópias feitas à mão pelo Windows ("Arquivo - Copia.js"). Não são parte
+# do projeto e já entraram num commit por engano uma vez.
+* - Copia.*
+* - Copy.*
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
