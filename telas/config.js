@@ -1,1 +1,1 @@
-const API_URL = 'http://localhost:3000';
+const API_URL = 'https://catalogo-api-0vuy.onrender.com';
