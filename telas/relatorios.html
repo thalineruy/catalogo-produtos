@@ -52,8 +52,8 @@
             <div class="painel-corpo">
               <form id="form-relatorio" novalidate>
                 <fieldset>
-                  <legend>Campos do relatório</legend>
-                  <div class="tres-colunas">
+                  <legend>Seleção de campos</legend>
+                  <div class="chips-campos">
                     <div class="campo-marcador">
                       <input type="checkbox" id="campo-nome" name="campos" value="nome" checked>
                       <label for="campo-nome">Nome</label>
@@ -90,7 +90,7 @@
                 </fieldset>
 
                 <fieldset>
-                  <legend>Filtros</legend>
+                  <legend>Filtros avançados</legend>
                   <div class="filtros">
                     <div class="campo">
                       <label for="relatorio-data-inicial">Data inicial</label>
@@ -103,13 +103,13 @@
                     <div class="campo">
                       <label for="relatorio-operador">Operador</label>
                       <select id="relatorio-operador" name="operador" class="selecao">
-                        <option value="">Todos</option>
+                        <option value="">Todos os operadores</option>
                       </select>
                     </div>
                     <div class="campo">
                       <label for="relatorio-categoria">Categoria</label>
                       <select id="relatorio-categoria" name="categoria" class="selecao">
-                        <option value="">Todas</option>
+                        <option value="">Todas as categorias</option>
                       </select>
                     </div>
                   </div>
@@ -134,7 +134,7 @@
           </section>
 
           <section class="painel" aria-label="Pré-visualização do relatório">
-            <div class="painel-cabeca">Pré-visualização</div>
+            <div class="painel-cabeca">Pré-visualização · A4 retrato</div>
             <div class="painel-corpo">
               <p id="relatorio-desatualizado" class="erro-geral nao-imprimir" role="status" hidden>
                 A configuração mudou desde a última emissão. Gere o relatório novamente para atualizar a pré-visualização.
@@ -189,6 +189,7 @@
 
                   <footer class="documento-rodape">
                     <p>Responsável: <span id="documento-responsavel"></span></p>
+                    <p class="apagado">Documento gerado pelo sistema Catálogo de Produtos · uso interno · sem valores financeiros</p>
                   </footer>
                 </article>
               </div>
