@@ -49,6 +49,21 @@
         </div>
         <div class="topo-acoes">
           <a href="index.html" id="link-entrar" class="botao botao-texto" hidden>Entrar</a>
+          <div class="sino-area">
+            <button type="button" id="botao-sino" class="sino" aria-label="Notificações de estoque" aria-expanded="false" hidden>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg>
+              <span class="sino-contador" id="sino-contador" hidden>0</span>
+            </button>
+            <div class="painel-notificacoes" id="painel-notificacoes" role="dialog" aria-label="Notificações de estoque" hidden>
+              <div class="notificacoes-cabeca">
+                <span class="rotulo">Notificações</span>
+                <button type="button" id="botao-fechar-notificacoes" class="fechar-notificacoes" aria-label="Fechar notificações">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                </button>
+              </div>
+              <div id="lista-notificacoes"></div>
+            </div>
+          </div>
           <div class="usuario" id="usuario-logado" hidden>
             <span class="inicial" id="usuario-inicial" aria-hidden="true"></span>
             <div class="identificacao">

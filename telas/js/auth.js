@@ -146,23 +146,140 @@ async function carregarLogoBarraSuperior() {
   }
 }
 
+// Sino do topo: lista os produtos que precisam de reposição. Abre e
+// fecha por clique, Escape ou clique fora.
+function montarNotificacoes(produtos) {
+  const botao = document.getElementById('botao-sino');
+  const painel = document.getElementById('painel-notificacoes');
+  const lista = document.getElementById('lista-notificacoes');
+  const contador = document.getElementById('sino-contador');
+  if (!botao || !painel || !lista) return;
+
+  // Zerados primeiro: são os mais urgentes
+  const pendentes = produtos
+    .filter((p) => p.quantidade === 0 || p.quantidade <= p.estoque_minimo)
+    .sort((a, b) => a.quantidade - b.quantidade);
+
+  lista.innerHTML = '';
+
+  if (pendentes.length === 0) {
+    const vazio = document.createElement('div');
+    vazio.className = 'notificacao';
+    const texto = document.createElement('div');
+    texto.className = 'titulo';
+    texto.textContent = 'Nenhum produto precisa de reposição.';
+    vazio.appendChild(texto);
+    lista.appendChild(vazio);
+  } else {
+    pendentes.forEach((produto) => {
+      const item = document.createElement('div');
+      item.className = 'notificacao';
+
+      const marcador = document.createElement('span');
+      marcador.className = 'marcador';
+      marcador.setAttribute('aria-hidden', 'true');
+
+      const corpo = document.createElement('div');
+      const titulo = document.createElement('div');
+      titulo.className = 'titulo';
+      titulo.textContent =
+        produto.quantidade === 0
+          ? `${produto.nome} está zerado`
+          : `${produto.nome} está com estoque baixo`;
+
+      const detalhe = document.createElement('div');
+      detalhe.className = 'detalhe';
+      detalhe.textContent = `${produto.quantidade} em estoque · mínimo ${produto.estoque_minimo} · ${produto.categoria_nome}`;
+
+      corpo.append(titulo, detalhe);
+      item.append(marcador, corpo);
+      lista.appendChild(item);
+    });
+  }
+
+  if (contador) {
+    contador.textContent = pendentes.length > 99 ? '99+' : String(pendentes.length);
+    contador.hidden = pendentes.length === 0;
+  }
+  botao.setAttribute(
+    'aria-label',
+    pendentes.length === 1
+      ? '1 produto precisa de reposição'
+      : `${pendentes.length} produtos precisam de reposição`,
+  );
+  botao.hidden = false;
+
+  function fechar() {
+    painel.hidden = true;
+    botao.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('keydown', fecharComEsc);
+    document.removeEventListener('click', fecharClicandoFora);
+    window.removeEventListener('scroll', fechar);
+  }
+
+  // Em tela estreita o painel é preso à janela (ver folha de estilo), então
+  // precisa saber a que altura o sino está. Como ele não acompanha a
+  // rolagem nesse modo, fecha quando a página rola.
+  function posicionarSeFixo() {
+    if (getComputedStyle(painel).position !== 'fixed') {
+      painel.style.top = '';
+      return false;
+    }
+    painel.style.top = `${Math.round(botao.getBoundingClientRect().bottom + 4)}px`;
+    return true;
+  }
+
+  function fecharComEsc(evento) {
+    if (evento.key === 'Escape') {
+      fechar();
+      botao.focus();
+    }
+  }
+
+  function fecharClicandoFora(evento) {
+    if (!painel.contains(evento.target) && !botao.contains(evento.target)) fechar();
+  }
+
+  botao.addEventListener('click', () => {
+    if (painel.hidden) {
+      painel.hidden = false;
+      botao.setAttribute('aria-expanded', 'true');
+      if (posicionarSeFixo()) window.addEventListener('scroll', fechar, { passive: true });
+      document.addEventListener('keydown', fecharComEsc);
+      // No próximo quadro, senão este mesmo clique fecharia o painel
+      setTimeout(() => document.addEventListener('click', fecharClicandoFora), 0);
+    } else {
+      fechar();
+    }
+  });
+
+  const botaoFechar = document.getElementById('botao-fechar-notificacoes');
+  if (botaoFechar) botaoFechar.addEventListener('click', fechar);
+}
+
 // Rodapé do menu: quantos produtos estão abaixo do mínimo cadastrado e
-// quantos zeraram. Silencioso em caso de falha — é informação auxiliar.
+// quantos zeraram. A mesma consulta alimenta o sino do topo.
+// Silencioso em caso de falha — é informação auxiliar.
 async function carregarAlertaEstoque() {
   const alvo = document.getElementById('alerta-estoque-texto');
-  if (!alvo || typeof listarProdutos !== 'function' || !obterToken()) return;
+  const sino = document.getElementById('botao-sino');
+  if ((!alvo && !sino) || typeof listarProdutos !== 'function' || !obterToken()) return;
 
   try {
     const produtos = await listarProdutos();
     const baixos = produtos.filter((p) => p.quantidade > 0 && p.quantidade <= p.estoque_minimo).length;
     const zerados = produtos.filter((p) => p.quantidade === 0).length;
 
-    alvo.textContent =
-      baixos === 0 && zerados === 0
-        ? 'Nenhum produto abaixo do mínimo. Estoque em dia.'
-        : `${baixos} item(ns) abaixo do mínimo e ${zerados} zerado(s). Reposição sugerida.`;
+    if (alvo) {
+      alvo.textContent =
+        baixos === 0 && zerados === 0
+          ? 'Nenhum produto abaixo do mínimo. Estoque em dia.'
+          : `${baixos} item(ns) abaixo do mínimo e ${zerados} zerado(s). Reposição sugerida.`;
+    }
+
+    montarNotificacoes(produtos);
   } catch (erro) {
-    alvo.textContent = 'Não foi possível carregar os alertas de estoque.';
+    if (alvo) alvo.textContent = 'Não foi possível carregar os alertas de estoque.';
   }
 }
 
