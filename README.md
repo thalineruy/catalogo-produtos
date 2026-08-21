@@ -35,6 +35,7 @@ Execute os scripts na pasta `banco/`, em ordem, no SQL Editor do Supabase:
 1. `01-tabelas.sql` — cria as tabelas.
 2. `02-dados-exemplo.sql` — popula dados de exemplo.
 3. `03-saidas-observacao.sql` — adiciona o campo de observação às saídas.
+4. `04-empresa.sql` — cria a tabela com os dados da empresa usados no cabeçalho dos relatórios.
 
 ## Login para testes locais
 

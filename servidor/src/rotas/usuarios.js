@@ -7,9 +7,6 @@ const router = express.Router();
 
 router.get('/', autenticar, async (req, res, next) => {
   try {
-    if (req.usuario.nivel !== 'administrador') {
-      return res.status(403).json({ erro: 'apenas administradores podem listar usuários' });
-    }
     res.json(await usuariosRepositorio.listar());
   } catch (erro) {
     next(erro);

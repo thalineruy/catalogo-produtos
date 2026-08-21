@@ -74,3 +74,11 @@ async function listarLogs(filtros = {}) {
 async function listarUsuarios() {
   return apiFetch('/usuarios');
 }
+
+async function gerarRelatorioSaidas(filtros = {}) {
+  return apiFetch(`/relatorios/saidas${construirQuery(filtros)}`);
+}
+
+async function buscarEmpresa() {
+  return apiFetch('/empresa');
+}

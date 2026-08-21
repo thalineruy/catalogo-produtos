@@ -431,6 +431,139 @@ h1, h2, h3 {
   padding-top: 1rem;
 }
 
+/* Tela de relatórios */
+.layout-relatorios {
+  display: grid;
+  grid-template-columns: minmax(280px, 440px) 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.painel-construtor,
+.painel-previsualizacao {
+  background-color: var(--cor-fundo-elevado);
+  border: var(--espessura-divisor) solid var(--cor-borda);
+  padding: 1rem;
+}
+
+.painel-construtor h2 {
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+}
+
+.campo-fieldset {
+  border: var(--espessura-divisor) solid var(--cor-borda);
+  padding: 0.85rem;
+  margin-bottom: 1rem;
+}
+
+.campo-fieldset legend {
+  font-weight: 700;
+  padding: 0 0.4rem;
+}
+
+.grade-checkboxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.5rem;
+}
+
+.campo-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: var(--altura-minima-alvo);
+}
+
+.campo-checkbox input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.campo-checkbox-linha {
+  margin-top: 0.5rem;
+}
+
+.aviso-desatualizado {
+  background-color: #fff;
+  border: var(--espessura-divisor) solid var(--cor-destaque);
+  color: var(--cor-destaque);
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+}
+
+/* Documento do relatório */
+.documento-relatorio {
+  background-color: #fff;
+}
+
+.documento-cabecalho {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border-bottom: var(--espessura-divisor) solid var(--cor-borda);
+  padding-bottom: 1rem;
+  margin-bottom: 1rem;
+}
+
+.documento-logo {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  border: 1px solid var(--cor-borda-suave);
+}
+
+.documento-empresa-detalhes {
+  font-size: 0.85rem;
+  color: #4a4746;
+  white-space: pre-line;
+}
+
+.documento-titulo {
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.documento-meta {
+  font-size: 0.9rem;
+  color: #4a4746;
+  margin-bottom: 0.25rem;
+}
+
+.documento-resumo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7rem, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.documento-resumo-item {
+  border: var(--espessura-divisor) solid var(--cor-borda);
+  padding: 0.6rem;
+  text-align: left;
+}
+
+.documento-resumo-numero {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.documento-resumo-rotulo {
+  display: block;
+  font-size: 0.8rem;
+  color: #4a4746;
+}
+
+.documento-rodape {
+  margin-top: 1.5rem;
+  padding-top: 0.75rem;
+  border-top: var(--espessura-divisor) solid var(--cor-borda);
+  font-size: 0.9rem;
+}
+
 /* Tela de saída manual */
 .layout-saida {
   display: grid;
@@ -508,7 +641,8 @@ input[aria-invalid="true"] {
 
 /* Responsividade: esconde colunas dispensáveis antes de rolar horizontalmente */
 @media (max-width: 1100px) {
-  .layout-saida {
+  .layout-saida,
+  .layout-relatorios {
     grid-template-columns: 1fr;
   }
 }
