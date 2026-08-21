@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Catálogo de Produtos — Controle de Estoque Empresarial
 
 Sistema para cadastro e controle de estoque de produtos, com registro de saídas e níveis de acesso por usuário.
@@ -37,6 +36,3 @@ Projeto Integrador II.
 |      |        |
 |      |        |
 |      |        |
-=======
-# catalogo-produtos
->>>>>>> f624b1248203dc5676464e700a0b4dd11958e9fd
