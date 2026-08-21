@@ -2,6 +2,48 @@ const CHAVE_TOKEN = 'catalogo_token';
 const CHAVE_USUARIO = 'catalogo_usuario';
 const CHAVE_COOKIES = 'catalogo_cookies_aceitos';
 const CHAVE_DISPOSITIVO = 'catalogo_dispositivo_confiavel';
+const CHAVE_TEMA = 'catalogo_tema';
+
+/* ---------- Tema claro/escuro ----------
+   Aplicado assim que o arquivo carrega, antes de a tela ser desenhada,
+   para não piscar no tema errado ao trocar de página. */
+
+function temaPreferidoDoSistema() {
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
+    ? 'escuro'
+    : 'claro';
+}
+
+function temaAtual() {
+  return localStorage.getItem(CHAVE_TEMA) || temaPreferidoDoSistema();
+}
+
+function aplicarTema(tema) {
+  document.documentElement.setAttribute('data-tema', tema);
+
+  const botao = document.getElementById('botao-tema');
+  if (!botao) return;
+
+  const proximo = tema === 'escuro' ? 'claro' : 'escuro';
+  const descricao = `Mudar para o tema ${proximo}`;
+  botao.setAttribute('aria-label', descricao);
+  botao.title = descricao;
+}
+
+aplicarTema(temaAtual());
+
+function iniciarBotaoTema() {
+  const botao = document.getElementById('botao-tema');
+  if (!botao) return;
+
+  aplicarTema(temaAtual());
+
+  botao.addEventListener('click', () => {
+    const novo = temaAtual() === 'escuro' ? 'claro' : 'escuro';
+    localStorage.setItem(CHAVE_TEMA, novo);
+    aplicarTema(novo);
+  });
+}
 
 function obterToken() {
   return localStorage.getItem(CHAVE_TOKEN);
@@ -556,6 +598,7 @@ function montarBarraNavegacao({ exigirLogin = false } = {}) {
 
   carregarLogoBarraSuperior();
   carregarAlertaEstoque();
+  iniciarBotaoTema();
   iniciarBarraCookies();
 
   const elementoUsuario = document.getElementById('usuario-logado');
