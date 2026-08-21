@@ -738,6 +738,18 @@ legend { padding: 0; font-size: 12px; color: var(--apagado); }
    .entrada-arte precisa da leitura clara, senão o texto some. */
 .entrada-arte .apagado { color: rgba(243, 242, 242, .6); }
 
+/* Espaçamento interno dos passos da tela de entrada. A folha oficial
+   cuida do espaço ENTRE os blocos (.entrada-forma), mas dentro de cada
+   passo os elementos ficavam colados uns nos outros. Os valores abaixo
+   são os mesmos do mockup: 6px do título ao subtítulo, 28px do
+   subtítulo ao primeiro campo, 12px entre os campos. */
+.entrada-forma h2 { margin-bottom: 6px; }
+.entrada-forma > div > p.apagado:not(.nota-recuperacao) { margin-bottom: 28px; }
+.entrada-forma form { display: flex; flex-direction: column; gap: 12px; }
+
+/* Só o botão do login ganha o respiro extra, como no mockup */
+#form-login .botao { margin-top: 8px; }
+
 /* Linha de rodapé da tela de entrada: link à esquerda, texto auxiliar à direita */
 .rodape-entrada {
   display: flex;
@@ -745,7 +757,9 @@ legend { padding: 0; font-size: 12px; color: var(--apagado); }
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 8px;
+  /* 20px = os 12px de gap do formulário + os 8px de margem do mockup.
+     Aqui o rodapé fica fora do <form>, então não herda aquele gap. */
+  margin-top: 20px;
   padding-top: 14px;
   border-top: 2px solid var(--divisor);
 }
