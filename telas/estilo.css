@@ -759,6 +759,20 @@ legend { padding: 0; font-size: 12px; color: var(--apagado); }
 #conteudo-administracao > * + * { margin-top: 16px; }
 .conteudo > .titulo-tela + * { margin-top: 0; }
 
+.nota-logotipo { margin-top: 8px; font-size: 12px; }
+
+/* Exemplo de requisição no bloco demonstrativo de ERP */
+.exemplo-requisicao {
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--divisor);
+  overflow-x: auto;
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
 /* Campos do relatório como fichas clicáveis, no lugar da grade de
    caixas de marcação. Continua sendo <input type="checkbox"> por baixo,
    para não perder navegação por teclado nem leitor de tela. */

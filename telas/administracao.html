@@ -66,12 +66,19 @@
               </div>
 
               <div id="erp-simulacao" class="caixa-simulacao-erp" hidden>
-                <p><strong>Demonstrativo:</strong> esta é uma simulação visual. Nenhuma integração real está ativa.</p>
+                <p><strong>Demonstrativo:</strong> esta é uma simulação visual. Nenhuma integração real está ativa e nenhum dado sai deste sistema.</p>
+
+                <p class="rotulo">Como funciona</p>
                 <p>
                   Em uma integração real, o sistema trocaria dados com o ERP da empresa por uma API autenticada
                   por token (enviado no cabeçalho <code>Authorization</code>), sincronizando produtos, estoque e
-                  saídas automaticamente em intervalos regulares.
+                  saídas automaticamente em intervalos regulares. A chamada teria este formato:
                 </p>
+                <pre class="exemplo-requisicao"><code>POST /api/v1/erp/sync
+Authorization: Bearer ••••••••4f21
+Content-Type: application/json</code></pre>
+
+                <p class="rotulo">Simulação de recebimento de dados</p>
                 <div id="erp-log-simulado" class="erp-log-simulado" aria-live="polite"></div>
               </div>
             </div>
@@ -127,16 +134,19 @@
             <div class="painel-corpo">
               <div class="logotipo-layout">
                 <div>
-                  <p class="rotulo">Pré-visualização atual</p>
+                  <p class="rotulo">Preview atual da marca</p>
                   <img id="logotipo-preview" class="logotipo-preview" src="logo-padrao.svg" alt="Logotipo padrão do sistema">
+                  <p class="apagado nota-logotipo">Aplicado na barra superior, no menu e no cabeçalho dos relatórios.</p>
                 </div>
 
                 <div class="area-arrastar" id="area-arrastar-logo" tabindex="0" role="button"
-                     aria-label="Arraste uma imagem aqui ou pressione Enter para selecionar um arquivo">
-                  <p>Arraste uma imagem aqui, ou</p>
+                     aria-label="Arraste um arquivo sobre o quadro ou pressione Enter para selecionar um arquivo">
+                  <p>Arraste um arquivo sobre o quadro, ou</p>
                   <button type="button" id="botao-selecionar-logo" class="botao botao-contorno">Selecionar arquivo</button>
                   <input type="file" id="campo-logo" accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml" hidden>
-                  <p class="apagado">Formatos aceitos: PNG, JPG ou SVG. Tamanho máximo: 2 MB.</p>
+                  <!-- O servidor valida formato e tamanho; a dimensão é
+                       recomendação, por isso não aparece como regra. -->
+                  <p class="apagado">SVG, PNG ou JPG · até 2 MB · recomendado 240×240 ou maior</p>
                 </div>
               </div>
 
@@ -219,7 +229,10 @@
 
           <!-- 6. Estatísticas Gerais -->
           <section class="painel" aria-labelledby="titulo-estatisticas">
-            <div class="painel-cabeca" id="titulo-estatisticas">6. Estatísticas Gerais</div>
+            <div class="painel-cabeca" id="titulo-estatisticas">
+              6. Estatísticas Gerais
+              <button type="button" id="botao-exportar-relatorio" class="botao botao-contorno">Exportar relatório</button>
+            </div>
             <div class="painel-corpo">
               <div class="indicadores" id="grade-estatisticas"></div>
 
@@ -269,6 +282,56 @@
           </section>
         </div>
       </main>
+    </div>
+  </div>
+
+  <!-- Diálogo demonstrativo de salvar em PDF: imita a janela do sistema
+       operacional, mas não grava arquivo nenhum. O aviso no rodapé deixa
+       isso explícito para quem usa. -->
+  <div class="fundo-modal" id="fundo-modal-pdf" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="titulo-modal-pdf">
+      <div class="modal-cabeca">
+        <div>
+          <p class="rotulo-destaque">Demonstração</p>
+          <h2 id="titulo-modal-pdf">Salvar como PDF</h2>
+        </div>
+        <button type="button" id="botao-fechar-pdf" class="botao-icone" aria-label="Fechar janela">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+        </button>
+      </div>
+
+      <div class="modal-corpo">
+        <div class="campo largura-total">
+          <label for="pdf-nome-arquivo">Nome do arquivo</label>
+          <div class="campo-linha">
+            <input type="text" id="pdf-nome-arquivo" class="entrada" value="estatisticas-catalogo">
+            <span class="apagado">.pdf</span>
+          </div>
+        </div>
+
+        <div class="campo largura-total">
+          <label for="pdf-tipo-arquivo">Tipo de arquivo</label>
+          <select id="pdf-tipo-arquivo" class="selecao">
+            <option>Documento PDF (*.pdf)</option>
+          </select>
+        </div>
+
+        <div class="campo largura-total">
+          <label for="pdf-salvar-em">Salvar em</label>
+          <select id="pdf-salvar-em" class="selecao">
+            <option>Downloads</option>
+            <option>Documentos</option>
+            <option>Área de Trabalho</option>
+            <option>Relatórios da Ótica (rede)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-pe">
+        <p class="apagado">Demonstração — nenhum arquivo é gravado.</p>
+        <button type="button" id="botao-cancelar-pdf" class="botao botao-contorno">Cancelar</button>
+        <button type="button" id="botao-confirmar-pdf" class="botao botao-principal">Salvar</button>
+      </div>
     </div>
   </div>
 

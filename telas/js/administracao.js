@@ -30,9 +30,11 @@
 
     const PASSOS_SIMULACAO = [
       'Conectando à API do ERP com token de autenticação...',
-      'Sincronizando produtos (12 encontrados)...',
-      'Sincronizando estoque...',
-      'Sincronização concluída (demonstrativo — nenhum dado real foi trocado).',
+      'Recebendo cadastro de produtos...',
+      'Recebendo movimentações de estoque...',
+      'Conferindo divergências entre ERP e catálogo...',
+      'Sincronização concluída — 1.284 registros (números de exemplo).',
+      'Demonstrativo: nenhum dado real foi trocado com sistema nenhum.',
     ];
 
     let ativo = false;
@@ -581,6 +583,40 @@
     renderizarTabelaEstoqueCategoria(estatisticas.estoquePorCategoria);
     renderizarGraficos(estatisticas);
   }
+
+  /* ---------- Exportar relatório (janela demonstrativa) ---------- */
+  (function iniciarJanelaPdf() {
+    const fundo = document.getElementById('fundo-modal-pdf');
+    const botaoAbrir = document.getElementById('botao-exportar-relatorio');
+    const botaoFechar = document.getElementById('botao-fechar-pdf');
+    const botaoCancelar = document.getElementById('botao-cancelar-pdf');
+    const botaoConfirmar = document.getElementById('botao-confirmar-pdf');
+    const campoNome = document.getElementById('pdf-nome-arquivo');
+
+    function fecharComEsc(evento) {
+      if (evento.key === 'Escape') fechar();
+    }
+
+    function abrir() {
+      fundo.hidden = false;
+      document.addEventListener('keydown', fecharComEsc);
+      campoNome.focus();
+    }
+
+    function fechar() {
+      fundo.hidden = true;
+      document.removeEventListener('keydown', fecharComEsc);
+      botaoAbrir.focus();
+    }
+
+    botaoAbrir.addEventListener('click', abrir);
+    botaoFechar.addEventListener('click', fechar);
+    botaoCancelar.addEventListener('click', fechar);
+    botaoConfirmar.addEventListener('click', () => {
+      fechar();
+      exibirAviso('Demonstração: nenhum arquivo foi gravado. Para gerar um PDF de verdade, use "Exportar PDF" na tela de Relatórios.');
+    });
+  })();
 
   /* ---------- Inicialização ---------- */
   (async function iniciar() {
