@@ -740,3 +740,22 @@ legend { padding: 0; font-size: 12px; color: var(--apagado); }
 
 /* Linha de rodapé da tela de entrada: link à esquerda, texto auxiliar à direita */
 .rodape-entrada { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+
+/* O menu vira uma tira horizontal com rolagem abaixo de 900px (seção 14),
+   mas sem isto o texto dos links quebra em várias linhas em vez de rolar,
+   deixando a tira com alturas desiguais. */
+@media (max-width: 900px) {
+  .menu a { white-space: nowrap; }
+}
+
+/* Torna visível que .rolagem-tabela pode ser arrastada na horizontal:
+   sem isto, em telas estreitas o navegador some com a barra de rolagem
+   e colunas cortadas (ex.: Operador em Relatórios, Ações em Usuários)
+   parecem conteúdo perdido, não uma área rolável. */
+.rolagem-tabela {
+  scrollbar-width: thin;
+  scrollbar-color: var(--destaque) var(--sobre);
+}
+.rolagem-tabela::-webkit-scrollbar { height: 8px; }
+.rolagem-tabela::-webkit-scrollbar-track { background: var(--sobre); }
+.rolagem-tabela::-webkit-scrollbar-thumb { background: var(--destaque); }
