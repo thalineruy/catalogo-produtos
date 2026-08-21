@@ -724,7 +724,10 @@ legend { padding: 0; font-size: 12px; color: var(--apagado); }
 }
 .area-arrastar p { margin-bottom: 10px; }
 
-.logotipo-layout { display: grid; grid-template-columns: minmax(120px, 160px) 1fr; gap: 20px; align-items: start; }
+/* A coluna da esquerda foi dimensionada quando só tinha a prévia. Hoje ela
+   também carrega a nota e o campo de sigla com o botão ao lado, que não
+   cabiam em 160px e quebravam em várias linhas. */
+.logotipo-layout { display: grid; grid-template-columns: minmax(220px, 260px) 1fr; gap: 20px; align-items: start; }
 
 .logotipo-preview {
   width: 140px;
@@ -767,6 +770,18 @@ legend { padding: 0; font-size: 12px; color: var(--apagado); }
 .nota-logotipo { margin-top: 8px; font-size: 12px; }
 .sigla-marca { margin-top: 16px; }
 .sigla-marca .entrada { max-width: 90px; text-transform: uppercase; }
+
+/* Botão que divide a linha com campos acompanha a altura deles: com a
+   altura padrão ficava uns 8px mais alto que as caixas ao lado. */
+.sigla-marca .campo-linha { align-items: stretch; }
+.filtros .botao,
+.sigla-marca .campo-linha .botao { min-height: 32px; padding: 4px 14px; }
+
+/* Em tela de toque o alvo mínimo volta a valer, aqui também */
+@media (pointer: coarse) {
+  .filtros .botao,
+  .sigla-marca .campo-linha .botao { min-height: var(--alvo); }
+}
 
 /* Exemplo de requisição no bloco demonstrativo de ERP */
 .exemplo-requisicao {
@@ -1031,7 +1046,9 @@ legend { margin-bottom: 10px; }
 .modal .area { padding: 5px 9px; font-size: 12.5px; }
 
 .conteudo .busca { min-height: 32px; }
-.conteudo .busca input { font-size: 12.5px; }
+/* O recheio do campo interno é que define a altura da caixa de busca:
+   com o padrão ela ficava mais alta que os demais campos da linha. */
+.conteudo .busca input { padding: 5px 0; font-size: 12.5px; }
 
 /* Campos da tela de entrada, que no mockup são um pouco maiores */
 .entrada-forma .entrada,
