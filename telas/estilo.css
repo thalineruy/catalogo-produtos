@@ -1355,3 +1355,28 @@ legend { margin-bottom: 10px; }
 @media (pointer: coarse) {
   .pagina-botao { min-height: var(--alvo); min-width: var(--alvo); }
 }
+
+/* ---------- 23. Botões de ação dentro das tabelas ----------
+   .acoes-linha é uma linha flex, e a coluna "Ações" é estreita. Sem as
+   regras abaixo os botões encolhiam até o rótulo quebrar em duas linhas,
+   e o align-items padrão (stretch) esticava todos até a altura do mais
+   alto — as linhas da tabela chegavam a 82px e o mesmo rótulo aparecia
+   com larguras diferentes de uma linha para a outra (101px e 116px em
+   "Resetar senha"). Agora cada botão fica do tamanho do próprio rótulo;
+   se a soma não couber, quem rola é .rolagem-tabela, como já acontece
+   com as demais colunas. */
+.acoes-linha { align-items: center; }
+
+.acoes-linha .botao {
+  flex: none;
+  white-space: nowrap;
+  min-height: 32px;
+  padding: 5px 11px;
+  font-size: 12.5px;
+  gap: 6px;
+}
+
+/* Em tela de toque o alvo mínimo volta a valer, como nos demais botões */
+@media (pointer: coarse) {
+  .acoes-linha .botao { min-height: var(--alvo); padding: 8px 12px; }
+}
