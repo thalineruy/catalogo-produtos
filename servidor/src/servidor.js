@@ -17,6 +17,7 @@ const estatisticasRotas = require('./rotas/estatisticas');
 const recuperacaoSenhaRotas = require('./rotas/recuperacaoSenha');
 const convitesRotas = require('./rotas/convites');
 const solicitacoesRotas = require('./rotas/solicitacoes');
+const { servicoEscolhido: servicoDeEmail } = require('./servicos/email');
 
 const app = express();
 
@@ -33,12 +34,18 @@ app.use(express.json());
 // Confere o banco de verdade: antes esta rota respondia "ok" mesmo com o
 // banco inacessível, que é justamente quando ela precisa avisar.
 app.get('/saude', async (req, res) => {
+  // Qual serviço de e-mail está ativo. Não expõe chave nenhuma, só o nome
+  // do serviço — sem isto, descobrir se uma variável nova chegou ao
+  // servidor virava adivinhação entre "o Render ainda não reconstruiu" e
+  // "a variável está com o nome errado".
+  const email = servicoDeEmail() || 'nao configurado';
+
   try {
     await pool.query('SELECT 1');
-    res.json({ status: 'ok', banco: 'ok' });
+    res.json({ status: 'ok', banco: 'ok', email });
   } catch (erro) {
     console.error('falha ao consultar o banco em /saude', erro);
-    res.status(503).json({ status: 'degradado', banco: 'fora' });
+    res.status(503).json({ status: 'degradado', banco: 'fora', email });
   }
 });
 
