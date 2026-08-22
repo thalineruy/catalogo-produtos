@@ -140,6 +140,22 @@ No Brevo, uma vez só:
 
 Depois disso não se volta mais lá.
 
+### Cuidado com a lista de IPs do Brevo
+
+O Brevo tem uma restrição de IPs autorizados por chave, e ela vem **ligada por
+padrão** em contas novas. Requisição vinda de IP fora da lista volta com
+**401** — exatamente o mesmo código de chave inválida, o que faz perder tempo
+gerando chaves novas sem necessidade.
+
+Se for usar essa restrição, o IP a liberar é o de saída do **Render**, não o
+seu: é o servidor que chama a API, não o navegador. No plano gratuito o Render
+pode trocar de IP, e aí o envio para de funcionar sem aviso. Para este projeto,
+o mais simples é deixar a restrição desligada.
+
+Sintoma típico: `/saude` responde `"email":"brevo"`, a chave foi gerada há
+minutos, e mesmo assim toda tentativa volta 401 — inclusive chamando a API do
+Brevo direto, fora do sistema.
+
 ### Variáveis a preencher
 
 Em `servidor/.env` para rodar local, e em **Environment** no Render para o que
@@ -163,8 +179,25 @@ navegador de quem acessa.
 
 A tela de Administração diz o motivo em português, sem precisar abrir os Logs:
 chave recusada, remetente não validado, limite atingido ou serviço não
-configurado. Em todos os casos o usuário **continua sendo criado** e o link
-aparece na tela para o administrador repassar à mão.
+configurado.
+
+Em todos os casos o usuário **continua sendo criado**, e o link aparece numa
+área fixa acima da tabela, com botão de copiar. Ela fica na tela até ser
+dispensada — um aviso que some sozinho não daria tempo de copiar o endereço.
+Repassar o link à mão dá exatamente o mesmo resultado que o envio automático;
+muda só quem leva a mensagem.
+
+Para saber qual serviço o servidor está usando de fato, sem depender de
+adivinhação, consulte `/saude`:
+
+```bash
+curl -s https://catalogo-api-0vuy.onrender.com/saude
+```
+
+A resposta traz `"email"` com `brevo`, `resend` ou `nao configurado`. A chave
+nunca aparece. Vale lembrar que o Render leva alguns minutos para reconstruir
+depois de uma alteração de variável: espere o `/saude` mudar antes de concluir
+que algo falhou.
 
 **Sem a chave o sistema não quebra.** Ele entra em modo simulado: registra no
 console e devolve o link para o administrador repassar à mão. O mesmo vale
