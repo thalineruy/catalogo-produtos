@@ -30,6 +30,9 @@ Projeto Integrador II.
 - **Acesso** — login com verificação em duas etapas (Google Authenticator),
   opção de confiar no computador por 30 dias, dois níveis de permissão
   (administrador e operador) e troca de senha pelo próprio usuário.
+- **Menu da conta** — o crachá com as iniciais, no topo à direita, abre um
+  menu com "Trocar minha senha" e "Sair da conta". Funciona em qualquer
+  largura de tela.
 
 ## Tecnologias
 
@@ -97,15 +100,36 @@ por e-mail um link para a pessoa definir a própria senha. Nenhuma senha
 utilizável trafega por e-mail nem aparece na tela do administrador — é por
 isso que o cadastro não devolve mais "senha temporária".
 
-Para o envio funcionar, preencha em `servidor/.env` (e no Render):
+### O que é o Resend
+
+O Resend é só o carteiro: um serviço que entrega e-mail. **Usuários do sistema
+não são cadastrados lá** — continuam sendo cadastrados em Administração, como
+sempre. O que o Resend faz é entregar a mensagem que o servidor manda.
+
+No Resend, uma vez só:
+
+1. Criar uma conta em [resend.com](https://resend.com) (plano gratuito,
+   cerca de 3.000 e-mails por mês).
+2. Ir em **API Keys** → **Create API Key** e copiar a chave.
+
+Depois disso não se volta mais lá.
+
+### Variáveis a preencher
+
+Em `servidor/.env` para rodar local, e em **Environment** no Render para o que
+está no ar:
 
 - `URL_SISTEMA` — endereço público das telas, ex.: `https://catalogo-produtos-eight.vercel.app`.
   Sem isto o link do e-mail sai quebrado.
-- `RESEND_API_KEY` — chave da API do [Resend](https://resend.com) (plano
-  gratuito com ~3.000 e-mails por mês).
+- `RESEND_API_KEY` — a chave copiada no passo 2 acima.
 - `EMAIL_REMETENTE` — sem domínio próprio verificado, use
   `Catálogo de Produtos <onboarding@resend.dev>`, o remetente de teste do
-  Resend. Com domínio próprio, a entrega melhora bastante.
+  Resend. Com domínio próprio, a entrega melhora bastante; com o de teste, vale
+  conferir a caixa de spam no primeiro envio.
+
+A chave da API vai direto do painel do Resend para o do Render. Como qualquer
+credencial, ela nunca pode entrar em arquivos da pasta `telas/`, que vão para o
+navegador de quem acessa.
 
 **Sem a chave o sistema não quebra.** Ele entra em modo simulado: registra no
 console e devolve o link para o administrador repassar à mão. O mesmo vale
@@ -115,6 +139,14 @@ desfeito por causa de um e-mail que não saiu.
 O botão "Reenviar link" na tela de Administração emite um convite novo e
 invalida o anterior. O "Resetar senha" ao lado continua existindo como plano
 B, para quem está sem acesso à própria caixa de entrada.
+
+O link do e-mail abre a `telas/ativar.html`, que confere o convite antes de
+pedir a senha e mostra os mesmos critérios da tela de troca de senha. Essa rota
+é pública, então aceita no máximo 20 tentativas por hora do mesmo endereço IP —
+o suficiente para ninguém ficar tentando adivinhar token.
+
+Cada convite serve uma vez só: depois de definida a senha, o mesmo link passa a
+responder "link inválido ou expirado".
 
 ## Pedidos de acesso
 
@@ -143,12 +175,26 @@ verificação em duas etapas é obrigatória. Se alguém perder o aplicativo, um
 administrador usa "Redefinir 2FA" na tela de Administração, e um novo QR Code
 aparece no acesso seguinte.
 
+## Sair da conta
+
+Pelo crachá com as iniciais, no canto direito do topo: ele abre um menu com
+"Trocar minha senha" e "Sair da conta".
+
+O rodapé do menu lateral também tem o botão de sair, mas esse rodapé é
+escondido em telas abaixo de 901px. Por isso o menu do crachá existe — no
+celular ele é o único caminho para encerrar a sessão. Nessa largura os avisos
+do sistema, que também moram nesse rodapé, aparecem dentro do sino.
+
 ## Como rodar os testes
 
 ```bash
 cd servidor
 npm test
 ```
+
+São 184 testes em 27 arquivos, e nenhum deles precisa de banco: os
+repositórios são substituídos por dublês, então a suíte roda offline e sem
+tocar em dado nenhum de verdade.
 
 ## Equipe
 
@@ -173,4 +219,8 @@ npm test
   todo o resto funciona normalmente.
 - A chave `service_role` do Supabase dá acesso total ao banco: ela só pode
   existir nas variáveis de ambiente do servidor, nunca em arquivos da pasta
-  `telas/`, que vão para o navegador de quem acessa.
+  `telas/`, que vão para o navegador de quem acessa. O mesmo vale para a
+  `RESEND_API_KEY`.
+- Sem a `RESEND_API_KEY` o cadastro de usuário continua funcionando: o link de
+  ativação aparece no aviso da própria tela, para o administrador repassar à
+  mão. Nada fica quebrado por falta do serviço de e-mail.
