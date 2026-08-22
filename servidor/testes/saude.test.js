@@ -5,7 +5,6 @@ const app = require('../src/servidor');
 const { pool } = require('../src/db');
 
 describe('GET /saude', () => {
-  const CHAVE_RESEND = process.env.RESEND_API_KEY;
   const CHAVE_BREVO = process.env.BREVO_API_KEY;
 
   function repor(nome, valor) {
@@ -14,12 +13,10 @@ describe('GET /saude', () => {
   }
 
   beforeEach(() => {
-    delete process.env.RESEND_API_KEY;
     delete process.env.BREVO_API_KEY;
   });
 
   afterEach(() => {
-    repor('RESEND_API_KEY', CHAVE_RESEND);
     repor('BREVO_API_KEY', CHAVE_BREVO);
     jest.resetAllMocks();
   });
@@ -33,15 +30,14 @@ describe('GET /saude', () => {
     expect(resposta.body).toEqual({ status: 'ok', banco: 'ok', email: 'nao configurado' });
   });
 
-  it('conta qual serviço de e-mail está ativo', async () => {
+  it('conta se o envio de e-mail está de pé', async () => {
     pool.query.mockResolvedValue({ rows: [] });
 
     process.env.BREVO_API_KEY = 'x';
     expect((await request(app).get('/saude')).body.email).toBe('brevo');
 
     delete process.env.BREVO_API_KEY;
-    process.env.RESEND_API_KEY = 'y';
-    expect((await request(app).get('/saude')).body.email).toBe('resend');
+    expect((await request(app).get('/saude')).body.email).toBe('nao configurado');
   });
 
   it('nunca devolve a chave, só o nome do serviço', async () => {

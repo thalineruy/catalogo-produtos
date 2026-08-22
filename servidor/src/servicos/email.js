@@ -1,20 +1,24 @@
-// Envio de e-mail. Dois serviços possíveis, escolhidos pela variável de
-// ambiente que estiver preenchida:
+// Envio de e-mail pelo Brevo.
 //
-//   BREVO_API_KEY   -> Brevo. Entrega para qualquer destinatário depois de
-//                      validar um único endereço de remetente, sem exigir
-//                      domínio próprio.
-//   RESEND_API_KEY  -> Resend. Simples, mas com o remetente de teste só
-//                      entrega para o e-mail dono da conta.
+// Escolhido porque entrega para qualquer destinatário depois de validar um
+// único endereço de remetente, sem exigir domínio próprio.
 //
-// Sem nenhuma das duas o sistema NÃO quebra: entra em modo simulado,
-// registra no console e devolve { enviado: false, simulado: true }. Quem
-// chama usa esse retorno para mostrar o link na tela, de modo que o
-// administrador consiga repassar à mão.
-const REMETENTE_PADRAO = 'Catálogo de Produtos <onboarding@resend.dev>';
+// Sem BREVO_API_KEY o sistema NÃO quebra: entra em modo simulado, registra
+// no console e devolve { enviado: false, simulado: true }. Quem chama usa
+// esse retorno para mostrar o link na tela, de modo que o administrador
+// consiga repassar à mão. Isso mantém o cadastro funcionando em
+// desenvolvimento e enquanto a conta de envio não estiver pronta.
+const URL_BREVO = 'https://api.brevo.com/v3/smtp/email';
 
-// "Nome <endereco@x>" vira { nome, endereco }. O Resend aceita a linha
-// inteira; o Brevo quer as duas partes separadas.
+// Copiar e colar num painel de variáveis costuma trazer espaço ou quebra
+// de linha junto, e um cabeçalho de autenticação com sobra é recusado
+// exatamente como se a chave estivesse errada.
+function chave() {
+  return String(process.env.BREVO_API_KEY || '').trim();
+}
+
+// "Nome <endereco@x>" vira { nome, endereco }: o Brevo quer as duas partes
+// apartadas, mas guardar numa linha só é mais simples de configurar.
 function separarRemetente(linha) {
   const texto = String(linha || '').trim();
   const casou = texto.match(/^(.*?)\s*<([^>]+)>$/);
@@ -23,57 +27,33 @@ function separarRemetente(linha) {
 }
 
 function remetenteConfigurado() {
-  return process.env.EMAIL_REMETENTE || REMETENTE_PADRAO;
-}
-
-// Copiar e colar num painel de variáveis costuma trazer espaço ou quebra
-// de linha junto, e um cabeçalho de autenticação com sobra é recusado
-// exatamente como se a chave estivesse errada.
-function chave(nome) {
-  return String(process.env[nome] || '').trim();
-}
-
-function servicoEscolhido() {
-  if (chave('BREVO_API_KEY')) return 'brevo';
-  if (chave('RESEND_API_KEY')) return 'resend';
-  return null;
+  return separarRemetente(process.env.EMAIL_REMETENTE);
 }
 
 function estaConfigurado() {
-  return servicoEscolhido() !== null;
+  return Boolean(chave());
 }
 
-/* ---------- Tradução das recusas ---------- */
+// Mantido para a rota /saude, que precisa dizer se o envio está de pé sem
+// expor a chave.
+function servicoEscolhido() {
+  return estaConfigurado() ? 'brevo' : null;
+}
 
 // O administrador não deveria precisar abrir os Logs do Render para
 // entender por que a mensagem não saiu.
-function motivoResend(status, detalhe) {
-  const texto = String(detalhe || '');
-
-  if (status === 401 || status === 403) {
-    if (/testing emails|own email address|verify a domain/i.test(texto)) {
-      return 'o remetente de teste do Resend só entrega para o e-mail dono da conta. Para enviar a outros endereços, verifique um domínio em Domains, no painel do Resend.';
-    }
-    if (status === 401) return 'a chave RESEND_API_KEY foi recusada. Confira o valor no Render.';
-    return 'o Resend recusou o envio (403). Veja os Logs no Render para o motivo exato.';
-  }
-  if (status === 422) return 'o Resend recusou os dados da mensagem (422), normalmente o remetente.';
-  if (status === 429) return 'o limite de envios do Resend foi atingido. Tente mais tarde.';
-
-  return `o serviço de e-mail respondeu ${status}. Veja os Logs no Render.`;
-}
-
-function motivoBrevo(status, detalhe) {
+function motivoLegivel(status, detalhe) {
   const texto = String(detalhe || '');
 
   if (status === 401) {
-    // A confusão mais comum: o Brevo tem duas credenciais em telas
-    // parecidas, e a senha do SMTP não vale para a API v3.
-    return 'a chave BREVO_API_KEY foi recusada. Confira se ela começa com "xkeysib-" e se veio da aba API Keys, não da aba SMTP. Se a conta do Brevo foi criada agora, ela também pode ainda estar aguardando ativação.';
+    // As duas confusões mais comuns: a senha do SMTP, que não vale na API
+    // v3, e a lista de IPs autorizados, que vem ligada em contas novas e
+    // recusa com o mesmo 401 de chave inválida.
+    return 'a chave BREVO_API_KEY foi recusada. Confira se ela começa com "xkeysib-", se veio da aba API Keys e não da SMTP, e se a restrição de IPs autorizados está desligada no painel do Brevo.';
   }
   if (status === 400) {
     if (/sender|from/i.test(texto)) {
-      return `o remetente ${separarRemetente(remetenteConfigurado()).endereco} ainda não foi validado no Brevo. Valide-o em Senders, IPs & Domains, no painel do Brevo.`;
+      return `o remetente ${remetenteConfigurado().endereco || '(não configurado)'} ainda não foi validado no Brevo. Valide-o em Senders, IPs & Domains.`;
     }
     return 'o Brevo recusou os dados da mensagem (400). Veja os Logs no Render.';
   }
@@ -83,37 +63,27 @@ function motivoBrevo(status, detalhe) {
   return `o serviço de e-mail respondeu ${status}. Veja os Logs no Render.`;
 }
 
-/* ---------- Chamadas de cada serviço ---------- */
+async function enviar({ para, assunto, texto, html }) {
+  if (!estaConfigurado()) {
+    console.log(`[e-mail simulado] para=${para} assunto=${assunto}`);
+    return { enviado: false, simulado: true };
+  }
 
-function chamadaResend({ para, assunto, texto, html }) {
-  return {
-    url: 'https://api.resend.com/emails',
-    opcoes: {
+  const remetente = remetenteConfigurado();
+  if (!remetente.endereco) {
+    console.error('EMAIL_REMETENTE não configurado');
+    return {
+      enviado: false,
+      simulado: false,
+      erro: 'falta configurar EMAIL_REMETENTE no servidor, com um endereço validado no Brevo.',
+    };
+  }
+
+  try {
+    const resposta = await fetch(URL_BREVO, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${chave('RESEND_API_KEY')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: remetenteConfigurado(),
-        to: [para],
-        subject: assunto,
-        text: texto,
-        html,
-      }),
-    },
-    motivo: motivoResend,
-  };
-}
-
-function chamadaBrevo({ para, assunto, texto, html }) {
-  const remetente = separarRemetente(remetenteConfigurado());
-  return {
-    url: 'https://api.brevo.com/v3/smtp/email',
-    opcoes: {
-      method: 'POST',
-      headers: {
-        'api-key': chave('BREVO_API_KEY'),
+        'api-key': chave(),
         'Content-Type': 'application/json',
         accept: 'application/json',
       },
@@ -124,34 +94,17 @@ function chamadaBrevo({ para, assunto, texto, html }) {
         textContent: texto,
         htmlContent: html,
       }),
-    },
-    motivo: motivoBrevo,
-  };
-}
-
-async function enviar({ para, assunto, texto, html }) {
-  const servico = servicoEscolhido();
-
-  if (!servico) {
-    console.log(`[e-mail simulado] para=${para} assunto=${assunto}`);
-    return { enviado: false, simulado: true };
-  }
-
-  const { url, opcoes, motivo } =
-    servico === 'brevo'
-      ? chamadaBrevo({ para, assunto, texto, html })
-      : chamadaResend({ para, assunto, texto, html });
-
-  try {
-    const resposta = await fetch(url, opcoes);
+    });
 
     if (!resposta.ok) {
       const detalhe = await resposta.text().catch(() => '');
-      console.error(`falha ao enviar e-mail por ${servico} (${resposta.status})`, detalhe.slice(0, 300));
-      return { enviado: false, simulado: false, erro: motivo(resposta.status, detalhe) };
+      console.error(`falha ao enviar e-mail (${resposta.status})`, detalhe.slice(0, 300));
+      return { enviado: false, simulado: false, erro: motivoLegivel(resposta.status, detalhe) };
     }
 
-    return { enviado: true, simulado: false, servico };
+    // Sucesso aqui quer dizer "aceito para entrega", não "entregue": o
+    // destino final aparece nos Logs do próprio Brevo.
+    return { enviado: true, simulado: false };
   } catch (erro) {
     // Um e-mail que não sai não pode derrubar o cadastro do usuário.
     console.error('erro de rede ao enviar e-mail', erro.message);

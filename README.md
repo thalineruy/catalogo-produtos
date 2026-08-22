@@ -24,9 +24,9 @@ Projeto Integrador II.
   período, operador e tipo de ação. Operador vê apenas as próprias.
 - **Administração** — dados da empresa, logotipo, categorias, usuários,
   fila de pedidos de acesso e estatísticas com gráficos.
-- **Convite de acesso** — o usuário cadastrado recebe por e-mail um link de
-  uso único, válido por 48 horas, e define a própria senha. Nenhuma senha
-  utilizável trafega por e-mail.
+- **Convite de acesso** — o usuário cadastrado recebe por e-mail, pelo Brevo,
+  um link de uso único válido por 48 horas, e define a própria senha. Nenhuma
+  senha utilizável trafega por e-mail.
 - **Acesso** — login com verificação em duas etapas (Google Authenticator),
   opção de confiar no computador por 30 dias, dois níveis de permissão
   (administrador e operador) e troca de senha pelo próprio usuário.
@@ -43,8 +43,8 @@ duas etapas, multer para o upload do logotipo.
 **Telas** — HTML, CSS e JavaScript sem framework, Fetch API, Chart.js nos
 gráficos da Administração.
 
-**Serviços** — PostgreSQL e Storage no Supabase, Brevo ou Resend para o envio
-de e-mail, Vercel para as telas, Render para a API, GitHub.
+**Serviços** — PostgreSQL e Storage no Supabase, Brevo para o envio de e-mail,
+Vercel para as telas, Render para a API, GitHub.
 
 **Testes** — Jest e Supertest.
 
@@ -110,35 +110,33 @@ por e-mail um link para a pessoa definir a própria senha. Nenhuma senha
 utilizável trafega por e-mail nem aparece na tela do administrador — é por
 isso que o cadastro não devolve mais "senha temporária".
 
-### O serviço de envio
+### O serviço de envio: Brevo
 
-O serviço de envio é só o carteiro. **Usuários do sistema não são cadastrados
-lá** — continuam sendo cadastrados em Administração, como sempre. O que ele faz
-é entregar a mensagem que o servidor manda.
+O sistema usa o **Brevo**. Ele é só o carteiro: **usuários do sistema não são
+cadastrados lá** — continuam sendo cadastrados em Administração, como sempre. O
+que o Brevo faz é entregar a mensagem que o servidor manda.
 
-O código aceita dois, escolhidos pela variável de ambiente que estiver
-preenchida. Se as duas estiverem, o Brevo ganha.
+A escolha foi por ele porque entrega para **qualquer destinatário** depois de
+validar um único endereço de remetente, sem exigir domínio próprio. O plano
+gratuito cobre cerca de 300 envios por dia, muito acima do que este sistema
+precisa.
 
-| | Brevo | Resend |
-| --- | --- | --- |
-| Variável | `BREVO_API_KEY` | `RESEND_API_KEY` |
-| Precisa de domínio próprio | não | sim, fora do remetente de teste |
-| Para quem entrega | qualquer endereço | só o e-mail dono da conta, sem domínio |
-| Plano gratuito | ~300 por dia | ~3.000 por mês |
-
-**Use o Brevo se você não tem domínio próprio.** O remetente de teste do Resend
-(`onboarding@resend.dev`) só entrega para o e-mail dono da conta — qualquer
-outro destinatário volta com 403. Isso é regra do Resend, não limitação do
-sistema.
-
-No Brevo, uma vez só:
+No painel do Brevo, uma vez só:
 
 1. Criar uma conta em [brevo.com](https://www.brevo.com).
-2. Validar o endereço que vai ser o remetente, em **Senders, IPs & Domains** →
-   **Senders**. Chega um e-mail de confirmação nesse endereço.
-3. Gerar a chave em **SMTP & API** → **API Keys**.
+2. Validar o endereço que vai assinar os e-mails, em **Senders, IPs & Domains**
+   → **Senders**. Chega um e-mail de confirmação nesse endereço, e é preciso
+   clicar no link.
+3. Gerar a chave em **SMTP & API** → aba **API Keys**. Ela começa com
+   `xkeysib-` e é mostrada uma única vez.
+4. **Desligar a restrição de IPs** — ver a seção seguinte, que é a armadilha
+   que mais custa tempo.
 
 Depois disso não se volta mais lá.
+
+> A aba **SMTP**, ao lado da API Keys, dá um login e senha para conectar num
+> servidor de e-mail. **Aquilo não funciona na API** e é uma confusão comum,
+> porque as duas telas são parecidas.
 
 ### Cuidado com a lista de IPs do Brevo
 
@@ -163,13 +161,25 @@ está no ar:
 
 - `URL_SISTEMA` — endereço público das telas, ex.: `https://catalogo-produtos-eight.vercel.app`.
   Sem isto o link do e-mail sai quebrado.
-- `BREVO_API_KEY` ou `RESEND_API_KEY` — a chave do serviço escolhido.
-- `EMAIL_REMETENTE` — no formato `Nome <endereco@dominio>`. Com Brevo, precisa
-  ser o endereço validado no passo 2. Com Resend e sem domínio próprio, use
-  `Catálogo de Produtos <onboarding@resend.dev>`.
+- `BREVO_API_KEY` — a chave gerada no passo 3.
+- `EMAIL_REMETENTE` — no formato `Nome <endereco@dominio>`, com o endereço
+  validado no passo 2. Exemplo:
+  `Catálogo de Produtos <thalineruy@hotmail.com>`.
 
-Saindo de um remetente Hotmail ou Gmail, vale conferir a caixa de spam no
-primeiro envio: sem domínio próprio a entrega é menos confiável.
+### A primeira mensagem costuma cair no lixo eletrônico
+
+Com um remetente `@hotmail.com` ou `@gmail.com`, a mensagem sai pelos
+servidores do Brevo mas se apresenta como sendo de um domínio da Microsoft ou
+do Google. O alinhamento de SPF e DKIM falha, e isso pesa bastante na pontuação
+de spam.
+
+Não é rejeição: o `hotmail.com` publica DMARC com `p=none`, então a mensagem
+não é barrada — ela chega, mas costuma parar na pasta de lixo eletrônico.
+
+Na prática: **avise quem vai receber para olhar o lixo eletrônico**, e peça que
+marque como "não é spam" na primeira mensagem, o que melhora a entrega das
+seguintes. Verificar um domínio próprio no Brevo, em **Senders, IPs & Domains**
+→ **Domains**, resolve de vez — mas exige ter um domínio e mexer em DNS.
 
 A chave da API vai direto do painel do serviço para o do Render. Como qualquer
 credencial, ela nunca pode entrar em arquivos da pasta `telas/`, que vão para o
@@ -194,10 +204,15 @@ adivinhação, consulte `/saude`:
 curl -s https://catalogo-api-0vuy.onrender.com/saude
 ```
 
-A resposta traz `"email"` com `brevo`, `resend` ou `nao configurado`. A chave
-nunca aparece. Vale lembrar que o Render leva alguns minutos para reconstruir
-depois de uma alteração de variável: espere o `/saude` mudar antes de concluir
-que algo falhou.
+A resposta traz `"email"` com `brevo` ou `nao configurado`. A chave nunca
+aparece. Vale lembrar que o Render leva alguns minutos para reconstruir depois
+de uma alteração de variável: espere o `/saude` mudar antes de concluir que
+algo falhou.
+
+Se o Brevo aceitar a mensagem mas ela não chegar, o lugar de olhar é o painel
+deles, em **Transactional** → **Logs**: lá aparece se a mensagem foi entregue,
+recusada ou retida. Uma resposta de sucesso da API quer dizer "aceito para
+entrega", não "entregue".
 
 **Sem a chave o sistema não quebra.** Ele entra em modo simulado: registra no
 console e devolve o link para o administrador repassar à mão. O mesmo vale
@@ -288,7 +303,7 @@ tocar em dado nenhum de verdade.
 - A chave `service_role` do Supabase dá acesso total ao banco: ela só pode
   existir nas variáveis de ambiente do servidor, nunca em arquivos da pasta
   `telas/`, que vão para o navegador de quem acessa. O mesmo vale para a
-  `BREVO_API_KEY` e a `RESEND_API_KEY`.
+  `BREVO_API_KEY`.
 - Sem chave de e-mail nenhuma o cadastro de usuário continua funcionando: o link de
   ativação aparece no aviso da própria tela, para o administrador repassar à
   mão. Nada fica quebrado por falta do serviço de e-mail.
