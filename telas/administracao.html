@@ -59,14 +59,25 @@
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                 </button>
               </div>
+              <div id="avisos-sistema-sino" class="notificacoes-sistema"></div>
               <div id="lista-notificacoes"></div>
             </div>
           </div>
-          <div class="usuario" id="usuario-logado" hidden>
-            <span class="inicial" id="usuario-inicial" aria-hidden="true"></span>
-            <div class="identificacao">
-              <span id="usuario-nome"></span>
-              <span class="nivel" id="usuario-nivel"></span>
+          <div class="usuario-area" id="usuario-logado" hidden>
+            <button type="button" class="usuario" id="botao-usuario" aria-haspopup="menu" aria-expanded="false" aria-label="Conta e sessão">
+              <span class="inicial" id="usuario-inicial" aria-hidden="true"></span>
+              <span class="identificacao">
+                <span id="usuario-nome"></span>
+                <span class="nivel" id="usuario-nivel"></span>
+              </span>
+            </button>
+            <div class="menu-usuario" id="menu-usuario" role="menu" aria-labelledby="botao-usuario" hidden>
+              <div class="menu-usuario-cabeca">
+                <span class="menu-usuario-nome" id="menu-usuario-nome"></span>
+                <span class="nivel" id="menu-usuario-nivel"></span>
+              </div>
+              <a class="menu-usuario-item" role="menuitem" href="senha.html">Trocar minha senha</a>
+              <button type="button" class="menu-usuario-item menu-usuario-sair" role="menuitem" id="botao-sair-menu">Sair da conta</button>
             </div>
           </div>
         </div>

@@ -193,10 +193,17 @@ function montarNotificacoes(produtos) {
   const contador = document.getElementById('sino-contador');
   if (!botao || !painel || !lista) return;
 
+  // produtos === null quer dizer que a consulta de estoque falhou. O sino
+  // aparece assim mesmo, porque no celular ele é o único lugar onde os
+  // avisos do sistema — inclusive o de "sem comunicação" — são exibidos.
+  const falhou = produtos === null;
+
   // Zerados primeiro: são os mais urgentes
-  const pendentes = produtos
-    .filter((p) => p.quantidade === 0 || p.quantidade <= p.estoque_minimo)
-    .sort((a, b) => a.quantidade - b.quantidade);
+  const pendentes = falhou
+    ? []
+    : produtos
+        .filter((p) => p.quantidade === 0 || p.quantidade <= p.estoque_minimo)
+        .sort((a, b) => a.quantidade - b.quantidade);
 
   lista.innerHTML = '';
 
@@ -205,7 +212,9 @@ function montarNotificacoes(produtos) {
     vazio.className = 'notificacao';
     const texto = document.createElement('div');
     texto.className = 'titulo';
-    texto.textContent = 'Nenhum produto precisa de reposição.';
+    texto.textContent = falhou
+      ? 'Não foi possível carregar os alertas de estoque.'
+      : 'Nenhum produto precisa de reposição.';
     vazio.appendChild(texto);
     lista.appendChild(vazio);
   } else {
@@ -241,9 +250,11 @@ function montarNotificacoes(produtos) {
   }
   botao.setAttribute(
     'aria-label',
-    pendentes.length === 1
-      ? '1 produto precisa de reposição'
-      : `${pendentes.length} produtos precisam de reposição`,
+    falhou
+      ? 'Notificações'
+      : pendentes.length === 1
+        ? '1 produto precisa de reposição'
+        : `${pendentes.length} produtos precisam de reposição`,
   );
   botao.hidden = false;
 
@@ -306,8 +317,9 @@ async function carregarAlertaEstoque() {
     // que pedem reposição, não só dos que caem na primeira página.
     montarNotificacoes(await listarAlertasDeEstoque());
   } catch (erro) {
-    // Sem estoque para mostrar, o sino simplesmente não aparece; a falha
-    // de comunicação é anunciada pelos avisos do sistema.
+    // O sino continua aparecendo mesmo sem os dados de estoque: ele
+    // carrega os avisos do sistema, que no celular não têm outro lugar.
+    montarNotificacoes(null);
   }
 }
 
@@ -317,17 +329,34 @@ const DIAS_PARA_TROCAR_SENHA = 60;
 const DIAS_DE_ANTECEDENCIA = 10;
 
 function desenharAvisos(avisos) {
-  const area = document.getElementById('avisos-sistema');
+  // Dois destinos: o rodapé do menu lateral e o painel do sino. O rodapé
+  // some abaixo de 901px, então no celular o sino é o único lugar onde
+  // estes avisos aparecem.
+  desenharAvisosEm(document.getElementById('avisos-sistema'), avisos, false);
+  desenharAvisosEm(document.getElementById('avisos-sistema-sino'), avisos, true);
+}
+
+function desenharAvisosEm(area, avisos, comTitulo) {
   if (!area) return;
 
   area.innerHTML = '';
 
   if (avisos.length === 0) {
+    // No sino, "nenhum aviso" não precisa ocupar espaço: o painel já tem
+    // a lista de estoque logo abaixo.
+    if (comTitulo) return;
     const item = document.createElement('p');
     item.className = 'aviso-sistema';
     item.textContent = 'Nenhum aviso no momento.';
     area.appendChild(item);
     return;
+  }
+
+  if (comTitulo) {
+    const titulo = document.createElement('p');
+    titulo.className = 'rotulo notificacoes-sistema-titulo';
+    titulo.textContent = 'Avisos do sistema';
+    area.appendChild(titulo);
   }
 
   avisos.forEach((aviso) => {
@@ -658,6 +687,50 @@ async function abrirPoliticaPrivacidade() {
   botaoFechar.focus();
 }
 
+/* ---------- Menu da conta, no crachá do topo ----------
+   O rodapé do menu lateral some abaixo de 901px (ver folha de estilo), e
+   com ele iam embora o "Sair da conta" e o "Trocar minha senha" — no
+   celular não sobrava nenhuma forma de encerrar a sessão. Este menu
+   existe em qualquer largura, para não haver dois comportamentos. */
+function iniciarMenuUsuario() {
+  const botao = document.getElementById('botao-usuario');
+  const menu = document.getElementById('menu-usuario');
+  if (!botao || !menu || botao.dataset.pronto) return;
+  botao.dataset.pronto = 'sim';
+
+  function fechar() {
+    menu.hidden = true;
+    botao.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('keydown', fecharComEsc);
+    document.removeEventListener('click', fecharClicandoFora);
+  }
+
+  function fecharComEsc(evento) {
+    if (evento.key === 'Escape') {
+      fechar();
+      botao.focus();
+    }
+  }
+
+  function fecharClicandoFora(evento) {
+    if (!menu.contains(evento.target) && !botao.contains(evento.target)) fechar();
+  }
+
+  botao.addEventListener('click', () => {
+    if (!menu.hidden) {
+      fechar();
+      return;
+    }
+    menu.hidden = false;
+    botao.setAttribute('aria-expanded', 'true');
+    document.addEventListener('keydown', fecharComEsc);
+    // No próximo quadro, senão este mesmo clique fecharia o menu
+    setTimeout(() => document.addEventListener('click', fecharClicandoFora), 0);
+    const primeiro = menu.querySelector('.menu-usuario-item');
+    if (primeiro) primeiro.focus();
+  });
+}
+
 function montarBarraNavegacao({ exigirLogin = false } = {}) {
   const usuario = obterUsuario();
 
@@ -676,7 +749,14 @@ function montarBarraNavegacao({ exigirLogin = false } = {}) {
   const elementoInicial = document.getElementById('usuario-inicial');
   const elementoNome = document.getElementById('usuario-nome');
   const elementoNivel = document.getElementById('usuario-nivel');
-  const botaoSair = document.getElementById('botao-sair');
+  const menuNome = document.getElementById('menu-usuario-nome');
+  const menuNivel = document.getElementById('menu-usuario-nivel');
+  // Dois caminhos para sair: o do rodape do menu lateral, que some em
+  // tela estreita, e o do menu do crachá, que existe em qualquer largura.
+  const botoesSair = [
+    document.getElementById('botao-sair'),
+    document.getElementById('botao-sair-menu'),
+  ].filter(Boolean);
   const linkEntrar = document.getElementById('link-entrar');
   const linkAdministracao = document.getElementById('link-administracao');
   const cadeadoAdministracao = linkAdministracao
@@ -699,13 +779,16 @@ function montarBarraNavegacao({ exigirLogin = false } = {}) {
     if (elementoInicial) elementoInicial.textContent = iniciaisDe(usuario.nome);
     if (elementoNome) elementoNome.textContent = usuario.nome;
     if (elementoNivel) elementoNivel.textContent = ehAdministrador ? 'Administrador' : 'Operador';
-    if (botaoSair) {
-      botaoSair.hidden = false;
-      botaoSair.addEventListener('click', () => {
+    if (menuNome) menuNome.textContent = usuario.nome;
+    if (menuNivel) menuNivel.textContent = ehAdministrador ? 'Administrador' : 'Operador';
+    botoesSair.forEach((botao) => {
+      botao.hidden = false;
+      botao.addEventListener('click', () => {
         encerrarSessao();
         window.location.href = 'index.html';
       });
-    }
+    });
+    iniciarMenuUsuario();
     if (linkEntrar) linkEntrar.hidden = true;
 
     // A Administração continua na lista para todos, com um cadeado quando
@@ -714,7 +797,7 @@ function montarBarraNavegacao({ exigirLogin = false } = {}) {
     if (cadeadoAdministracao) cadeadoAdministracao.hidden = ehAdministrador;
   } else {
     if (elementoUsuario) elementoUsuario.hidden = true;
-    if (botaoSair) botaoSair.hidden = true;
+    botoesSair.forEach((botao) => { botao.hidden = true; });
     if (linkEntrar) linkEntrar.hidden = false;
     if (linkAdministracao) linkAdministracao.hidden = true;
   }

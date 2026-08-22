@@ -1380,3 +1380,97 @@ legend { margin-bottom: 10px; }
 @media (pointer: coarse) {
   .acoes-linha .botao { min-height: var(--alvo); padding: 8px 12px; }
 }
+
+/* ---------- 24. Menu da conta no crachá do topo ----------
+   O rodapé do menu lateral some abaixo de 901px, levando junto o "Sair
+   da conta" e o "Trocar minha senha": no celular não sobrava nenhuma
+   forma de encerrar a sessão. O crachá do usuário virou botão e abre
+   este menu, que existe em qualquer largura para não haver dois
+   comportamentos diferentes. */
+
+.usuario-area { position: relative; }
+
+/* O crachá agora é <button>, então precisa desfazer o visual de botão */
+.usuario {
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  border: 0;
+  border-left: 2px solid var(--divisor);
+}
+.usuario:hover .inicial { border-color: var(--destaque); }
+
+.menu-usuario {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 40;
+  width: max-content;
+  min-width: 190px;
+  max-width: 88vw;
+  background: var(--superficie);
+  border: 1px solid var(--divisor);
+  box-shadow: var(--sombra);
+}
+
+.menu-usuario-cabeca {
+  padding: 9px 12px;
+  border-bottom: 2px solid var(--divisor);
+}
+.menu-usuario-nome { display: block; font-size: 13px; font-weight: 800; }
+.menu-usuario-cabeca .nivel {
+  display: block;
+  font-size: 11px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--destaque);
+}
+
+.menu-usuario-item {
+  display: block;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-bottom: 1px solid var(--linha);
+  background: none;
+  color: var(--tinta);
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+.menu-usuario-item:last-child { border-bottom: 0; }
+.menu-usuario-item:hover { background: var(--sobre); }
+.menu-usuario-sair { color: var(--destaque); font-weight: 800; }
+
+@media (pointer: coarse) {
+  .menu-usuario-item { min-height: var(--alvo); }
+}
+
+/* Em tela apertada o nome sai do crachá: ele já aparece dentro do menu,
+   e sem isso o topo fica cheio demais no celular. */
+@media (max-width: 620px) {
+  .usuario .identificacao { display: none; }
+  .usuario { padding-left: 8px; }
+}
+
+/* Avisos do sistema dentro do painel do sino. Acima de 900px eles já
+   estão no rodapé do menu lateral, então aqui seriam repetição. */
+.notificacoes-sistema:not(:empty) {
+  padding: 9px 12px;
+  border-bottom: 2px solid var(--divisor);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.notificacoes-sistema-titulo { margin: 0; }
+
+/* O seletor repete o :not(:empty) de propósito: sem ele a regra acima
+   venceria por especificidade (0,2,0 contra 0,1,0) e os avisos apareceriam
+   nos dois lugares no computador. */
+@media (min-width: 901px) {
+  .notificacoes-sistema,
+  .notificacoes-sistema:not(:empty) { display: none; }
+}
