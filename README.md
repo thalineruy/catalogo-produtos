@@ -36,7 +36,17 @@ Projeto Integrador II.
 
 ## Tecnologias
 
-Node.js, Express, API REST, PostgreSQL no Supabase, HTML, CSS, JavaScript com Fetch API, Jest e Supertest, Vercel, Render, GitHub.
+**Servidor** — Node.js, Express, API REST, `pg` para PostgreSQL, JSON Web Token
+para a sessão, bcrypt para as senhas, otplib e qrcode para a verificação em
+duas etapas, multer para o upload do logotipo.
+
+**Telas** — HTML, CSS e JavaScript sem framework, Fetch API, Chart.js nos
+gráficos da Administração.
+
+**Serviços** — PostgreSQL e Storage no Supabase, Resend para o envio de e-mail,
+Vercel para as telas, Render para a API, GitHub.
+
+**Testes** — Jest e Supertest.
 
 ## Como rodar localmente
 
