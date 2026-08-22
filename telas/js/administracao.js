@@ -499,20 +499,55 @@
   // O link só vem preenchido quando o e-mail não saiu. No caminho normal
   // ninguém além da pessoa vê o link — é esse o ponto de usar convite em
   // vez de senha temporária.
+  const conviteArea = document.getElementById('convite-link-area');
+  const conviteMotivo = document.getElementById('convite-link-motivo');
+  const conviteValor = document.getElementById('convite-link-valor');
+  const botaoCopiarConvite = document.getElementById('botao-copiar-convite');
+  const botaoFecharConvite = document.getElementById('botao-fechar-convite');
+
+  function fecharAreaDoConvite() {
+    conviteArea.hidden = true;
+    conviteValor.value = '';
+  }
+
+  botaoFecharConvite.addEventListener('click', fecharAreaDoConvite);
+
+  botaoCopiarConvite.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(conviteValor.value);
+      botaoCopiarConvite.textContent = 'Copiado';
+    } catch (erro) {
+      // Navegador sem permissão de área de transferência: seleciona o texto
+      // para o Ctrl+C funcionar.
+      conviteValor.select();
+      botaoCopiarConvite.textContent = 'Use Ctrl+C';
+    }
+    setTimeout(() => { botaoCopiarConvite.textContent = 'Copiar link'; }, 2500);
+  });
+
+  // Devolve o texto curto para o aviso. Quando há link, ele vai para a área
+  // fixa acima da tabela, que fica até o administrador fechar — um aviso que
+  // some em 10 segundos não dá tempo de copiar um endereço longo.
   function descreverConvite(nome, convite) {
+    fecharAreaDoConvite();
+
     if (!convite) return `${nome}: nada a enviar.`;
     if (convite.emailEnviado) {
       return `Link de acesso enviado para ${nome}. Vale por ${convite.validoPorHoras} horas.`;
     }
 
-    // Antes as duas falhas diziam a mesma coisa, e não dava para saber se
-    // faltava configurar o serviço ou se ele tinha recusado a mensagem.
+    // As duas falhas dizem coisas diferentes: faltar configurar o serviço
+    // não é o mesmo que o serviço ter recusado a mensagem.
     const causa = convite.emailSimulado
       ? 'O envio de e-mail ainda não está configurado no servidor.'
       : `O e-mail não saiu: ${convite.motivo || 'o serviço de envio recusou a mensagem.'}`;
 
     if (convite.link) {
-      return `${causa} Repasse este link a ${nome} (vale ${convite.validoPorHoras} horas): ${convite.link}`;
+      conviteMotivo.textContent = `${causa} Repasse este link a ${nome}. Vale por ${convite.validoPorHoras} horas e serve uma vez só.`;
+      conviteValor.value = convite.link;
+      conviteArea.hidden = false;
+      conviteArea.scrollIntoView({ block: 'nearest' });
+      return `O e-mail não saiu. O link de ${nome} está logo acima da tabela, para copiar.`;
     }
     return `${causa} Tente reenviar o link.`;
   }

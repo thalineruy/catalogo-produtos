@@ -1504,3 +1504,27 @@ legend { margin-bottom: 10px; }
 @media (max-width: 720px) {
   .so-estreito { display: block; }
 }
+
+/* ---------- 26. Link de convite para repassar à mão ----------
+   Aparece quando o e-mail não sai. Fica na tela até o administrador
+   fechar: o aviso comum some em 10 segundos, e nesse tempo não dá para
+   copiar um endereço longo e colar noutro aplicativo. */
+.convite-link {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--destaque);
+  background: var(--sobre);
+}
+
+.convite-link .rotulo { margin: 0; }
+.convite-link-motivo { font-size: 13px; }
+
+/* Fonte de largura fixa ajuda a conferir o endereço caractere a caractere */
+#convite-link-valor {
+  font-family: ui-monospace, "Cascadia Mono", "Consolas", monospace;
+  font-size: 12.5px;
+}
+
+.convite-link-acoes { display: flex; gap: 8px; flex-wrap: wrap; }

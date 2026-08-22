@@ -261,6 +261,19 @@ Content-Type: application/json</code></pre>
 
               <p id="usuarios-erro" class="erro-geral" role="alert" hidden></p>
 
+              <!-- Quando o e-mail não sai, o link precisa ficar na tela até o
+                   administrador copiar. Num aviso que some em 10 segundos ele
+                   se perderia, e seria preciso gerar outro convite. -->
+              <div class="convite-link" id="convite-link-area" role="status" hidden>
+                <p class="rotulo">Link de acesso para repassar</p>
+                <p class="convite-link-motivo" id="convite-link-motivo"></p>
+                <input type="text" class="entrada" id="convite-link-valor" readonly aria-label="Link de acesso">
+                <div class="convite-link-acoes">
+                  <button type="button" class="botao botao-principal" id="botao-copiar-convite">Copiar link</button>
+                  <button type="button" class="botao botao-contorno" id="botao-fechar-convite">Fechar</button>
+                </div>
+              </div>
+
               <div class="rolagem-tabela">
                 <table class="tabela">
                   <caption class="apenas-leitor">Usuários cadastrados, com nível de acesso e ações</caption>
