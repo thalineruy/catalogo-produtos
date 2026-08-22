@@ -163,12 +163,28 @@ describe('envio pelo Brevo', () => {
     expect(r.erro).toMatch(/não foi validado/);
   });
 
+  it('apara espaço e quebra de linha coladas junto com a chave', async () => {
+    process.env.BREVO_API_KEY = '  xkeysib-abc\n';
+    responder(201, '{}');
+
+    await email.enviar({ para: 'a@b.com', assunto: 'x', texto: 'y' });
+
+    expect(global.fetch.mock.calls[0][1].headers['api-key']).toBe('xkeysib-abc');
+  });
+
+  it('chave só com espaço não conta como configurada', () => {
+    process.env.BREVO_API_KEY = '   ';
+    delete process.env.RESEND_API_KEY;
+    expect(email.servicoEscolhido()).toBeNull();
+  });
+
   it('chave recusada aponta para a variável certa', async () => {
     responder(401, '{"message":"Key not found"}');
 
     const r = await email.enviar({ para: 'a@b.com', assunto: 'x', texto: 'y' });
 
     expect(r.erro).toMatch(/BREVO_API_KEY/);
+    expect(r.erro).toMatch(/xkeysib-/);
     expect(r.erro).not.toMatch(/RESEND/);
   });
 });

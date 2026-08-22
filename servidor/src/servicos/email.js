@@ -26,9 +26,16 @@ function remetenteConfigurado() {
   return process.env.EMAIL_REMETENTE || REMETENTE_PADRAO;
 }
 
+// Copiar e colar num painel de variáveis costuma trazer espaço ou quebra
+// de linha junto, e um cabeçalho de autenticação com sobra é recusado
+// exatamente como se a chave estivesse errada.
+function chave(nome) {
+  return String(process.env[nome] || '').trim();
+}
+
 function servicoEscolhido() {
-  if (process.env.BREVO_API_KEY) return 'brevo';
-  if (process.env.RESEND_API_KEY) return 'resend';
+  if (chave('BREVO_API_KEY')) return 'brevo';
+  if (chave('RESEND_API_KEY')) return 'resend';
   return null;
 }
 
@@ -59,7 +66,11 @@ function motivoResend(status, detalhe) {
 function motivoBrevo(status, detalhe) {
   const texto = String(detalhe || '');
 
-  if (status === 401) return 'a chave BREVO_API_KEY foi recusada. Confira o valor no Render.';
+  if (status === 401) {
+    // A confusão mais comum: o Brevo tem duas credenciais em telas
+    // parecidas, e a senha do SMTP não vale para a API v3.
+    return 'a chave BREVO_API_KEY foi recusada. Confira se ela começa com "xkeysib-" e se veio da aba API Keys, não da aba SMTP. Se a conta do Brevo foi criada agora, ela também pode ainda estar aguardando ativação.';
+  }
   if (status === 400) {
     if (/sender|from/i.test(texto)) {
       return `o remetente ${separarRemetente(remetenteConfigurado()).endereco} ainda não foi validado no Brevo. Valide-o em Senders, IPs & Domains, no painel do Brevo.`;
@@ -80,7 +91,7 @@ function chamadaResend({ para, assunto, texto, html }) {
     opcoes: {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        Authorization: `Bearer ${chave('RESEND_API_KEY')}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -102,7 +113,7 @@ function chamadaBrevo({ para, assunto, texto, html }) {
     opcoes: {
       method: 'POST',
       headers: {
-        'api-key': process.env.BREVO_API_KEY,
+        'api-key': chave('BREVO_API_KEY'),
         'Content-Type': 'application/json',
         accept: 'application/json',
       },
