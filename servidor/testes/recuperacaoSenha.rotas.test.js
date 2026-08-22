@@ -1,10 +1,26 @@
 jest.mock('../src/repositorios/logsRepositorio');
+jest.mock('../src/repositorios/solicitacoesRepositorio');
+jest.mock('../src/repositorios/usuariosRepositorio');
+jest.mock('../src/servicos/email');
 
 const request = require('supertest');
 const app = require('../src/servidor');
 const logsRepositorio = require('../src/repositorios/logsRepositorio');
+const solicitacoesRepositorio = require('../src/repositorios/solicitacoesRepositorio');
+const usuariosRepositorio = require('../src/repositorios/usuariosRepositorio');
+const email = require('../src/servicos/email');
+const recuperacaoRotas = require('../src/rotas/recuperacaoSenha');
 
 describe('POST /recuperacao-senha', () => {
+  beforeEach(() => {
+    // O limite é por IP e vale entre um teste e outro: sem zerar, os
+    // últimos casos receberiam 429 por causa dos primeiros.
+    recuperacaoRotas.limitador.zerar();
+    solicitacoesRepositorio.registrar.mockResolvedValue({ id: 1, criado_em: new Date() });
+    usuariosRepositorio.listarEmailsDeAdministradores.mockResolvedValue([]);
+    email.enviar.mockResolvedValue({ enviado: true });
+  });
+
   afterEach(() => {
     jest.resetAllMocks();
   });

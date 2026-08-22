@@ -38,6 +38,14 @@ async function registrarAcesso(id) {
   await pool.query('UPDATE usuarios SET ultimo_acesso = now() WHERE id = $1', [id]);
 }
 
+// Destinatários do aviso de pedido de acesso.
+async function listarEmailsDeAdministradores() {
+  const { rows } = await pool.query(
+    "SELECT nome, email FROM usuarios WHERE nivel = 'administrador' ORDER BY id",
+  );
+  return rows;
+}
+
 async function criar({ nome, email, nivel, senhaHash }) {
   const { rows } = await pool.query(
     'INSERT INTO usuarios (nome, email, senha_hash, nivel) VALUES ($1, $2, $3, $4) RETURNING id, nome, email, nivel',
@@ -79,6 +87,7 @@ async function limparTotp(id) {
 }
 
 module.exports = {
+  listarEmailsDeAdministradores,
   buscarPorEmail,
   buscarPorId,
   buscarPorIdComSenha,

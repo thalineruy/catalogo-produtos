@@ -1474,3 +1474,33 @@ legend { margin-bottom: 10px; }
   .notificacoes-sistema,
   .notificacoes-sistema:not(:empty) { display: none; }
 }
+
+/* ---------- 25. Pedidos de acesso no sino ----------
+   Diferente de .notificacoes-sistema, este bloco aparece em qualquer
+   largura: não existe cópia dele no rodapé do menu lateral. */
+.notificacoes-pedidos:not(:empty) {
+  padding: 9px 12px;
+  border-bottom: 2px solid var(--divisor);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pedido-acesso-link {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--destaque);
+}
+.pedido-acesso-link:hover { opacity: .75; }
+
+@media (pointer: coarse) {
+  .pedido-acesso-link { padding: 6px 0; }
+}
+
+/* Par de .oculta-estreito: o que some de uma coluna reaparece embaixo do
+   conteúdo da coluna vizinha, para a informação não se perder no celular. */
+.so-estreito { display: none; }
+
+@media (max-width: 720px) {
+  .so-estreito { display: block; }
+}

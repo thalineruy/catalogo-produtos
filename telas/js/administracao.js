@@ -411,6 +411,32 @@
       }
     });
 
+    // Caminho normal para quem perdeu a senha: a pessoa recebe um link e
+    // escolhe a nova. O "Resetar senha" ao lado é o plano B, para quem
+    // está sem acesso à própria caixa de entrada.
+    const botaoConvite = document.createElement('button');
+    botaoConvite.type = 'button';
+    botaoConvite.className = 'botao botao-contorno';
+    botaoConvite.innerHTML = `${ICONE_CADEADO} Reenviar link`;
+    botaoConvite.setAttribute('aria-label', `Reenviar o link de acesso para ${usuario.nome}`);
+    botaoConvite.addEventListener('click', async () => {
+      const confirmou = window.confirm(
+        `Enviar um novo link de acesso para ${usuario.email}? O link anterior deixa de valer.`,
+      );
+      if (!confirmou) return;
+      usuariosErro.hidden = true;
+      botaoConvite.disabled = true;
+      try {
+        const resultado = await reenviarConviteUsuario(usuario.id);
+        exibirAviso(descreverConvite(usuario.nome, resultado.convite));
+      } catch (erro) {
+        usuariosErro.textContent = erro.message;
+        usuariosErro.hidden = false;
+      } finally {
+        botaoConvite.disabled = false;
+      }
+    });
+
     const botaoReset = document.createElement('button');
     botaoReset.type = 'button';
     botaoReset.className = 'botao botao-contorno';
@@ -455,6 +481,7 @@
     });
 
     container.appendChild(botaoNivel);
+    container.appendChild(botaoConvite);
     container.appendChild(botaoReset);
     container.appendChild(botaoRedefinirTotp);
     tdAcoes.appendChild(container);
@@ -469,6 +496,20 @@
     usuarios.forEach((usuario) => corpoUsuarios.appendChild(criarLinhaUsuario(usuario)));
   }
 
+  // O link só vem preenchido quando o e-mail não saiu. No caminho normal
+  // ninguém além da pessoa vê o link — é esse o ponto de usar convite em
+  // vez de senha temporária.
+  function descreverConvite(nome, convite) {
+    if (!convite) return `${nome}: nada a enviar.`;
+    if (convite.emailEnviado) {
+      return `Link de acesso enviado para ${nome}. Vale por ${convite.validoPorHoras} horas.`;
+    }
+    if (convite.link) {
+      return `Não foi possível enviar o e-mail. Repasse este link a ${nome} (vale ${convite.validoPorHoras} horas): ${convite.link}`;
+    }
+    return `Não foi possível enviar o e-mail para ${nome}. Tente reenviar o link.`;
+  }
+
   formNovoUsuario.addEventListener('submit', async (evento) => {
     evento.preventDefault();
     usuariosErro.hidden = true;
@@ -481,7 +522,7 @@
 
     try {
       const resultado = await criarUsuario(dados);
-      exibirAviso(`Usuário ${resultado.nome} criado. Senha temporária: ${resultado.senhaTemporaria} (informe ao usuário com segurança).`);
+      exibirAviso(descreverConvite(resultado.nome, resultado.convite));
       formNovoUsuario.reset();
       await carregarUsuarios();
     } catch (erro) {
@@ -490,7 +531,137 @@
     }
   });
 
-  /* ---------- 6. Estatísticas Gerais ---------- */
+  /* ---------- 6. Solicitações de Acesso ---------- */
+
+  const solicitacoesTabela = document.getElementById('solicitacoes-tabela');
+  const corpoSolicitacoes = document.getElementById('corpo-solicitacoes');
+  const solicitacoesVazio = document.getElementById('solicitacoes-vazio');
+  const solicitacoesErro = document.getElementById('solicitacoes-erro');
+  const solicitacoesContador = document.getElementById('solicitacoes-contador');
+
+  const paginacaoSolicitacoes = criarPaginacao('paginacao-solicitacoes', () => carregarSolicitacoes());
+
+  // Dois dos três motivos não se resolvem trocando a senha: quem perdeu o
+  // aplicativo precisa que a verificação em duas etapas seja redefinida.
+  // Sem dizer isso na tela, é fácil o administrador fazer a coisa errada.
+  const ACAO_POR_MOTIVO = {
+    'Esqueci a senha': 'Reenviar link de acesso',
+    'Perdi o acesso ao Google Authenticator': 'Redefinir 2FA',
+    'Troquei de celular': 'Redefinir 2FA',
+  };
+
+  function formatarQuando(dataIso) {
+    return new Date(dataIso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+  }
+
+  function criarLinhaSolicitacao(solicitacao) {
+    const pendente = !solicitacao.atendido_em;
+    const tr = document.createElement('tr');
+
+    const tdQuando = document.createElement('td');
+    tdQuando.textContent = formatarQuando(solicitacao.criado_em);
+    tr.appendChild(tdQuando);
+
+    const tdEmail = document.createElement('td');
+    tdEmail.textContent = solicitacao.email;
+    tr.appendChild(tdEmail);
+
+    const acaoSugerida = ACAO_POR_MOTIVO[solicitacao.motivo] || 'Conferir com a pessoa';
+
+    const tdMotivo = document.createElement('td');
+    tdMotivo.textContent = solicitacao.motivo;
+    // A coluna "O que fazer" some em tela estreita, e é justamente ela que
+    // evita trocar a senha de quem, na verdade, perdeu o aplicativo. Então
+    // a orientação reaparece aqui embaixo do motivo quando a coluna sai.
+    const acaoEstreita = document.createElement('div');
+    acaoEstreita.className = 'apagado so-estreito';
+    acaoEstreita.textContent = acaoSugerida;
+    tdMotivo.appendChild(acaoEstreita);
+    tr.appendChild(tdMotivo);
+
+    const tdAcao = document.createElement('td');
+    tdAcao.className = 'oculta-estreito';
+    tdAcao.textContent = acaoSugerida;
+    tr.appendChild(tdAcao);
+
+    const tdSituacao = document.createElement('td');
+    const etiqueta = document.createElement('span');
+    etiqueta.className = pendente ? 'etiqueta etiqueta-alerta' : 'etiqueta';
+    etiqueta.textContent = pendente ? 'Pendente' : 'Atendido';
+    tdSituacao.appendChild(etiqueta);
+    if (!pendente && solicitacao.atendido_por_nome) {
+      const quem = document.createElement('div');
+      quem.className = 'apagado';
+      quem.textContent = `por ${solicitacao.atendido_por_nome}`;
+      tdSituacao.appendChild(quem);
+    }
+    tr.appendChild(tdSituacao);
+
+    const tdAcoes = document.createElement('td');
+    const container = document.createElement('div');
+    container.className = 'acoes-linha';
+
+    const botao = document.createElement('button');
+    botao.type = 'button';
+    botao.className = 'botao botao-contorno';
+    botao.textContent = 'Marcar atendido';
+    botao.setAttribute('aria-label', `Marcar como atendido o pedido de ${solicitacao.email}`);
+    if (!pendente) {
+      botao.disabled = true;
+      botao.title = 'Este pedido já foi atendido.';
+    }
+    botao.addEventListener('click', async () => {
+      solicitacoesErro.hidden = true;
+      botao.disabled = true;
+      try {
+        await marcarSolicitacaoAtendida(solicitacao.id);
+        exibirAviso(`Pedido de ${solicitacao.email} marcado como atendido.`);
+        await carregarSolicitacoes();
+      } catch (erro) {
+        solicitacoesErro.textContent = erro.message;
+        solicitacoesErro.hidden = false;
+        botao.disabled = false;
+      }
+    });
+
+    container.appendChild(botao);
+    tdAcoes.appendChild(container);
+    tr.appendChild(tdAcoes);
+
+    return tr;
+  }
+
+  function renderizarSolicitacoes(resposta) {
+    corpoSolicitacoes.innerHTML = '';
+
+    if (resposta.itens.length === 0) {
+      solicitacoesTabela.hidden = true;
+      solicitacoesVazio.hidden = false;
+    } else {
+      solicitacoesTabela.hidden = false;
+      solicitacoesVazio.hidden = true;
+      resposta.itens.forEach((item) => corpoSolicitacoes.appendChild(criarLinhaSolicitacao(item)));
+    }
+
+    const pendentes = resposta.itens.filter((item) => !item.atendido_em).length;
+    solicitacoesContador.textContent = pendentes === 1 ? '1 pendente' : `${pendentes} pendentes`;
+    solicitacoesContador.hidden = pendentes === 0;
+
+    paginacaoSolicitacoes.desenhar(resposta);
+  }
+
+  async function carregarSolicitacoes() {
+    try {
+      solicitacoesErro.hidden = true;
+      renderizarSolicitacoes(await listarSolicitacoesAcesso({ pagina: paginacaoSolicitacoes.pagina }));
+    } catch (erro) {
+      solicitacoesErro.textContent = `Não foi possível carregar os pedidos de acesso: ${erro.message}`;
+      solicitacoesErro.hidden = false;
+      renderizarSolicitacoes({ itens: [], total: 0, pagina: 1, porPagina: 25, totalPaginas: 1 });
+    }
+  }
+
+  /* ---------- 7. Estatísticas Gerais ---------- */
   const CARTOES_ESTATISTICAS = [
     { chave: 'totalProdutos', rotulo: 'Produtos cadastrados' },
     { chave: 'totalProdutosAtivos', rotulo: 'Produtos ativos' },
@@ -658,7 +829,13 @@
   /* ---------- Inicialização ---------- */
   (async function iniciar() {
     try {
-      await Promise.all([carregarEmpresa(), carregarCategorias(), carregarUsuarios(), carregarEstatisticas()]);
+      await Promise.all([
+        carregarEmpresa(),
+        carregarCategorias(),
+        carregarUsuarios(),
+        carregarSolicitacoes(),
+        carregarEstatisticas(),
+      ]);
     } catch (erro) {
       empresaErro.textContent = `Não foi possível carregar os dados administrativos: ${erro.message}`;
       empresaErro.hidden = false;

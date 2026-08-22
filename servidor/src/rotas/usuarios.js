@@ -8,6 +8,8 @@ const { autenticar } = require('../middleware/autenticacao');
 const { exigirAdministrador } = require('../middleware/autorizacao');
 const { gerarSenhaTemporaria } = require('../servicos/geradorSenha');
 const { conferirSenha } = require('../servicos/validacaoSenha');
+const empresaRepositorio = require('../repositorios/empresaRepositorio');
+const emissaoConvite = require('../servicos/emissaoConvite');
 
 const router = express.Router();
 const NIVEIS_VALIDOS = ['administrador', 'operador'];
@@ -91,8 +93,11 @@ router.post('/', autenticar, exigirAdministrador, async (req, res, next) => {
     const existente = await usuariosRepositorio.buscarPorEmail(email);
     if (existente) return res.status(409).json({ erro: 'já existe um usuário com este email' });
 
-    const senhaTemporaria = gerarSenhaTemporaria();
-    const senhaHash = await bcrypt.hash(senhaTemporaria, 10);
+    // A conta nasce com uma senha aleatória que ninguém conhece: quem
+    // define a senha de verdade é a própria pessoa, pelo link do convite.
+    // Assim nenhuma senha utilizável trafega por e-mail nem aparece na
+    // tela do administrador.
+    const senhaHash = await bcrypt.hash(gerarSenhaTemporaria(), 10);
     const usuario = await usuariosRepositorio.criar({ nome, email, nivel, senhaHash });
 
     logsRepositorio
@@ -103,7 +108,13 @@ router.post('/', autenticar, exigirAdministrador, async (req, res, next) => {
       })
       .catch((erro) => console.error('falha ao registrar log de cadastro', erro));
 
-    res.status(201).json({ ...usuario, senhaTemporaria });
+    const empresa = await empresaRepositorio.buscar().catch(() => null);
+    const convite = await emissaoConvite.emitir({
+      usuario,
+      empresaNome: empresa && empresa.nome,
+    });
+
+    res.status(201).json({ ...usuario, convite });
   } catch (erro) {
     next(erro);
   }
@@ -157,6 +168,34 @@ router.post('/:id/reset-senha', autenticar, exigirAdministrador, async (req, res
       .catch((erro) => console.error('falha ao registrar log de edição', erro));
 
     res.json({ senhaTemporaria });
+  } catch (erro) {
+    next(erro);
+  }
+});
+
+// Reenvia o link de ativação. É o caminho normal para quem esqueceu a
+// senha e tem acesso ao próprio e-mail. O reset-senha acima continua
+// existindo para o caso de a pessoa estar sem acesso à caixa de entrada.
+router.post('/:id/convite', autenticar, exigirAdministrador, async (req, res, next) => {
+  try {
+    const alvo = await usuariosRepositorio.buscarPorId(req.params.id);
+    if (!alvo) return res.status(404).json({ erro: 'usuário não encontrado' });
+
+    const empresa = await empresaRepositorio.buscar().catch(() => null);
+    const convite = await emissaoConvite.emitir({
+      usuario: alvo,
+      empresaNome: empresa && empresa.nome,
+    });
+
+    logsRepositorio
+      .registrar({
+        usuarioId: req.usuario.id,
+        tipo: 'Edição',
+        detalhes: `Reenviou o link de acesso para ${alvo.nome}`,
+      })
+      .catch((erro) => console.error('falha ao registrar log de edição', erro));
+
+    res.json({ convite });
   } catch (erro) {
     next(erro);
   }

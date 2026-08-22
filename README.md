@@ -22,8 +22,11 @@ Projeto Integrador II.
   pré-visualização em A4 e saída para impressão ou PDF.
 - **Logs de auditoria** — histórico de todas as operações, com filtros por
   período, operador e tipo de ação. Operador vê apenas as próprias.
-- **Administração** — dados da empresa, logotipo, categorias, usuários e
-  estatísticas com gráficos.
+- **Administração** — dados da empresa, logotipo, categorias, usuários,
+  fila de pedidos de acesso e estatísticas com gráficos.
+- **Convite de acesso** — o usuário cadastrado recebe por e-mail um link de
+  uso único, válido por 48 horas, e define a própria senha. Nenhuma senha
+  utilizável trafega por e-mail.
 - **Acesso** — login com verificação em duas etapas (Google Authenticator),
   opção de confiar no computador por 30 dias, dois níveis de permissão
   (administrador e operador) e troca de senha pelo próprio usuário.
@@ -70,6 +73,8 @@ Execute os scripts na pasta `banco/`, **em ordem**, no SQL Editor do Supabase:
 7. `07-senha-atualizada-em.sql` — data da última troca de senha.
 8. `08-busca-sem-acento.sql` — habilita a extensão `unaccent`, usada pela
    busca do catálogo e do histórico de saídas.
+9. `09-convites-e-solicitacoes.sql` — convites de acesso de uso único e a
+   fila de pedidos de recuperação.
 
 Todos usam `IF NOT EXISTS`, então rodar de novo num banco já criado não
 quebra nem apaga nada. Pular qualquer um dos scripts a partir do 05 faz o
@@ -84,6 +89,46 @@ preciso, uma vez só:
 2. Preencher `SUPABASE_KEY` em `servidor/.env` com a chave `service_role` do
    projeto (Project Settings → API). Sem essa chave, todas as outras
    funcionalidades funcionam normalmente — só o upload de logotipo falha.
+
+## Envio de e-mail (Resend)
+
+Ao cadastrar um usuário, o sistema cria um **convite de uso único** e manda
+por e-mail um link para a pessoa definir a própria senha. Nenhuma senha
+utilizável trafega por e-mail nem aparece na tela do administrador — é por
+isso que o cadastro não devolve mais "senha temporária".
+
+Para o envio funcionar, preencha em `servidor/.env` (e no Render):
+
+- `URL_SISTEMA` — endereço público das telas, ex.: `https://catalogo-produtos-eight.vercel.app`.
+  Sem isto o link do e-mail sai quebrado.
+- `RESEND_API_KEY` — chave da API do [Resend](https://resend.com) (plano
+  gratuito com ~3.000 e-mails por mês).
+- `EMAIL_REMETENTE` — sem domínio próprio verificado, use
+  `Catálogo de Produtos <onboarding@resend.dev>`, o remetente de teste do
+  Resend. Com domínio próprio, a entrega melhora bastante.
+
+**Sem a chave o sistema não quebra.** Ele entra em modo simulado: registra no
+console e devolve o link para o administrador repassar à mão. O mesmo vale
+quando o envio falha por qualquer motivo — o cadastro do usuário nunca é
+desfeito por causa de um e-mail que não saiu.
+
+O botão "Reenviar link" na tela de Administração emite um convite novo e
+invalida o anterior. O "Resetar senha" ao lado continua existindo como plano
+B, para quem está sem acesso à própria caixa de entrada.
+
+## Pedidos de acesso
+
+Quem não consegue entrar usa "Esqueci minha senha" na tela de entrada e
+escolhe um motivo. O pedido entra numa fila visível em **Administração →
+Solicitações de Acesso**, e a quantidade pendente aparece no sino do topo.
+
+A tela mostra o que fazer em cada caso, porque dois dos três motivos não se
+resolvem trocando a senha: quem perdeu o Google Authenticator ou trocou de
+celular precisa de "Redefinir 2FA", não de uma senha nova.
+
+Se o envio de e-mail estiver configurado, cada pedido também avisa os
+administradores por e-mail. A rota é pública e aceita no máximo 5 pedidos por
+hora vindos do mesmo endereço IP.
 
 ## Login para testes locais
 

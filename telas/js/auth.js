@@ -186,6 +186,39 @@ async function carregarLogoBarraSuperior() {
 
 // Sino do topo: lista os produtos que precisam de reposição. Abre e
 // fecha por clique, Escape ou clique fora.
+// O sino conta duas coisas de naturezas diferentes: produtos que pedem
+// reposição e pedidos de acesso esperando atendimento. Cada uma é
+// carregada por sua própria função, então a contagem fica aqui fora para
+// que a última a terminar não apague o número da outra.
+const contagemSino = { estoque: 0, pedidos: 0 };
+
+function atualizarContadorSino() {
+  const botao = document.getElementById('botao-sino');
+  const contador = document.getElementById('sino-contador');
+  if (!botao || !contador) return;
+
+  const total = contagemSino.estoque + contagemSino.pedidos;
+  contador.textContent = total > 99 ? '99+' : String(total);
+  contador.hidden = total === 0;
+
+  const partes = [];
+  if (contagemSino.estoque > 0) {
+    partes.push(
+      contagemSino.estoque === 1
+        ? '1 produto precisa de reposição'
+        : `${contagemSino.estoque} produtos precisam de reposição`,
+    );
+  }
+  if (contagemSino.pedidos > 0) {
+    partes.push(
+      contagemSino.pedidos === 1
+        ? '1 pedido de acesso esperando'
+        : `${contagemSino.pedidos} pedidos de acesso esperando`,
+    );
+  }
+  botao.setAttribute('aria-label', partes.length ? `Notificações: ${partes.join(' e ')}` : 'Notificações');
+}
+
 function montarNotificacoes(produtos) {
   const botao = document.getElementById('botao-sino');
   const painel = document.getElementById('painel-notificacoes');
@@ -244,18 +277,8 @@ function montarNotificacoes(produtos) {
     });
   }
 
-  if (contador) {
-    contador.textContent = pendentes.length > 99 ? '99+' : String(pendentes.length);
-    contador.hidden = pendentes.length === 0;
-  }
-  botao.setAttribute(
-    'aria-label',
-    falhou
-      ? 'Notificações'
-      : pendentes.length === 1
-        ? '1 produto precisa de reposição'
-        : `${pendentes.length} produtos precisam de reposição`,
-  );
+  contagemSino.estoque = pendentes.length;
+  atualizarContadorSino();
   botao.hidden = false;
 
   function fechar() {
@@ -321,6 +344,45 @@ async function carregarAlertaEstoque() {
     // carrega os avisos do sistema, que no celular não têm outro lugar.
     montarNotificacoes(null);
   }
+}
+
+/* ---------- Pedidos de acesso, no sino ---------- */
+
+// Só administrador enxerga: a rota devolve 403 para operador, e o bloco
+// simplesmente não aparece. Diferente dos avisos do sistema, este bloco
+// vale em qualquer largura — não existe cópia dele no rodapé do menu.
+async function carregarPedidosDeAcesso(usuario) {
+  const area = document.getElementById('pedidos-acesso-sino');
+  if (!area || !usuario || usuario.nivel !== 'administrador') return;
+  if (typeof contarSolicitacoesPendentes !== 'function' || !obterToken()) return;
+
+  try {
+    const { total } = await contarSolicitacoesPendentes();
+    contagemSino.pedidos = total;
+    desenharPedidosDeAcesso(area, total);
+    atualizarContadorSino();
+  } catch (erro) {
+    // Sem a contagem o sino segue mostrando só o estoque.
+  }
+}
+
+function desenharPedidosDeAcesso(area, total) {
+  area.innerHTML = '';
+  if (total === 0) return;
+
+  const titulo = document.createElement('p');
+  titulo.className = 'rotulo notificacoes-sistema-titulo';
+  titulo.textContent = 'Pedidos de acesso';
+  area.appendChild(titulo);
+
+  const link = document.createElement('a');
+  link.className = 'pedido-acesso-link';
+  link.href = 'administracao.html#titulo-solicitacoes';
+  link.textContent =
+    total === 1
+      ? '1 pedido esperando atendimento'
+      : `${total} pedidos esperando atendimento`;
+  area.appendChild(link);
 }
 
 /* ---------- Avisos do sistema (rodapé do menu) ---------- */
@@ -742,6 +804,7 @@ function montarBarraNavegacao({ exigirLogin = false } = {}) {
   carregarLogoBarraSuperior();
   carregarAlertaEstoque();
   carregarAvisosDoSistema();
+  carregarPedidosDeAcesso(usuario);
   iniciarBotaoTema();
   iniciarBarraCookies();
 

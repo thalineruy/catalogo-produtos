@@ -60,6 +60,7 @@
                 </button>
               </div>
               <div id="avisos-sistema-sino" class="notificacoes-sistema"></div>
+              <div id="pedidos-acesso-sino" class="notificacoes-pedidos"></div>
               <div id="lista-notificacoes"></div>
             </div>
           </div>
@@ -279,10 +280,47 @@ Content-Type: application/json</code></pre>
             </div>
           </section>
 
-          <!-- 6. Estatísticas Gerais -->
+          <!-- 6. Solicitações de Acesso -->
+          <section class="painel" aria-labelledby="titulo-solicitacoes">
+            <div class="painel-cabeca" id="titulo-solicitacoes">
+              6. Solicitações de Acesso
+              <span class="etiqueta etiqueta-alerta" id="solicitacoes-contador" hidden></span>
+            </div>
+            <div class="painel-corpo">
+              <p class="apagado">
+                Pedidos feitos na tela de entrada por quem não conseguiu acessar.
+                Cada motivo pede uma ação diferente — confira a coluna "O que fazer".
+              </p>
+
+              <p id="solicitacoes-erro" class="erro-geral" role="alert" hidden></p>
+
+              <div class="rolagem-tabela" id="solicitacoes-tabela" hidden>
+                <table class="tabela">
+                  <caption class="apenas-leitor">Pedidos de acesso recebidos</caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Quando</th>
+                      <th scope="col">E-mail informado</th>
+                      <th scope="col">Motivo</th>
+                      <th scope="col" class="oculta-estreito">O que fazer</th>
+                      <th scope="col">Situação</th>
+                      <th scope="col">Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="corpo-solicitacoes"></tbody>
+                </table>
+              </div>
+
+              <p class="apagado" id="solicitacoes-vazio" hidden>Nenhum pedido de acesso até agora.</p>
+
+              <div class="paginacao" id="paginacao-solicitacoes" hidden></div>
+            </div>
+          </section>
+
+          <!-- 7. Estatísticas Gerais -->
           <section class="painel" aria-labelledby="titulo-estatisticas">
             <div class="painel-cabeca" id="titulo-estatisticas">
-              6. Estatísticas Gerais
+              7. Estatísticas Gerais
               <button type="button" id="botao-exportar-relatorio" class="botao botao-contorno">Exportar relatório</button>
             </div>
             <div class="painel-corpo">
@@ -403,6 +441,7 @@ Content-Type: application/json</code></pre>
   <script src="config.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/api.js"></script>
+  <script src="js/paginacao.js"></script>
   <script src="js/administracao.js"></script>
 </body>
 </html>

@@ -156,6 +156,40 @@ async function resetarSenhaUsuario(id) {
   return apiFetch(`/usuarios/${id}/reset-senha`, { method: 'POST' });
 }
 
+// Reenvia o link de ativação. Caminho normal para quem esqueceu a senha e
+// tem acesso ao próprio e-mail; o reset acima é o plano B, para quem está
+// sem acesso à caixa de entrada.
+async function reenviarConviteUsuario(id) {
+  return apiFetch(`/usuarios/${id}/convite`, { method: 'POST' });
+}
+
+/* ---------- Convite de acesso (rotas públicas, sem token) ---------- */
+
+async function validarConvite(token) {
+  return apiFetch('/convites/validar', { method: 'POST', body: JSON.stringify({ token }) });
+}
+
+async function definirSenhaPorConvite(token, senha) {
+  return apiFetch('/convites/definir-senha', {
+    method: 'POST',
+    body: JSON.stringify({ token, senha }),
+  });
+}
+
+/* ---------- Fila de pedidos de acesso ---------- */
+
+async function listarSolicitacoesAcesso(filtros = {}) {
+  return apiFetch(`/solicitacoes-acesso${construirQuery(filtros)}`);
+}
+
+async function contarSolicitacoesPendentes() {
+  return apiFetch('/solicitacoes-acesso/pendentes');
+}
+
+async function marcarSolicitacaoAtendida(id) {
+  return apiFetch(`/solicitacoes-acesso/${id}/atendida`, { method: 'PUT' });
+}
+
 async function buscarEstatisticas() {
   return apiFetch('/estatisticas');
 }

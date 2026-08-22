@@ -15,8 +15,17 @@ const relatoriosRotas = require('./rotas/relatorios');
 const empresaRotas = require('./rotas/empresa');
 const estatisticasRotas = require('./rotas/estatisticas');
 const recuperacaoSenhaRotas = require('./rotas/recuperacaoSenha');
+const convitesRotas = require('./rotas/convites');
+const solicitacoesRotas = require('./rotas/solicitacoes');
 
 const app = express();
+
+// No Render a aplicação fica atrás de um proxy. Sem isto, req.ip seria
+// sempre o endereço do proxy e o limite por IP das rotas públicas
+// trancaria todo mundo junto, como se fosse uma pessoa só. O 1 é o
+// número de saltos confiáveis: confiar em todos permitiria forjar o
+// endereço pelo cabeçalho X-Forwarded-For.
+app.set('trust proxy', 1);
 
 app.use(cors({ origin: process.env.CORS_ORIGIN }));
 app.use(express.json());
@@ -43,6 +52,8 @@ app.use('/relatorios', relatoriosRotas);
 app.use('/empresa', empresaRotas);
 app.use('/estatisticas', estatisticasRotas);
 app.use('/recuperacao-senha', recuperacaoSenhaRotas);
+app.use('/convites', convitesRotas);
+app.use('/solicitacoes-acesso', solicitacoesRotas);
 
 app.use((req, res) => {
   res.status(404).json({ erro: 'rota não encontrada' });

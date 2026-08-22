@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Definir minha senha</title>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+  <div class="entrada-sistema">
+    <div class="entrada-arte">
+      <div>
+        <div class="marca-entrada" id="marca-entrada" hidden>
+          <img id="logo-entrada" src="logo-padrao.svg" alt="Logotipo padrão do sistema">
+          <strong id="marca-entrada-nome"></strong>
+        </div>
+
+        <h1>Catálogo de Produtos</h1>
+        <p class="apagado">Consulta de produtos com imagem, controle de quantidade e registro de saída.</p>
+
+        <div class="tabela-optometrica" aria-hidden="true">
+          <div class="linha-optometrica">
+            <span class="apagado numero-optometrico">20</span>
+            <span class="letras-optometricas">E F P</span>
+          </div>
+          <div class="linha-optometrica">
+            <span class="apagado numero-optometrico">40</span>
+            <span class="letras-optometricas destaque-optometrico">T O Z L</span>
+          </div>
+          <div class="linha-optometrica">
+            <span class="apagado numero-optometrico">60</span>
+            <span class="letras-optometricas">P E C F D</span>
+          </div>
+          <div class="tag-empresa" id="tag-empresa" hidden>
+            <span class="tag-empresa-tick" aria-hidden="true"></span>
+            <span id="tag-empresa-nome"></span>
+          </div>
+        </div>
+      </div>
+      <p class="apagado">Projeto Integrador II</p>
+    </div>
+
+        <div class="entrada-forma">
+      <div id="passo-carregando">
+        <h2>Definir minha senha</h2>
+        <p class="apagado">Conferindo seu link de acesso...</p>
+      </div>
+
+      <div id="passo-invalido" hidden>
+        <h2>Link inválido ou expirado</h2>
+        <p class="apagado">
+          Este link já foi usado ou passou da validade. Peça ao administrador
+          para enviar um novo convite de acesso.
+        </p>
+        <a class="botao botao-principal botao-largura-total" href="index.html">
+          Ir para a tela de entrada
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+        </a>
+      </div>
+
+      <div id="passo-definir" hidden>
+        <h2>Bem-vindo, <span id="ativar-nome"></span></h2>
+        <p class="apagado">Escolha a senha que você vai usar para entrar no sistema.</p>
+
+        <form id="form-ativar" novalidate>
+          <div class="campo">
+            <label for="ativar-senha">Nova senha</label>
+            <input type="password" id="ativar-senha" class="entrada" autocomplete="new-password" aria-describedby="lista-criterios" required>
+          </div>
+
+          <div class="campo">
+            <label for="ativar-repetir">Repetir a nova senha</label>
+            <input type="password" id="ativar-repetir" class="entrada" autocomplete="new-password" required>
+          </div>
+
+          <ul class="lista-criterios" id="lista-criterios"></ul>
+
+          <p id="ativar-erro" class="erro-geral" role="alert" hidden></p>
+
+          <button type="submit" id="botao-ativar" class="botao botao-principal botao-largura-total">
+            Definir senha e entrar
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+          </button>
+        </form>
+      </div>
+
+      <div id="passo-pronto" hidden>
+        <h2>Senha definida</h2>
+        <p class="apagado">Sua senha já está valendo. Use seu e-mail e a nova senha para entrar.</p>
+        <a class="botao botao-principal botao-largura-total" href="index.html">
+          Ir para a tela de entrada
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/ativar.js"></script>
+</body>
+</html>
