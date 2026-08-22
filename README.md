@@ -43,8 +43,8 @@ duas etapas, multer para o upload do logotipo.
 **Telas** — HTML, CSS e JavaScript sem framework, Fetch API, Chart.js nos
 gráficos da Administração.
 
-**Serviços** — PostgreSQL e Storage no Supabase, Resend para o envio de e-mail,
-Vercel para as telas, Render para a API, GitHub.
+**Serviços** — PostgreSQL e Storage no Supabase, Brevo ou Resend para o envio
+de e-mail, Vercel para as telas, Render para a API, GitHub.
 
 **Testes** — Jest e Supertest.
 
@@ -103,24 +103,40 @@ preciso, uma vez só:
    projeto (Project Settings → API). Sem essa chave, todas as outras
    funcionalidades funcionam normalmente — só o upload de logotipo falha.
 
-## Envio de e-mail (Resend)
+## Envio de e-mail
 
 Ao cadastrar um usuário, o sistema cria um **convite de uso único** e manda
 por e-mail um link para a pessoa definir a própria senha. Nenhuma senha
 utilizável trafega por e-mail nem aparece na tela do administrador — é por
 isso que o cadastro não devolve mais "senha temporária".
 
-### O que é o Resend
+### O serviço de envio
 
-O Resend é só o carteiro: um serviço que entrega e-mail. **Usuários do sistema
-não são cadastrados lá** — continuam sendo cadastrados em Administração, como
-sempre. O que o Resend faz é entregar a mensagem que o servidor manda.
+O serviço de envio é só o carteiro. **Usuários do sistema não são cadastrados
+lá** — continuam sendo cadastrados em Administração, como sempre. O que ele faz
+é entregar a mensagem que o servidor manda.
 
-No Resend, uma vez só:
+O código aceita dois, escolhidos pela variável de ambiente que estiver
+preenchida. Se as duas estiverem, o Brevo ganha.
 
-1. Criar uma conta em [resend.com](https://resend.com) (plano gratuito,
-   cerca de 3.000 e-mails por mês).
-2. Ir em **API Keys** → **Create API Key** e copiar a chave.
+| | Brevo | Resend |
+| --- | --- | --- |
+| Variável | `BREVO_API_KEY` | `RESEND_API_KEY` |
+| Precisa de domínio próprio | não | sim, fora do remetente de teste |
+| Para quem entrega | qualquer endereço | só o e-mail dono da conta, sem domínio |
+| Plano gratuito | ~300 por dia | ~3.000 por mês |
+
+**Use o Brevo se você não tem domínio próprio.** O remetente de teste do Resend
+(`onboarding@resend.dev`) só entrega para o e-mail dono da conta — qualquer
+outro destinatário volta com 403. Isso é regra do Resend, não limitação do
+sistema.
+
+No Brevo, uma vez só:
+
+1. Criar uma conta em [brevo.com](https://www.brevo.com).
+2. Validar o endereço que vai ser o remetente, em **Senders, IPs & Domains** →
+   **Senders**. Chega um e-mail de confirmação nesse endereço.
+3. Gerar a chave em **SMTP & API** → **API Keys**.
 
 Depois disso não se volta mais lá.
 
@@ -131,15 +147,24 @@ está no ar:
 
 - `URL_SISTEMA` — endereço público das telas, ex.: `https://catalogo-produtos-eight.vercel.app`.
   Sem isto o link do e-mail sai quebrado.
-- `RESEND_API_KEY` — a chave copiada no passo 2 acima.
-- `EMAIL_REMETENTE` — sem domínio próprio verificado, use
-  `Catálogo de Produtos <onboarding@resend.dev>`, o remetente de teste do
-  Resend. Com domínio próprio, a entrega melhora bastante; com o de teste, vale
-  conferir a caixa de spam no primeiro envio.
+- `BREVO_API_KEY` ou `RESEND_API_KEY` — a chave do serviço escolhido.
+- `EMAIL_REMETENTE` — no formato `Nome <endereco@dominio>`. Com Brevo, precisa
+  ser o endereço validado no passo 2. Com Resend e sem domínio próprio, use
+  `Catálogo de Produtos <onboarding@resend.dev>`.
 
-A chave da API vai direto do painel do Resend para o do Render. Como qualquer
+Saindo de um remetente Hotmail ou Gmail, vale conferir a caixa de spam no
+primeiro envio: sem domínio próprio a entrega é menos confiável.
+
+A chave da API vai direto do painel do serviço para o do Render. Como qualquer
 credencial, ela nunca pode entrar em arquivos da pasta `telas/`, que vão para o
 navegador de quem acessa.
+
+### Quando o e-mail não sai
+
+A tela de Administração diz o motivo em português, sem precisar abrir os Logs:
+chave recusada, remetente não validado, limite atingido ou serviço não
+configurado. Em todos os casos o usuário **continua sendo criado** e o link
+aparece na tela para o administrador repassar à mão.
 
 **Sem a chave o sistema não quebra.** Ele entra em modo simulado: registra no
 console e devolve o link para o administrador repassar à mão. O mesmo vale
@@ -230,7 +255,7 @@ tocar em dado nenhum de verdade.
 - A chave `service_role` do Supabase dá acesso total ao banco: ela só pode
   existir nas variáveis de ambiente do servidor, nunca em arquivos da pasta
   `telas/`, que vão para o navegador de quem acessa. O mesmo vale para a
-  `RESEND_API_KEY`.
-- Sem a `RESEND_API_KEY` o cadastro de usuário continua funcionando: o link de
+  `BREVO_API_KEY` e a `RESEND_API_KEY`.
+- Sem chave de e-mail nenhuma o cadastro de usuário continua funcionando: o link de
   ativação aparece no aviso da própria tela, para o administrador repassar à
   mão. Nada fica quebrado por falta do serviço de e-mail.
