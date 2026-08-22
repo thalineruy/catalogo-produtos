@@ -37,6 +37,10 @@ async function emitir({ usuario, empresaNome }) {
   return {
     emailEnviado: envio.enviado,
     emailSimulado: Boolean(envio.simulado),
+    // Por que não saiu, em português. Sem isto o administrador via só
+    // "não foi possível enviar" e não sabia se faltava configurar a chave
+    // ou se o serviço tinha recusado a mensagem.
+    motivo: envio.enviado ? null : envio.erro || null,
     // Só devolve o link quando não deu para enviar
     link: envio.enviado ? null : link,
     validoPorHoras: convite.HORAS_VALIDADE,

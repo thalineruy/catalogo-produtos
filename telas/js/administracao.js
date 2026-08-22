@@ -504,10 +504,17 @@
     if (convite.emailEnviado) {
       return `Link de acesso enviado para ${nome}. Vale por ${convite.validoPorHoras} horas.`;
     }
+
+    // Antes as duas falhas diziam a mesma coisa, e não dava para saber se
+    // faltava configurar o serviço ou se ele tinha recusado a mensagem.
+    const causa = convite.emailSimulado
+      ? 'O envio de e-mail ainda não está configurado no servidor.'
+      : `O e-mail não saiu: ${convite.motivo || 'o serviço de envio recusou a mensagem.'}`;
+
     if (convite.link) {
-      return `Não foi possível enviar o e-mail. Repasse este link a ${nome} (vale ${convite.validoPorHoras} horas): ${convite.link}`;
+      return `${causa} Repasse este link a ${nome} (vale ${convite.validoPorHoras} horas): ${convite.link}`;
     }
-    return `Não foi possível enviar o e-mail para ${nome}. Tente reenviar o link.`;
+    return `${causa} Tente reenviar o link.`;
   }
 
   formNovoUsuario.addEventListener('submit', async (evento) => {
