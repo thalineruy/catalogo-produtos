@@ -659,6 +659,7 @@
         await marcarSolicitacaoAtendida(solicitacao.id);
         exibirAviso(`Pedido de ${solicitacao.email} marcado como atendido.`);
         await carregarSolicitacoes();
+        atualizarSinoAgora();
       } catch (erro) {
         solicitacoesErro.textContent = erro.message;
         solicitacoesErro.hidden = false;

@@ -281,6 +281,12 @@ function montarNotificacoes(produtos) {
   atualizarContadorSino();
   botao.hidden = false;
 
+  // Os eventos são ligados uma vez só. Esta função é chamada de novo a cada
+  // atualização automática, e sem a guarda cada chamada acrescentaria outro
+  // ouvinte de clique: o painel abriria e fecharia no mesmo toque.
+  if (botao.dataset.eventosLigados) return;
+  botao.dataset.eventosLigados = 'sim';
+
   function fechar() {
     painel.hidden = true;
     botao.setAttribute('aria-expanded', 'false');
@@ -339,11 +345,90 @@ async function carregarAlertaEstoque() {
     // Rota própria, fora da paginação: o sino precisa de todos os produtos
     // que pedem reposição, não só dos que caem na primeira página.
     montarNotificacoes(await listarAlertasDeEstoque());
+    return true;
   } catch (erro) {
     // O sino continua aparecendo mesmo sem os dados de estoque: ele
     // carrega os avisos do sistema, que no celular não têm outro lugar.
     montarNotificacoes(null);
+    return false;
   }
+}
+
+/* ---------- Atualização automática do sino ---------- */
+
+// Três minutos: alerta de estoque não muda de segundo em segundo, e pedido
+// de acesso é raro. Intervalo curto só gastaria requisição à toa.
+const INTERVALO_SINO_MS = 3 * 60 * 1000;
+
+// Depois de três falhas seguidas o sino para de tentar. Se o servidor caiu
+// ou a sessão expirou, insistir a cada três minutos não resolve nada e ainda
+// consome a cota do plano gratuito. Uma volta de foco retoma as tentativas.
+const FALHAS_ATE_DESISTIR = 3;
+
+const relogioSino = { temporizador: null, emAndamento: false, falhas: 0, usuario: null };
+
+async function atualizarSinoAgora() {
+  const painel = document.getElementById('painel-notificacoes');
+
+  // Não mexe na lista com o painel aberto: os itens mudariam debaixo do
+  // cursor no meio da leitura.
+  if (painel && !painel.hidden) return;
+  if (relogioSino.emAndamento || !obterToken()) return;
+
+  relogioSino.emAndamento = true;
+  try {
+    // As duas funções tratam o próprio erro e devolvem se conseguiram, em
+    // vez de lançar: o sino é informação de fundo e não deve interromper o
+    // que a pessoa está fazendo.
+    const [estoque, pedidos] = await Promise.all([
+      carregarAlertaEstoque(),
+      carregarPedidosDeAcesso(relogioSino.usuario),
+    ]);
+    // pedidos é undefined para operador, que nem consulta essa rota.
+    const falhou = estoque === false || pedidos === false;
+    relogioSino.falhas = falhou ? relogioSino.falhas + 1 : 0;
+  } finally {
+    relogioSino.emAndamento = false;
+  }
+}
+
+function pararRelogioDoSino() {
+  clearTimeout(relogioSino.temporizador);
+  relogioSino.temporizador = null;
+}
+
+function agendarProximaAtualizacao() {
+  pararRelogioDoSino();
+
+  // Aba escondida não agenda nada: sem isto, uma aba esquecida aberta a noite
+  // inteira consultaria o servidor centenas de vezes sem ninguém olhando.
+  if (document.visibilityState !== 'visible') return;
+  if (relogioSino.falhas >= FALHAS_ATE_DESISTIR) return;
+
+  relogioSino.temporizador = setTimeout(async () => {
+    await atualizarSinoAgora();
+    agendarProximaAtualizacao();
+  }, INTERVALO_SINO_MS);
+}
+
+// Encadeia com setTimeout, e não com setInterval: se o servidor demorar para
+// responder — no plano gratuito a primeira chamada pode levar um minuto —, as
+// requisições não se acumulam.
+function iniciarRelogioDoSino(usuario) {
+  relogioSino.usuario = usuario;
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState !== 'visible') {
+      pararRelogioDoSino();
+      return;
+    }
+    // Voltar para a aba é o momento em que a pessoa vai olhar o sino, então
+    // vale atualizar na hora, não no próximo intervalo.
+    relogioSino.falhas = 0;
+    atualizarSinoAgora().then(agendarProximaAtualizacao);
+  });
+
+  agendarProximaAtualizacao();
 }
 
 /* ---------- Pedidos de acesso, no sino ---------- */
@@ -361,8 +446,10 @@ async function carregarPedidosDeAcesso(usuario) {
     contagemSino.pedidos = total;
     desenharPedidosDeAcesso(area, total);
     atualizarContadorSino();
+    return true;
   } catch (erro) {
     // Sem a contagem o sino segue mostrando só o estoque.
+    return false;
   }
 }
 
@@ -805,6 +892,7 @@ function montarBarraNavegacao({ exigirLogin = false } = {}) {
   carregarAlertaEstoque();
   carregarAvisosDoSistema();
   carregarPedidosDeAcesso(usuario);
+  if (usuario) iniciarRelogioDoSino(usuario);
   iniciarBotaoTema();
   iniciarBarraCookies();
 

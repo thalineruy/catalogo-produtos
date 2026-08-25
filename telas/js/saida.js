@@ -281,6 +281,9 @@
       atualizarCartaoEstoque(produto);
 
       exibirAviso(`Saída registrada: ${quantidade} un. de "${produto.nome}". Estoque atual: ${resultado.estoque_restante} un.`);
+      // A baixa pode ter levado o produto ao mínimo ou a zero: o sino
+      // precisa refletir o efeito da ação que a pessoa acabou de fazer.
+      atualizarSinoAgora();
 
       campoQuantidade.value = '';
       campoMotivo.value = '';

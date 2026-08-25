@@ -397,6 +397,7 @@
       await excluirProduto(produto.id);
       exibirAviso(`Produto "${produto.nome}" excluído.`);
       await carregarProdutos();
+      atualizarSinoAgora();
     } catch (erro) {
       exibirErro(`Não foi possível excluir o produto: ${erro.message}`);
     }
@@ -428,6 +429,7 @@
       }
       fecharModal();
       await carregarProdutos();
+      atualizarSinoAgora();
     } catch (erro) {
       modalErro.textContent = erro.message;
       modalErro.hidden = false;
@@ -457,5 +459,6 @@
       exibirErro(`Não foi possível carregar as categorias: ${erro.message}`);
     }
     await carregarProdutos();
+    atualizarSinoAgora();
   })();
 })();
