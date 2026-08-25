@@ -382,6 +382,16 @@
     else previaImagem.removeAttribute('src');
   }
 
+  // O indicador é montado por elemento, e não por innerHTML, para o texto
+  // continuar sendo tratado como texto.
+  function notaOcupada(texto) {
+    notaImagem.textContent = '';
+    const girando = document.createElement('span');
+    girando.className = 'girando';
+    girando.setAttribute('aria-hidden', 'true');
+    notaImagem.append(girando, document.createTextNode(texto));
+  }
+
   function reiniciarAreaDeImagem(url) {
     campoArquivo.value = '';
     notaImagem.textContent = NOTA_PADRAO;
@@ -392,10 +402,10 @@
     const arquivo = campoArquivo.files[0];
     if (!arquivo) return;
 
-    notaImagem.textContent = 'Ajustando a imagem...';
+    notaOcupada('Ajustando a imagem...');
     try {
       const ajustada = await ajustarImagemDoProduto(arquivo);
-      notaImagem.textContent = 'Enviando...';
+      notaOcupada('Enviando...');
 
       const { url } = await enviarImagemProduto(ajustada.arquivo);
 

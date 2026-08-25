@@ -1577,3 +1577,36 @@ legend { margin-bottom: 10px; }
 @media (max-width: 480px) {
   .imagem-produto { flex-direction: column; }
 }
+
+/* ---------- 28. Indicador de atividade ----------
+   Usado enquanto algo está em curso. Vale mais que barra de porcentagem
+   nos envios deste sistema: depois do ajuste a foto tem cerca de 120 KB e
+   sobe num piscar, mas o servidor no plano gratuito pode levar até um
+   minuto para acordar — e nesse tempo não há transferência para medir. */
+.girando {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  margin-right: 7px;
+  vertical-align: -2px;
+  border: 2px solid var(--divisor);
+  border-top-color: var(--destaque);
+  border-radius: 50%;
+  animation: girar .7s linear infinite;
+}
+
+@keyframes girar {
+  to { transform: rotate(360deg); }
+}
+
+/* Quem pediu menos animação vê um ponto pulsando devagar, em vez de giro */
+@media (prefers-reduced-motion: reduce) {
+  .girando {
+    animation: piscar 1.4s ease-in-out infinite;
+    border-top-color: var(--divisor);
+    background: var(--destaque);
+  }
+  @keyframes piscar {
+    50% { opacity: .3; }
+  }
+}

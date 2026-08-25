@@ -72,6 +72,9 @@ router.post(
 
       res.json(empresa);
     } catch (erro) {
+      if (erro.deArmazenamento) {
+        return res.status(502).json({ erro: `Não foi possível guardar o logotipo: ${erro.message}` });
+      }
       next(erro);
     }
   },

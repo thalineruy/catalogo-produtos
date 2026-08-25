@@ -30,6 +30,20 @@ function validarArquivoLogotipo(arquivo) {
   return null;
 }
 
+// Mesmo tratamento dado à imagem de produto: quem administra precisa saber
+// o que configurar, e não ler "erro interno do servidor".
+function motivoDoArmazenamento(status, detalhe) {
+  const texto = String(detalhe || '');
+
+  if (status === 404 || /not found|bucket/i.test(texto)) {
+    return `o espaço de armazenamento "${BUCKET}" não foi encontrado. Crie o bucket com esse nome, público, no painel do Supabase, em Storage.`;
+  }
+  if (status === 400 || status === 401 || status === 403) {
+    return 'o armazenamento recusou o envio. Confira a variável SUPABASE_KEY no servidor.';
+  }
+  return `o armazenamento respondeu ${status}. Veja os registros do servidor.`;
+}
+
 async function enviarLogotipo(arquivo) {
   const extensao = TIPOS_ACEITOS[arquivo.mimetype];
   const nomeArquivo = `logotipo-${Date.now()}.${extensao}`;
@@ -48,7 +62,11 @@ async function enviarLogotipo(arquivo) {
 
   if (!resposta.ok) {
     const texto = await resposta.text().catch(() => '');
-    throw new Error(`falha ao enviar o logotipo para o armazenamento (${resposta.status}): ${texto}`);
+    console.error(`falha ao enviar logotipo (${resposta.status})`, texto.slice(0, 300));
+
+    const erro = new Error(motivoDoArmazenamento(resposta.status, texto));
+    erro.deArmazenamento = true;
+    throw erro;
   }
 
   return `${process.env.SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${nomeArquivo}`;

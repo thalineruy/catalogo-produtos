@@ -161,18 +161,39 @@
   const campoLogo = document.getElementById('campo-logo');
   const logotipoErro = document.getElementById('logotipo-erro');
 
+  const logotipoEstado = document.getElementById('logotipo-estado');
+
+  // Fica ao lado da área enquanto envia, e não só no aviso que some sozinho:
+  // o logotipo não passa por ajuste no navegador, então a espera é mais
+  // perceptível que a da foto do produto.
+  function mostrarEstadoDoLogotipo(texto) {
+    if (!logotipoEstado) return;
+    logotipoEstado.textContent = '';
+    if (!texto) {
+      logotipoEstado.hidden = true;
+      return;
+    }
+    const girando = document.createElement('span');
+    girando.className = 'girando';
+    girando.setAttribute('aria-hidden', 'true');
+    logotipoEstado.append(girando, document.createTextNode(texto));
+    logotipoEstado.hidden = false;
+  }
+
   async function processarArquivoLogo(arquivo) {
     if (!arquivo) return;
     logotipoErro.hidden = true;
-    exibirAviso('Enviando logotipo...');
+    mostrarEstadoDoLogotipo('Enviando logotipo...');
 
     try {
       const empresaAtualizada = await enviarLogotipoEmpresa(arquivo);
       empresaAtual = empresaAtualizada;
       atualizarPreviaLogotipo(empresaAtualizada);
+      mostrarEstadoDoLogotipo('');
       exibirAviso('Logotipo atualizado com sucesso.');
       carregarLogoBarraSuperior();
     } catch (erro) {
+      mostrarEstadoDoLogotipo('');
       logotipoErro.textContent = erro.message;
       logotipoErro.hidden = false;
     }
