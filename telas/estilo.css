@@ -1125,20 +1125,6 @@ legend { margin-bottom: 10px; }
 .lateral-rodape .rotulo { margin-bottom: 8px; }
 .alerta-estoque { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; }
 .alerta-estoque svg { flex-shrink: 0; margin-top: 2px; color: var(--destaque); }
-.botao-sair-conta {
-  margin-top: 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 0;
-  border: 0;
-  background: none;
-  font: inherit;
-  font-size: 12px;
-  color: var(--apagado);
-  cursor: pointer;
-}
-.botao-sair-conta:hover { color: var(--destaque); }
 
 /* Topo: sobretítulo + nome da tela à esquerda, usuário à direita */
 .topo { padding: 12px clamp(14px, 2vw, 24px); flex-shrink: 0; }
@@ -1301,12 +1287,6 @@ legend { margin-bottom: 10px; }
 .aviso-sistema.grave { color: var(--tinta); }
 .aviso-sistema.grave svg { color: var(--destaque); }
 
-.link-trocar-senha {
-  display: inline-block;
-  margin-top: 12px;
-  font-size: 12px;
-  color: var(--destaque);
-}
 
 /* Lista de critérios da senha: o sinal nunca é só a cor, vem sempre
    acompanhado do símbolo e de um texto para o leitor de tela. */

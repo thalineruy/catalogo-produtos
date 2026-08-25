@@ -902,10 +902,12 @@ function montarBarraNavegacao({ exigirLogin = false } = {}) {
   const elementoNivel = document.getElementById('usuario-nivel');
   const menuNome = document.getElementById('menu-usuario-nome');
   const menuNivel = document.getElementById('menu-usuario-nivel');
-  // Dois caminhos para sair: o do rodape do menu lateral, que some em
-  // tela estreita, e o do menu do crachá, que existe em qualquer largura.
+  // Sair fica no menu do crachá, que existe em qualquer largura. O rodapé
+  // do menu lateral tinha uma segunda saída, retirada por ser repetição —
+  // e por ele sumir abaixo de 901px, o que tornava aquela cópia inútil no
+  // celular. A lista continua sendo uma lista para o caso de outra tela
+  // voltar a ter um botão próprio.
   const botoesSair = [
-    document.getElementById('botao-sair'),
     document.getElementById('botao-sair-menu'),
   ].filter(Boolean);
   const linkEntrar = document.getElementById('link-entrar');
