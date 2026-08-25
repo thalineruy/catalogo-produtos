@@ -1508,3 +1508,72 @@ legend { margin-bottom: 10px; }
 }
 
 .convite-link-acoes { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* ---------- 27. Imagem do produto ----------
+   Prévia ao lado dos comandos, para quem cadastra ver o que vai ficar
+   guardado antes de salvar. */
+.rotulo-campo {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  color: var(--apagado);
+}
+
+.rotulo-secundario {
+  display: block;
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--apagado);
+}
+
+.imagem-produto {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 12px;
+  border: 1px solid var(--divisor);
+  background: var(--sobre);
+}
+
+.previa-imagem,
+.previa-vazia {
+  width: 96px;
+  height: 96px;
+  flex: none;
+  border: 1px solid var(--divisor);
+  background: var(--superficie);
+  object-fit: cover;
+}
+
+.previa-vazia {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--apagado);
+}
+
+.imagem-produto-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* O seletor de arquivo fica escondido e o rótulo faz o papel de botão: o
+   controle nativo não aceita estilo e destoaria do resto. */
+.imagem-produto-acoes .botao { cursor: pointer; }
+
+.imagem-produto-nota {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 12px;
+  /* Endereços longos e mensagens não podem esticar o formulário */
+  overflow-wrap: anywhere;
+}
+
+/* No celular a prévia vai para cima dos comandos, senão sobra pouca
+   largura para os botões. */
+@media (max-width: 480px) {
+  .imagem-produto { flex-direction: column; }
+}

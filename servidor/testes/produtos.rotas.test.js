@@ -147,3 +147,98 @@ describe('GET /produtos com busca sem resultado', () => {
     expect(segunda.categoria).toBe('Armações');
   });
 });
+
+// Trocar a imagem apaga a anterior, para não acumular arquivo que ninguém vê.
+jest.mock('../src/servicos/armazenamentoImagemProduto');
+const armazenamentoImagem = require('../src/servicos/armazenamentoImagemProduto');
+
+describe('imagem do produto', () => {
+  const tokenAdmin = `Bearer ${gerarToken({ id: 1, nivel: 'administrador' })}`;
+  const NOSSA = 'https://projeto.supabase.co/storage/v1/object/public/produtos/antiga.jpg';
+
+  beforeEach(() => {
+    armazenamentoImagem.removerImagemProduto.mockResolvedValue(true);
+    armazenamentoImagem.validarImagemProduto.mockReturnValue(null);
+    armazenamentoImagem.enviarImagemProduto.mockResolvedValue(`${NOSSA}?nova`);
+    categoriasRepositorio.buscarPorId.mockResolvedValue({ id: 1, nome: 'Armações' });
+    produtosRepositorio.buscarPorCodigo.mockResolvedValue(null);
+    logsRepositorio.registrar.mockResolvedValue();
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  const corpo = {
+    nome: 'Armação', codigo_interno: 'OT-1', categoria_id: 1,
+    quantidade: 1, estoque_minimo: 1, status: 'ativo',
+  };
+
+  it('trocar a imagem apaga a anterior', async () => {
+    produtosRepositorio.buscarPorId.mockResolvedValue({ id: 1, nome: 'Armação', url_imagem: NOSSA });
+    produtosRepositorio.atualizar.mockResolvedValue({ id: 1, url_imagem: 'https://nova.jpg' });
+
+    await request(app).put('/produtos/1').set('Authorization', tokenAdmin)
+      .send({ ...corpo, url_imagem: 'https://nova.jpg' });
+
+    expect(armazenamentoImagem.removerImagemProduto).toHaveBeenCalledWith(NOSSA);
+  });
+
+  it('salvar sem trocar a imagem não apaga nada', async () => {
+    produtosRepositorio.buscarPorId.mockResolvedValue({ id: 1, nome: 'Armação', url_imagem: NOSSA });
+    produtosRepositorio.atualizar.mockResolvedValue({ id: 1, url_imagem: NOSSA });
+
+    await request(app).put('/produtos/1').set('Authorization', tokenAdmin)
+      .send({ ...corpo, url_imagem: NOSSA });
+
+    expect(armazenamentoImagem.removerImagemProduto).not.toHaveBeenCalled();
+  });
+
+  it('produto sem imagem anterior não tenta apagar', async () => {
+    produtosRepositorio.buscarPorId.mockResolvedValue({ id: 1, nome: 'Armação', url_imagem: null });
+    produtosRepositorio.atualizar.mockResolvedValue({ id: 1, url_imagem: 'https://nova.jpg' });
+
+    await request(app).put('/produtos/1').set('Authorization', tokenAdmin)
+      .send({ ...corpo, url_imagem: 'https://nova.jpg' });
+
+    expect(armazenamentoImagem.removerImagemProduto).not.toHaveBeenCalled();
+  });
+
+  it('excluir o produto leva a imagem junto', async () => {
+    produtosRepositorio.buscarPorId.mockResolvedValue({
+      id: 1, nome: 'Armação', codigo_interno: 'OT-1', url_imagem: NOSSA,
+    });
+    produtosRepositorio.excluir.mockResolvedValue();
+
+    await request(app).delete('/produtos/1').set('Authorization', tokenAdmin);
+
+    expect(armazenamentoImagem.removerImagemProduto).toHaveBeenCalledWith(NOSSA);
+  });
+
+  it('o envio exige autenticação', async () => {
+    const resposta = await request(app).post('/produtos/imagem');
+
+    expect(resposta.status).toBe(401);
+    expect(armazenamentoImagem.enviarImagemProduto).not.toHaveBeenCalled();
+  });
+
+  it('arquivo recusado na validação não vai para o armazenamento', async () => {
+    armazenamentoImagem.validarImagemProduto.mockReturnValue('formato não permitido');
+
+    const resposta = await request(app).post('/produtos/imagem')
+      .set('Authorization', tokenAdmin)
+      .attach('imagem', Buffer.from('nao e imagem'), 'arquivo.txt');
+
+    expect(resposta.status).toBe(400);
+    expect(armazenamentoImagem.enviarImagemProduto).not.toHaveBeenCalled();
+  });
+
+  it('envio aceito devolve o endereço público', async () => {
+    const resposta = await request(app).post('/produtos/imagem')
+      .set('Authorization', tokenAdmin)
+      .attach('imagem', Buffer.from('conteudo'), 'foto.jpg');
+
+    expect(resposta.status).toBe(201);
+    expect(resposta.body.url).toContain('produtos/');
+  });
+});

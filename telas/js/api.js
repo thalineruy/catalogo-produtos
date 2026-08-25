@@ -124,6 +124,26 @@ async function atualizarEmpresa(dados) {
   return apiFetch('/empresa', { method: 'PUT', body: JSON.stringify(dados) });
 }
 
+// Não passa pelo apiFetch: o corpo é FormData, e definir Content-Type à mão
+// impediria o navegador de escrever a fronteira entre as partes.
+async function enviarImagemProduto(arquivo) {
+  const dados = new FormData();
+  dados.append('imagem', arquivo);
+
+  const token = obterToken();
+  const resposta = await fetch(`${API_URL}/produtos/imagem`, {
+    method: 'POST',
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    body: dados,
+  });
+
+  const corpo = await resposta.json().catch(() => null);
+  if (!resposta.ok) {
+    throw new Error((corpo && corpo.erro) || `Erro na requisição: ${resposta.status}`);
+  }
+  return corpo;
+}
+
 async function enviarLogotipoEmpresa(arquivo) {
   const dadosFormulario = new FormData();
   dadosFormulario.append('logotipo', arquivo);

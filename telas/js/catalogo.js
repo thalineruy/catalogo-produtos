@@ -362,12 +362,76 @@
     return true;
   }
 
+  /* ---------- Imagem do produto ---------- */
+
+  const campoArquivo = document.getElementById('produto-arquivo');
+  const campoUrlImagem = document.getElementById('produto-imagem');
+  const previaImagem = document.getElementById('previa-imagem');
+  const previaVazia = document.getElementById('previa-vazia');
+  const botaoRemoverImagem = document.getElementById('botao-remover-imagem');
+  const notaImagem = document.getElementById('imagem-nota');
+
+  const NOTA_PADRAO = 'JPG, PNG ou WEBP. O sistema ajusta o tamanho automaticamente.';
+
+  function mostrarPrevia(url) {
+    const tem = Boolean(url);
+    previaImagem.hidden = !tem;
+    previaVazia.hidden = tem;
+    botaoRemoverImagem.hidden = !tem;
+    if (tem) previaImagem.src = url;
+    else previaImagem.removeAttribute('src');
+  }
+
+  function reiniciarAreaDeImagem(url) {
+    campoArquivo.value = '';
+    notaImagem.textContent = NOTA_PADRAO;
+    mostrarPrevia(url || '');
+  }
+
+  campoArquivo.addEventListener('change', async () => {
+    const arquivo = campoArquivo.files[0];
+    if (!arquivo) return;
+
+    notaImagem.textContent = 'Ajustando a imagem...';
+    try {
+      const ajustada = await ajustarImagemDoProduto(arquivo);
+      notaImagem.textContent = 'Enviando...';
+
+      const { url } = await enviarImagemProduto(ajustada.arquivo);
+
+      // O endereço vai para o campo que o salvamento já lê: assim o envio
+      // funciona igual em produto novo e em produto que já existe.
+      campoUrlImagem.value = url;
+      mostrarPrevia(url);
+      notaImagem.textContent =
+        `Pronta: ${ajustada.largura}×${ajustada.altura}, de `
+        + `${formatarTamanho(ajustada.bytesOriginais)} para ${formatarTamanho(ajustada.bytesFinais)}.`;
+    } catch (erro) {
+      // Sem prefixo próprio: a mensagem já vem explicando o motivo, e somar
+      // outra frase na frente produzia "Não foi possível usar esta imagem:
+      // Não foi possível guardar a imagem: ...".
+      notaImagem.textContent = erro.message;
+      campoArquivo.value = '';
+    }
+  });
+
+  botaoRemoverImagem.addEventListener('click', () => {
+    // Só tira a referência: o arquivo antigo é apagado do armazenamento pelo
+    // servidor, quando o produto for salvo sem ele.
+    campoUrlImagem.value = '';
+    reiniciarAreaDeImagem('');
+  });
+
+  // Quem prefere colar um endereço continua podendo, e a prévia acompanha.
+  campoUrlImagem.addEventListener('change', () => mostrarPrevia(campoUrlImagem.value.trim()));
+
   function abrirModalNovo() {
     if (!exigirLoginParaEscrita()) return;
     formProduto.reset();
     document.getElementById('produto-id').value = '';
     document.getElementById('produto-quantidade').value = '0';
     document.getElementById('produto-estoque-minimo').value = '0';
+    reiniciarAreaDeImagem('');
     modalTitulo.textContent = 'Novo produto';
     abrirModal(botaoNovoProduto);
   }
@@ -384,6 +448,7 @@
     document.getElementById('produto-estoque-minimo').value = produto.estoque_minimo;
     document.getElementById('produto-status').value = produto.status;
     document.getElementById('produto-imagem').value = produto.url_imagem || '';
+    reiniciarAreaDeImagem(produto.url_imagem || '');
     modalTitulo.textContent = `Editar ${produto.nome}`;
     abrirModal(botaoOrigem);
   }

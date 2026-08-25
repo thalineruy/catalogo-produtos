@@ -93,15 +93,45 @@ Todos usam `IF NOT EXISTS`, então rodar de novo num banco já criado não
 quebra nem apaga nada. Pular qualquer um dos scripts a partir do 05 faz o
 sistema falhar no login, porque o código consulta colunas que não existiriam.
 
-## Upload do logotipo (Supabase Storage)
+## Imagens no Supabase Storage
 
-O upload de logotipo (`POST /empresa/logotipo`) grava o arquivo direto no bucket
-`logotipos` do Supabase Storage — nunca em disco no servidor. Para funcionar, é
-preciso, uma vez só:
-1. Criar o bucket `logotipos` (público) no painel do Supabase, em Storage.
+O sistema grava dois tipos de imagem direto no Supabase Storage, nunca em disco
+no servidor: o logotipo da empresa e as fotos dos produtos. São dois buckets,
+que precisam existir e ser **públicos**:
+
+| Bucket | Guarda | Rota |
+| ------ | ------ | ---- |
+| `logotipos` | Logotipo da empresa | `POST /empresa/logotipo` |
+| `produtos` | Fotos dos produtos | `POST /produtos/imagem` |
+
+Para funcionar, é preciso, uma vez só:
+
+1. Criar os dois buckets, públicos, no painel do Supabase, em Storage.
 2. Preencher `SUPABASE_KEY` em `servidor/.env` com a chave `service_role` do
-   projeto (Project Settings → API). Sem essa chave, todas as outras
-   funcionalidades funcionam normalmente — só o upload de logotipo falha.
+   projeto (Project Settings → API). Sem ela, todo o resto funciona
+   normalmente — só os envios de imagem falham.
+
+Se faltar o bucket ou a chave, a tela diz qual dos dois falta, em português, em
+vez de responder "erro interno do servidor".
+
+### Ajuste automático da foto do produto
+
+A foto é redimensionada **no navegador**, antes de subir: o lado maior cai para
+800 pixels e o arquivo é reconvertido em JPEG. Uma foto de celular de 4 MB chega
+ao servidor com cerca de 120 KB.
+
+A escolha por processar no navegador tem três motivos. Sobe muito menos dado, o
+que importa para quem cadastra pelo celular no balcão. O servidor não precisa de
+biblioteca de imagem, que traria binário nativo e tempo de reconstrução no plano
+gratuito. E, ao reprocessar a foto, os dados de localização que o celular grava
+junto se perdem — a coordenada de onde a foto foi tirada não chega ao servidor.
+
+O servidor confere assim mesmo o formato, o tamanho e a dimensão do que chega,
+porque quem envia é o navegador do usuário e nele não se confia.
+
+Trocar a foto de um produto **apaga a anterior** do armazenamento, e excluir o
+produto leva a imagem junto. Endereços de imagem hospedados fora do projeto são
+reconhecidos e nunca sofrem tentativa de exclusão.
 
 ## Envio de e-mail
 
@@ -297,9 +327,9 @@ tocar em dado nenhum de verdade.
 - O servidor no plano gratuito do Render hiberna após inatividade; a primeira
   chamada pode levar cerca de um minuto. **Antes de uma apresentação, abra o
   sistema uns dois minutos antes** para acordar o servidor.
-- O upload de logotipo depende do bucket `logotipos` e da chave `SUPABASE_KEY`
-  (ver seção acima). Sem isso, o sistema usa a sigla da empresa como logotipo e
-  todo o resto funciona normalmente.
+- Os envios de imagem dependem dos buckets `logotipos` e `produtos` e da chave
+  `SUPABASE_KEY` (ver seção acima). Sem isso, o sistema usa a sigla da empresa
+  como logotipo, o produto fica sem foto, e todo o resto funciona normalmente.
 - A chave `service_role` do Supabase dá acesso total ao banco: ela só pode
   existir nas variáveis de ambiente do servidor, nunca em arquivos da pasta
   `telas/`, que vão para o navegador de quem acessa. O mesmo vale para a
