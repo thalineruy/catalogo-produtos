@@ -122,12 +122,16 @@
     const motivo = campoRecuperarMotivo.value;
 
     try {
-      await solicitarRecuperacaoSenha(email, motivo);
+      const resposta = await solicitarRecuperacaoSenha(email, motivo);
       recuperarConfirmacao.innerHTML =
         '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m5 13 4 4 10-10"/></svg>' +
         '<div><strong>Pedido enviado ao administrador</strong><p class="apagado"></p></div>';
+      // A frase vem do servidor: a tela repetia por conta própria que uma
+      // senha temporária seria enviada, texto de antes do convite por link,
+      // e continuou dizendo isso mesmo depois que o comportamento mudou.
       recuperarConfirmacao.querySelector('p').textContent =
-        `Uma senha temporária será enviada para ${email}. O pedido aparece nos logs do administrador como solicitação de reset.`;
+        (resposta && resposta.mensagem)
+        || 'Pedido registrado. O administrador vai enviar um link de acesso para o seu e-mail.';
       recuperarConfirmacao.hidden = false;
       formRecuperar.reset();
     } catch (erro) {
