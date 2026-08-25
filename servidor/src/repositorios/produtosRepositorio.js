@@ -9,7 +9,21 @@ const SELECT_BASE = `
 
 // Filtra em SQL, e não na memória: antes o servidor trazia a tabela
 // inteira a cada consulta e descartava quase tudo em seguida.
-async function listar({ busca, categoria, estoque, status, imagem, porPagina, deslocamento } = {}) {
+const CAMPOS_DE_BUSCA =
+  "concat_ws(' ', p.nome, p.codigo_interno, c.nome, p.descricao, p.status)";
+
+// Semelhanca minima para a busca tolerante aceitar uma palavra. Calibrado
+// contra o catalogo: erros de digitacao reais ficam em 0,50 ou acima, e
+// palavras de outro assunto nao passam de 0,29.
+const SEMELHANCA_MINIMA = 0.4;
+
+// tolerante = true troca o casamento por trecho pelo casamento por
+// semelhanca, que encontra "Armacao" a partir de "armasao". Usado so
+// quando a busca exata nao devolve nada, para quem digita certo nunca
+// receber resultado aproximado no meio dos certos.
+async function listar({
+  busca, categoria, estoque, status, imagem, porPagina, deslocamento, tolerante = false,
+} = {}) {
   const condicoes = [];
   const params = [];
 
@@ -17,11 +31,16 @@ async function listar({ busca, categoria, estoque, status, imagem, porPagina, de
   // "arma preta" encontra "Armação Acetato Preta".
   const palavras = (busca || '').trim().split(/\s+/).filter(Boolean);
   palavras.forEach((palavra) => {
-    params.push(`%${palavra}%`);
-    condicoes.push(
-      `unaccent(concat_ws(' ', p.nome, p.codigo_interno, c.nome, p.descricao, p.status))
-       ILIKE unaccent($${params.length})`,
-    );
+    if (tolerante) {
+      params.push(palavra, SEMELHANCA_MINIMA);
+      condicoes.push(
+        `word_similarity(unaccent($${params.length - 1}), unaccent(${CAMPOS_DE_BUSCA}))
+         >= $${params.length}`,
+      );
+    } else {
+      params.push(`%${palavra}%`);
+      condicoes.push(`unaccent(${CAMPOS_DE_BUSCA}) ILIKE unaccent($${params.length})`);
+    }
   });
 
   if (categoria) {

@@ -12,8 +12,7 @@ const router = express.Router();
 router.get('/', async (req, res, next) => {
   try {
     const paginacao = lerPaginacao(req.query);
-
-    const linhas = await repositorio.listar({
+    const filtros = {
       busca: req.query.busca,
       categoria: req.query.categoria,
       estoque: req.query.estoque,
@@ -21,7 +20,19 @@ router.get('/', async (req, res, next) => {
       imagem: req.query.imagem,
       porPagina: paginacao.porPagina,
       deslocamento: paginacao.deslocamento,
-    });
+    };
+
+    const linhas = await repositorio.listar(filtros);
+
+    // Quem digitou certo recebe só o que casa exatamente. Se a busca não
+    // achou nada, vale mais mostrar o parecido do que uma tela vazia: quem
+    // procura "armasao" quer "Armação".
+    if (linhas.length === 0 && (req.query.busca || '').trim()) {
+      const aproximadas = await repositorio.listar({ ...filtros, tolerante: true });
+      if (aproximadas.length > 0) {
+        return res.json({ ...montarResposta(aproximadas, paginacao), aproximada: true });
+      }
+    }
 
     res.json(montarResposta(linhas, paginacao));
   } catch (erro) {

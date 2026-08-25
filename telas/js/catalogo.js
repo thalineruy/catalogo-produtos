@@ -10,6 +10,7 @@
   const botaoNovoProduto = document.getElementById('botao-novo-produto');
 
   const resumoResultados = document.getElementById('resumo-resultados');
+  const avisoAproximada = document.getElementById('aviso-aproximada');
   const mensagemErro = document.getElementById('mensagem-erro');
   const tabelaWrapper = document.querySelector('.rolagem-tabela');
   const corpoTabela = document.getElementById('corpo-tabela-produtos');
@@ -219,6 +220,17 @@
     // O total é o do filtro inteiro, não o da página que está na tela
     resumoResultados.textContent =
       resposta.total === 1 ? '1 produto encontrado' : `${resposta.total} produtos encontrados`;
+
+    // O servidor marca a resposta quando a busca exata não achou nada e ele
+    // recorreu à semelhança. Sem dizer isso, a pessoa acharia que digitou
+    // certo e que o resultado é o que ela pediu.
+    if (avisoAproximada) {
+      avisoAproximada.hidden = !resposta.aproximada;
+      avisoAproximada.textContent = resposta.aproximada ? 'Resultados parecidos' : '';
+      avisoAproximada.title = resposta.aproximada
+        ? 'Nada foi encontrado com o texto exato, então a busca procurou por semelhança.'
+        : '';
+    }
 
     paginacao.desenhar(resposta);
   }

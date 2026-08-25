@@ -65,3 +65,85 @@ describe('POST /produtos', () => {
     expect(produtosRepositorio.criar).not.toHaveBeenCalled();
   });
 });
+
+// Regra de negócio: quem digita certo recebe só o que casa exatamente; a
+// busca por semelhança é uma segunda tentativa, quando a primeira falha.
+describe('GET /produtos com busca sem resultado', () => {
+  beforeEach(() => {
+    produtosRepositorio.listar.mockReset();
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('achando na busca exata, não tenta a tolerante', async () => {
+    produtosRepositorio.listar.mockResolvedValue([{ id: 1, nome: 'Armação', total_geral: '1' }]);
+
+    const resposta = await request(app).get('/produtos?busca=armacao');
+
+    expect(produtosRepositorio.listar).toHaveBeenCalledTimes(1);
+    expect(produtosRepositorio.listar.mock.calls[0][0].tolerante).toBeFalsy();
+    expect(resposta.body.aproximada).toBeUndefined();
+  });
+
+  it('sem achar nada, tenta de novo por semelhança', async () => {
+    produtosRepositorio.listar
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ id: 1, nome: 'Armação', total_geral: '1' }]);
+
+    const resposta = await request(app).get('/produtos?busca=armasao');
+
+    expect(produtosRepositorio.listar).toHaveBeenCalledTimes(2);
+    expect(produtosRepositorio.listar.mock.calls[1][0].tolerante).toBe(true);
+    expect(resposta.body.itens).toHaveLength(1);
+  });
+
+  it('marca a resposta como aproximada, para a tela poder avisar', async () => {
+    produtosRepositorio.listar
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ id: 1, nome: 'Armação', total_geral: '1' }]);
+
+    const resposta = await request(app).get('/produtos?busca=armasao');
+
+    expect(resposta.body.aproximada).toBe(true);
+  });
+
+  it('se nem a semelhança achar, responde vazio sem marcar', async () => {
+    produtosRepositorio.listar.mockResolvedValue([]);
+
+    const resposta = await request(app).get('/produtos?busca=xyzabc');
+
+    expect(produtosRepositorio.listar).toHaveBeenCalledTimes(2);
+    expect(resposta.body.itens).toHaveLength(0);
+    expect(resposta.body.aproximada).toBeUndefined();
+  });
+
+  it('lista vazia sem termo de busca não aciona a tolerante', async () => {
+    produtosRepositorio.listar.mockResolvedValue([]);
+
+    await request(app).get('/produtos?categoria=Armações');
+
+    expect(produtosRepositorio.listar).toHaveBeenCalledTimes(1);
+  });
+
+  it('busca só com espaços não aciona a tolerante', async () => {
+    produtosRepositorio.listar.mockResolvedValue([]);
+
+    await request(app).get('/produtos?busca=%20%20');
+
+    expect(produtosRepositorio.listar).toHaveBeenCalledTimes(1);
+  });
+
+  it('a segunda tentativa mantém os demais filtros', async () => {
+    produtosRepositorio.listar
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ id: 1, nome: 'Armação', total_geral: '1' }]);
+
+    await request(app).get('/produtos?busca=armasao&status=ativo&categoria=Armações');
+
+    const segunda = produtosRepositorio.listar.mock.calls[1][0];
+    expect(segunda.status).toBe('ativo');
+    expect(segunda.categoria).toBe('Armações');
+  });
+});

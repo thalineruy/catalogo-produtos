@@ -1,0 +1,11 @@
+-- Busca tolerante a erro de digitação.
+--
+-- A busca por trecho (ILIKE) já ignora acentuação e encontra pedaços de
+-- palavra, mas exige que as letras estejam certas: quem procura "armasao"
+-- não encontra "Armação". A extensão pg_trgm compara as palavras por
+-- semelhança de trigramas e resolve esse caso.
+--
+-- A tolerância é usada só quando a busca exata não devolve nada, para que
+-- quem digita corretamente nunca receba resultado aproximado no meio dos
+-- certos.
+CREATE EXTENSION IF NOT EXISTS pg_trgm;

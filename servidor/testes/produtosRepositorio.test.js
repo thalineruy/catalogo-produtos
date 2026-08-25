@@ -105,3 +105,71 @@ describe('produtosRepositorio.listarAlertasDeEstoque', () => {
     expect(sql).toContain('LIMIT 100');
   });
 });
+
+// A busca tolerante entra só quando a exata não devolve nada. Estes testes
+// conferem a consulta montada; o comportamento com dados reais foi medido
+// contra o banco, calibrando o limiar de semelhança.
+describe('produtosRepositorio.listar com busca tolerante', () => {
+  beforeEach(() => {
+    pool.query.mockResolvedValue({ rows: [] });
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  function consultaFeita() {
+    const [sql, params] = pool.query.mock.calls[0];
+    return { sql, params };
+  }
+
+  it('sem tolerância, compara por trecho', async () => {
+    await produtosRepositorio.listar({ busca: 'armacao' });
+
+    const { sql, params } = consultaFeita();
+    expect(sql).toContain('ILIKE');
+    expect(sql).not.toContain('word_similarity');
+    expect(params).toContain('%armacao%');
+  });
+
+  it('com tolerância, compara por semelhança em vez de trecho', async () => {
+    await produtosRepositorio.listar({ busca: 'armasao', tolerante: true });
+
+    const { sql, params } = consultaFeita();
+    expect(sql).toContain('word_similarity');
+    expect(sql).not.toContain('ILIKE');
+    // a palavra vai inteira, sem os sinais de percentual
+    expect(params).toContain('armasao');
+    expect(params).not.toContain('%armasao%');
+  });
+
+  it('a tolerância continua ignorando acentos', async () => {
+    await produtosRepositorio.listar({ busca: 'armasao', tolerante: true });
+    expect(consultaFeita().sql).toContain('unaccent');
+  });
+
+  it('o limiar de semelhança vai como parâmetro, não embutido no texto', async () => {
+    await produtosRepositorio.listar({ busca: 'armasao', tolerante: true });
+
+    const { params } = consultaFeita();
+    const limiar = params.find((p) => typeof p === 'number' && p > 0 && p < 1);
+    expect(limiar).toBeGreaterThan(0.29); // acima do que palavras de outro assunto alcançam
+    expect(limiar).toBeLessThan(0.5);     // abaixo do que erros de digitação reais alcançam
+  });
+
+  it('cada palavra vira sua própria condição de semelhança', async () => {
+    await produtosRepositorio.listar({ busca: 'armasao preta', tolerante: true });
+
+    const { sql } = consultaFeita();
+    expect(sql.match(/word_similarity/g)).toHaveLength(2);
+    expect(sql).toContain('AND');
+  });
+
+  it('a tolerância não afeta os demais filtros', async () => {
+    await produtosRepositorio.listar({ busca: 'armasao', status: 'ativo', tolerante: true });
+
+    const { sql, params } = consultaFeita();
+    expect(sql).toContain('p.status =');
+    expect(params).toContain('ativo');
+  });
+});
