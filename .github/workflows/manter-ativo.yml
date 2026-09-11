@@ -1,0 +1,37 @@
+# Consulta diária ao /saude para o banco não ser pausado.
+#
+# O Supabase gratuito pausa o projeto depois de 7 dias sem uso, e o
+# sistema sai do ar até alguém restaurar pelo painel. O /saude faz uma
+# leitura no banco, e isso conta como uso.
+#
+# Se o banco não responder, a tarefa falha e o GitHub avisa por e-mail —
+# assim a pausa é descoberta no mesmo dia, e não na hora de apresentar.
+name: Manter o sistema ativo
+
+on:
+  schedule:
+    # 11h UTC = 8h em Brasília
+    - cron: '0 11 * * *'
+  # Permite rodar à mão, pela aba Actions
+  workflow_dispatch:
+
+jobs:
+  consultar-saude:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Consultar /saude
+        run: |
+          # O Render gratuito hiberna e a primeira chamada pode levar até um
+          # minuto, então há tempo de espera e novas tentativas.
+          for tentativa in 1 2 3 4 5; do
+            resposta=$(curl -s --max-time 120 https://catalogo-api-0vuy.onrender.com/saude || true)
+            echo "tentativa $tentativa: $resposta"
+            if echo "$resposta" | grep -q '"banco":"ok"'; then
+              echo "Sistema e banco no ar."
+              exit 0
+            fi
+            sleep 30
+          done
+          echo "O banco não respondeu. Confira no painel do Supabase se o projeto foi pausado."
+          exit 1

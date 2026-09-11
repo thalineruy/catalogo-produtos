@@ -327,6 +327,11 @@ tocar em dado nenhum de verdade.
 - O servidor no plano gratuito do Render hiberna após inatividade; a primeira
   chamada pode levar cerca de um minuto. **Antes de uma apresentação, abra o
   sistema uns dois minutos antes** para acordar o servidor.
+- O Supabase gratuito **pausa o projeto depois de 7 dias sem uso**, e o sistema
+  fica sem banco até alguém clicar em **Restore project** no painel. Para evitar
+  isso, a tarefa `.github/workflows/manter-ativo.yml` consulta o `/saude` todo
+  dia às 8h (horário de Brasília). Se o banco não responder, a tarefa falha e o
+  GitHub avisa por e-mail. Dá para rodá-la à mão na aba **Actions**.
 - Os envios de imagem dependem dos buckets `logotipos` e `produtos` e da chave
   `SUPABASE_KEY` (ver seção acima). Sem isso, o sistema usa a sigla da empresa
   como logotipo, o produto fica sem foto, e todo o resto funciona normalmente.
