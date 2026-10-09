@@ -31,6 +31,9 @@ Projeto Integrador II.
   acesso é cortado na mesma hora, inclusive de quem está com a tela aberta,
   e o histórico de movimentações da pessoa continua inteiro. A exclusão
   definitiva só é oferecida a contas que nunca movimentaram nada.
+- **Imagem ampliada** — a miniatura do catálogo mostra a foto inteira ao
+  passar o mouse. Quem usa teclado vê ao chegar com o Tab, e no celular um
+  toque abre a mesma prévia.
 - **Anonimização (LGPD)** — depois de desativada, a conta pode ter os dados
   pessoais apagados: nome e e-mail somem da conta e também do texto de todo
   o histórico, as credenciais são destruídas e o e-mail fica livre para um

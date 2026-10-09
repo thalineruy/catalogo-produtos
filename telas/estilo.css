@@ -1695,3 +1695,52 @@ legend { margin-bottom: 10px; }
   border-top: 1px solid var(--linha);
 }
 .menu-acoes-perigo:hover:not([disabled]) { background: var(--destaque-claro); }
+
+/* ---------- 30. Imagem do produto ampliada ----------
+
+   A miniatura de 48px identifica o produto na lista, mas não deixa
+   conferir detalhe nenhum da armação. A prévia mostra a imagem guardada,
+   que tem até 800px, sem precisar abrir o cadastro. */
+
+/* A miniatura virou botão para responder também ao teclado e ao toque.
+   O botão não deve parecer um botão: o que se vê continua sendo a foto. */
+.miniatura-botao {
+  display: block;
+  padding: 0;
+  background: none;
+  border: 0;
+  cursor: zoom-in;
+  line-height: 0;
+}
+
+.miniatura-botao[aria-expanded="true"] { cursor: zoom-out; }
+
+.previa-ampliada {
+  position: fixed;
+  z-index: 70;
+  max-width: min(340px, calc(100vw - 16px));
+  padding: 8px;
+  background: var(--superficie);
+  color: var(--tinta);
+  border: 1px solid var(--divisor);
+  box-shadow: var(--sombra-alta);
+  /* A prévia é só para olhar: o clique tem que chegar ao que está
+     embaixo, e o ponteiro não pode "entrar" nela e piscar a imagem. */
+  pointer-events: none;
+}
+
+.previa-ampliada img {
+  display: block;
+  /* Altura limitada à janela para a foto em pé não estourar a tela */
+  max-height: min(340px, calc(100vh - 80px));
+  object-fit: contain;
+  margin: 0 auto;
+}
+
+.previa-ampliada-nome {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--apagado);
+  text-align: center;
+}

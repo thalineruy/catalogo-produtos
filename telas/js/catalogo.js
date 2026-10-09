@@ -77,18 +77,150 @@
     return null;
   }
 
+  /* Ampliação da imagem do produto.
+
+     A miniatura tem 48px: dá para reconhecer o produto na lista, não para
+     conferir a armação. A imagem guardada tem até 800px, e mostrá-la ao
+     apontar evita abrir o cadastro só para olhar.
+
+     Apontar, porém, não existe no celular, e também não existe para quem
+     navega pelo teclado. Por isso a miniatura virou botão: o mouse mostra
+     ao passar, o teclado ao focar e o toque ao tocar — a mesma prévia nos
+     três casos. */
+  let previaAberta = null;
+
+  function fecharPrevia({ forcar = false } = {}) {
+    if (!previaAberta) return;
+    // Aberta por clique ou pelo teclado, só fecha de propósito: senão o
+    // ponteiro saindo da miniatura apagaria o que a pessoa fixou.
+    if (previaAberta.fixada && !forcar) return;
+
+    previaAberta.caixa.remove();
+    previaAberta.botao.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('keydown', previaAberta.aoTeclar);
+    document.removeEventListener('click', previaAberta.aoClicarFora);
+    window.removeEventListener('scroll', previaAberta.aoRolar, true);
+    window.removeEventListener('resize', previaAberta.aoRolar);
+    previaAberta = null;
+  }
+
+  // Ao lado da miniatura quando cabe, do outro lado quando não cabe, e
+  // sempre dentro da janela: nas últimas linhas da lista, a prévia
+  // centralizada na miniatura passaria do rodapé.
+  function posicionarPrevia(caixa, botao) {
+    const area = botao.getBoundingClientRect();
+    const margem = 8;
+
+    let esquerda = area.right + 12;
+    if (esquerda + caixa.offsetWidth > window.innerWidth - margem) {
+      esquerda = area.left - caixa.offsetWidth - 12;
+    }
+    esquerda = Math.min(
+      Math.max(margem, esquerda),
+      Math.max(margem, window.innerWidth - caixa.offsetWidth - margem),
+    );
+
+    const topo = Math.min(
+      Math.max(margem, area.top + area.height / 2 - caixa.offsetHeight / 2),
+      Math.max(margem, window.innerHeight - caixa.offsetHeight - margem),
+    );
+
+    caixa.style.left = `${Math.round(esquerda)}px`;
+    caixa.style.top = `${Math.round(topo)}px`;
+  }
+
+  function abrirPrevia(botao, produto, { fixada = false } = {}) {
+    if (previaAberta && previaAberta.botao === botao) {
+      if (fixada) previaAberta.fixada = true;
+      return;
+    }
+    fecharPrevia({ forcar: true });
+
+    const caixa = document.createElement('div');
+    caixa.className = 'previa-ampliada';
+
+    const img = document.createElement('img');
+    img.src = produto.url_imagem;
+    img.alt = `Imagem de ${produto.nome}`;
+    caixa.appendChild(img);
+
+    const legenda = document.createElement('span');
+    legenda.className = 'previa-ampliada-nome';
+    legenda.textContent = produto.nome;
+    caixa.appendChild(legenda);
+
+    document.body.appendChild(caixa);
+    posicionarPrevia(caixa, botao);
+    // A altura só é conhecida depois que a imagem chega; sem reposicionar,
+    // a primeira exibição de cada produto sai torta.
+    img.addEventListener('load', () => posicionarPrevia(caixa, botao));
+    img.addEventListener('error', () => fecharPrevia({ forcar: true }));
+
+    const aoRolar = () => posicionarPrevia(caixa, botao);
+    const aoTeclar = (evento) => {
+      if (evento.key !== 'Escape') return;
+      fecharPrevia({ forcar: true });
+      botao.focus();
+    };
+    const aoClicarFora = (evento) => {
+      if (caixa.contains(evento.target) || botao.contains(evento.target)) return;
+      fecharPrevia({ forcar: true });
+    };
+
+    window.addEventListener('scroll', aoRolar, true);
+    window.addEventListener('resize', aoRolar);
+    document.addEventListener('keydown', aoTeclar);
+    setTimeout(() => document.addEventListener('click', aoClicarFora), 0);
+
+    botao.setAttribute('aria-expanded', 'true');
+    previaAberta = { caixa, botao, fixada, aoRolar, aoTeclar, aoClicarFora };
+  }
+
   function criarCelulaImagem(produto) {
     const td = document.createElement('td');
 
     if (produto.url_imagem) {
+      const botao = document.createElement('button');
+      botao.type = 'button';
+      botao.className = 'miniatura-botao';
+      botao.setAttribute('aria-label', `Ver a imagem de ${produto.nome} em tamanho maior`);
+      botao.setAttribute('aria-expanded', 'false');
+
       const img = document.createElement('img');
       img.src = produto.url_imagem;
       img.alt = '';
       img.className = 'miniatura';
-      img.addEventListener('error', () => {
-        img.replaceWith(criarPlaceholderImagem());
+      // Endereço quebrado volta a ser o quadrado padrão, e sem o botão:
+      // não há imagem maior para mostrar.
+      img.addEventListener('error', () => botao.replaceWith(criarPlaceholderImagem()));
+      botao.appendChild(img);
+
+      // Meio segundo de espera antes de abrir por ponteiro: sem isso, o
+      // mouse atravessando a lista acenderia uma prévia por linha. Clique
+      // e teclado abrem na hora, porque ali a intenção é explícita.
+      let aguardandoPonteiro = null;
+      botao.addEventListener('mouseenter', () => {
+        aguardandoPonteiro = setTimeout(() => abrirPrevia(botao, produto), 180);
       });
-      td.appendChild(img);
+      botao.addEventListener('mouseleave', () => {
+        clearTimeout(aguardandoPonteiro);
+        fecharPrevia();
+      });
+      botao.addEventListener('click', () => {
+        if (previaAberta && previaAberta.botao === botao && previaAberta.fixada) {
+          fecharPrevia({ forcar: true });
+          return;
+        }
+        abrirPrevia(botao, produto, { fixada: true });
+      });
+      // :focus-visible distingue o foco do teclado do que o clique do
+      // mouse também provoca — este último já abriu a prévia acima.
+      botao.addEventListener('focus', () => {
+        if (botao.matches(':focus-visible')) abrirPrevia(botao, produto, { fixada: true });
+      });
+      botao.addEventListener('blur', () => fecharPrevia({ forcar: true }));
+
+      td.appendChild(botao);
     } else {
       td.appendChild(criarPlaceholderImagem());
     }
@@ -206,6 +338,9 @@
   function renderizarProdutos(resposta) {
     const produtos = resposta.itens;
     produtosNaTela = produtos;
+    // A prévia aponta para a miniatura de uma linha; redesenhar a tabela
+    // com ela aberta deixaria a imagem flutuando sozinha na tela.
+    fecharPrevia({ forcar: true });
     corpoTabela.innerHTML = '';
 
     if (produtos.length === 0) {
