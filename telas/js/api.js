@@ -186,6 +186,13 @@ async function excluirUsuario(id) {
   return apiFetch(`/usuarios/${id}`, { method: 'DELETE' });
 }
 
+// Anonimizar atende ao direito de eliminação da LGPD sem destruir o
+// histórico: a conta perde nome, e-mail e credenciais, e o e-mail fica
+// livre para um cadastro novo. Não tem volta.
+async function anonimizarUsuario(id) {
+  return apiFetch(`/usuarios/${id}/anonimizar`, { method: 'POST' });
+}
+
 // Reenvia o link de ativação. Caminho normal para quem esqueceu a senha e
 // tem acesso ao próprio e-mail; o reset acima é o plano B, para quem está
 // sem acesso à caixa de entrada.

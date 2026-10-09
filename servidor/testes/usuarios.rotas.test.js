@@ -266,6 +266,99 @@ describe('PUT /usuarios/:id/situacao', () => {
   });
 });
 
+describe('POST /usuarios/:id/anonimizar', () => {
+  beforeEach(() => {
+    logsRepositorio.registrar.mockResolvedValue();
+    bcrypt.hash.mockResolvedValue('hash-aleatorio');
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('responde 403 quando o token é de operador', async () => {
+    const resposta = await request(app).post('/usuarios/5/anonimizar').set('Authorization', tokenOperador);
+
+    expect(resposta.status).toBe(403);
+    expect(usuariosRepositorio.anonimizar).not.toHaveBeenCalled();
+  });
+
+  // Dois passos conscientes para uma ação sem volta
+  it('exige que a conta esteja desativada antes', async () => {
+    usuariosRepositorio.buscarPorId.mockResolvedValue({
+      id: 5, nome: 'Carlos Lima', email: 'carlos@x.com', nivel: 'operador', ativo: true,
+    });
+
+    const resposta = await request(app).post('/usuarios/5/anonimizar').set('Authorization', tokenAdministrador);
+
+    expect(resposta.status).toBe(409);
+    expect(resposta.body.erro).toMatch(/desative/i);
+    expect(usuariosRepositorio.anonimizar).not.toHaveBeenCalled();
+  });
+
+  it('recusa anonimizar duas vezes', async () => {
+    usuariosRepositorio.buscarPorId.mockResolvedValue({
+      id: 5, nome: 'Usuário anonimizado', email: 'anonimizado-5@removido.invalid',
+      nivel: 'operador', ativo: false, anonimizado_em: '2026-10-09T12:00:00',
+    });
+
+    const resposta = await request(app).post('/usuarios/5/anonimizar').set('Authorization', tokenAdministrador);
+
+    expect(resposta.status).toBe(409);
+    expect(usuariosRepositorio.anonimizar).not.toHaveBeenCalled();
+  });
+
+  it('anonimiza a conta desativada e troca a senha guardada', async () => {
+    usuariosRepositorio.buscarPorId.mockResolvedValue({
+      id: 5, nome: 'Carlos Lima', email: 'carlos@x.com', nivel: 'operador', ativo: false,
+    });
+    usuariosRepositorio.anonimizar.mockResolvedValue({ registrosLimpos: 3 });
+
+    const resposta = await request(app).post('/usuarios/5/anonimizar').set('Authorization', tokenAdministrador);
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body).toEqual({ anonimizado: true, registrosLimpos: 3 });
+    expect(usuariosRepositorio.anonimizar).toHaveBeenCalledWith({
+      id: '5',
+      senhaHash: 'hash-aleatorio',
+      nomeAnonimo: 'Usuário anonimizado',
+      emailAnonimo: 'anonimizado-5@removido.invalid',
+    });
+  });
+
+  // O log é escrito depois da limpeza: com o nome, devolveria ao
+  // histórico justamente o dado que acabou de ser removido dele.
+  it('registra a anonimização sem repetir o nome nem o e-mail', async () => {
+    usuariosRepositorio.buscarPorId.mockResolvedValue({
+      id: 5, nome: 'Carlos Lima', email: 'carlos@x.com', nivel: 'operador', ativo: false,
+    });
+    usuariosRepositorio.anonimizar.mockResolvedValue({ registrosLimpos: 0 });
+
+    await request(app).post('/usuarios/5/anonimizar').set('Authorization', tokenAdministrador);
+
+    const registro = logsRepositorio.registrar.mock.calls[0][0];
+    expect(registro.detalhes).not.toMatch(/Carlos Lima/);
+    expect(registro.detalhes).not.toMatch(/carlos@x\.com/);
+    expect(registro.detalhes).toMatch(/5/);
+  });
+
+  it('impede reativar uma conta anonimizada', async () => {
+    usuariosRepositorio.buscarPorId.mockResolvedValue({
+      id: 5, nome: 'Usuário anonimizado', email: 'anonimizado-5@removido.invalid',
+      nivel: 'operador', ativo: false, anonimizado_em: '2026-10-09T12:00:00',
+    });
+
+    const resposta = await request(app)
+      .put('/usuarios/5/situacao')
+      .set('Authorization', tokenAdministrador)
+      .send({ ativo: true });
+
+    expect(resposta.status).toBe(409);
+    expect(resposta.body.erro).toMatch(/anonimizada/i);
+    expect(usuariosRepositorio.definirSituacao).not.toHaveBeenCalled();
+  });
+});
+
 describe('ações que não fazem sentido em conta desativada', () => {
   afterEach(() => {
     jest.resetAllMocks();

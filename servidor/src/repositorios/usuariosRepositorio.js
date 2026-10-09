@@ -12,7 +12,7 @@ async function buscarPorEmail(email) {
 async function buscarPorId(id) {
   const { rows } = await pool.query(
     `SELECT id, nome, email, nivel, totp_secret, totp_confirmado_em, senha_atualizada_em,
-            ativo, desativado_em
+            ativo, desativado_em, anonimizado_em
      FROM usuarios WHERE id = $1`,
     [id],
   );
@@ -43,6 +43,7 @@ async function buscarPorIdComSenha(id) {
 async function listar() {
   const { rows } = await pool.query(
     `SELECT u.id, u.nome, u.email, u.nivel, u.ultimo_acesso, u.ativo, u.desativado_em,
+            u.anonimizado_em,
             (u.totp_confirmado_em IS NOT NULL) AS totp_ativo,
             (EXISTS (SELECT 1 FROM saidas s WHERE s.usuario_id = u.id)
              OR EXISTS (SELECT 1 FROM logs l WHERE l.usuario_id = u.id)) AS tem_historico
@@ -110,6 +111,71 @@ async function definirSituacao(id, ativo) {
   return rows[0] || null;
 }
 
+/* Anonimização: apaga quem a pessoa era, preserva o que a conta fez.
+
+   Tudo numa transação só. Pela metade, o pior caso seria a conta sem
+   nome e o histórico ainda com ele escrito — exatamente o que a
+   anonimização existe para evitar.
+
+   A varredura do histórico é a parte que costuma ser esquecida. O nome do
+   operador na tela vem de uma junção com esta tabela e se resolve
+   sozinho, mas o texto de cada registro traz o nome por extenso, às vezes
+   em registros feitos por outras pessoas ("Desativou o usuário Fulano").
+   Sem trocar esses textos, a anonimização seria de fachada. */
+async function anonimizar({ id, senhaHash, nomeAnonimo, emailAnonimo }) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const { rows } = await client.query(
+      'SELECT nome, email FROM usuarios WHERE id = $1 FOR UPDATE',
+      [id],
+    );
+    const anterior = rows[0];
+    if (!anterior) {
+      await client.query('ROLLBACK');
+      return null;
+    }
+
+    await client.query(
+      `UPDATE usuarios
+          SET nome = $1, email = $2, senha_hash = $3,
+              totp_secret = NULL, totp_confirmado_em = NULL,
+              ativo = FALSE, anonimizado_em = now()
+        WHERE id = $4`,
+      [nomeAnonimo, emailAnonimo, senhaHash, id],
+    );
+
+    // Credenciais que ainda permitiriam entrar ou receber um link novo
+    await client.query('DELETE FROM dispositivos_confiaveis WHERE usuario_id = $1', [id]);
+    await client.query('DELETE FROM convites_acesso WHERE usuario_id = $1', [id]);
+
+    // O pedido de acesso guarda o e-mail digitado na tela de entrada
+    await client.query(
+      "UPDATE solicitacoes_acesso SET email = $1 WHERE lower(email) = lower($2)",
+      [emailAnonimo, anterior.email],
+    );
+
+    // replace() exato, e não um apagamento por aproximação: troca o nome
+    // e o e-mail onde eles aparecem e deixa o resto do registro intacto,
+    // para o histórico continuar dizendo o que aconteceu.
+    const { rowCount: registrosLimpos } = await client.query(
+      `UPDATE logs
+          SET detalhes = replace(replace(detalhes, $1, $2), $3, $4)
+        WHERE detalhes LIKE '%' || $1 || '%' OR detalhes LIKE '%' || $3 || '%'`,
+      [anterior.nome, nomeAnonimo, anterior.email, emailAnonimo],
+    );
+
+    await client.query('COMMIT');
+    return { registrosLimpos };
+  } catch (erro) {
+    await client.query('ROLLBACK');
+    throw erro;
+  } finally {
+    client.release();
+  }
+}
+
 async function excluir(id) {
   await pool.query('DELETE FROM usuarios WHERE id = $1', [id]);
 }
@@ -134,6 +200,7 @@ module.exports = {
   situacaoDaConta,
   contarAdministradoresAtivos,
   definirSituacao,
+  anonimizar,
   listar,
   criar,
   atualizarNivel,

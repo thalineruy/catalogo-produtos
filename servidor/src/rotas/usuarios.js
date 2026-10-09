@@ -162,6 +162,14 @@ router.put('/:id/situacao', autenticar, exigirAdministrador, async (req, res, ne
     const alvo = await usuariosRepositorio.buscarPorId(req.params.id);
     if (!alvo) return res.status(404).json({ erro: 'usuário não encontrado' });
 
+    // Reativar uma conta anonimizada devolveria o acesso a um cadastro
+    // sem dono: não há mais nome, e-mail nem senha conhecida.
+    if (ativo && alvo.anonimizado_em) {
+      return res.status(409).json({
+        erro: 'esta conta foi anonimizada e não pode ser reativada; cadastre um usuário novo',
+      });
+    }
+
     if (!ativo && String(alvo.id) === String(req.usuario.id)) {
       return res.status(409).json({ erro: 'você não pode desativar a própria conta' });
     }
@@ -186,6 +194,55 @@ router.put('/:id/situacao', autenticar, exigirAdministrador, async (req, res, ne
       .catch((erro) => console.error('falha ao registrar log de situação', erro));
 
     res.json(usuario);
+  } catch (erro) {
+    next(erro);
+  }
+});
+
+/* Anonimização, para atender ao direito de eliminação da LGPD sem
+   destruir o controle de estoque.
+
+   Só depois de desativar, de propósito: são dois passos conscientes para
+   uma ação sem volta. O nome e o e-mail somem da conta e também do texto
+   de todos os registros do histórico, e o e-mail original fica livre —
+   se a pessoa voltar à empresa, entra como cadastro novo. */
+router.post('/:id/anonimizar', autenticar, exigirAdministrador, async (req, res, next) => {
+  try {
+    const alvo = await usuariosRepositorio.buscarPorId(req.params.id);
+    if (!alvo) return res.status(404).json({ erro: 'usuário não encontrado' });
+
+    if (alvo.anonimizado_em) {
+      return res.status(409).json({ erro: 'esta conta já foi anonimizada' });
+    }
+    if (alvo.ativo !== false) {
+      return res.status(409).json({ erro: 'desative a conta antes de anonimizar' });
+    }
+
+    // Senha nova e aleatória que ninguém conhece: o hash antigo é dado da
+    // pessoa, e sem trocá-lo a senha dela continuaria guardada aqui.
+    const senhaHash = await bcrypt.hash(gerarSenhaTemporaria(), 10);
+
+    const resultado = await usuariosRepositorio.anonimizar({
+      id: req.params.id,
+      senhaHash,
+      nomeAnonimo: 'Usuário anonimizado',
+      // O domínio .invalid é reservado justamente para isto: nunca existe
+      // de verdade, então nenhum e-mail sai para ele por engano.
+      emailAnonimo: `anonimizado-${alvo.id}@removido.invalid`,
+    });
+    if (!resultado) return res.status(404).json({ erro: 'usuário não encontrado' });
+
+    // Sem o nome: escrevê-lo aqui devolveria ao histórico o dado que a
+    // linha de cima acabou de remover dele.
+    logsRepositorio
+      .registrar({
+        usuarioId: req.usuario.id,
+        tipo: 'Exclusão',
+        detalhes: `Anonimizou a conta de código ${alvo.id} (dados pessoais removidos, histórico mantido)`,
+      })
+      .catch((erro) => console.error('falha ao registrar log de anonimização', erro));
+
+    res.json({ anonimizado: true, registrosLimpos: resultado.registrosLimpos });
   } catch (erro) {
     next(erro);
   }

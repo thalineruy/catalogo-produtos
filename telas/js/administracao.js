@@ -486,6 +486,7 @@
   function criarLinhaUsuario(usuario) {
     const tr = document.createElement('tr');
     const desativado = usuario.ativo === false;
+    const anonimizado = Boolean(usuario.anonimizado_em);
     const ehVoceMesmo = String(usuario.id) === String(usuarioLogado.id);
     if (desativado) tr.className = 'linha-desativada';
 
@@ -517,8 +518,10 @@
     tdSituacao.className = 'celula-etiquetas';
     const etiquetaSituacao = document.createElement('span');
     etiquetaSituacao.className = desativado ? 'etiqueta etiqueta-alerta' : 'etiqueta';
-    etiquetaSituacao.textContent = desativado ? 'Desativado' : 'Ativo';
-    if (desativado && usuario.desativado_em) {
+    etiquetaSituacao.textContent = anonimizado ? 'Anonimizado' : desativado ? 'Desativado' : 'Ativo';
+    if (anonimizado) {
+      etiquetaSituacao.title = `Anonimizado em ${formatarMomento(usuario.anonimizado_em)}. A conta mantém o histórico e não volta a ser usada.`;
+    } else if (desativado && usuario.desativado_em) {
       etiquetaSituacao.title = `Desativado em ${formatarMomento(usuario.desativado_em)}`;
     }
     tdSituacao.appendChild(etiquetaSituacao);
@@ -554,7 +557,7 @@
         fecharMenuDeAcoes();
         return;
       }
-      abrirMenuDeAcoes(botaoAcoes, montarAcoesDoUsuario(usuario, { desativado, ehVoceMesmo }));
+      abrirMenuDeAcoes(botaoAcoes, montarAcoesDoUsuario(usuario, { desativado, anonimizado, ehVoceMesmo }));
     });
 
     tdAcoes.appendChild(botaoAcoes);
@@ -563,8 +566,11 @@
     return tr;
   }
 
-  function montarAcoesDoUsuario(usuario, { desativado, ehVoceMesmo }) {
-    const contaFechada = desativado ? 'Reative a conta para usar esta ação.' : null;
+  function montarAcoesDoUsuario(usuario, { desativado, anonimizado, ehVoceMesmo }) {
+    // Conta anonimizada não tem mais dono: não há nome, e-mail nem senha
+    // conhecida, então nenhuma ação sobre a pessoa faz sentido.
+    const contaSemDono = anonimizado ? 'Esta conta foi anonimizada e não volta a ser usada.' : null;
+    const contaFechada = contaSemDono || (desativado ? 'Reative a conta para usar esta ação.' : null);
     const novoNivel = usuario.nivel === 'administrador' ? 'operador' : 'administrador';
 
     return [
@@ -598,7 +604,7 @@
       },
       {
         texto: `Tornar ${novoNivel === 'administrador' ? 'Administrador' : 'Operador'}`,
-        impedimento: ehVoceMesmo ? 'Você não pode alterar o nível da própria conta.' : null,
+        impedimento: contaSemDono || (ehVoceMesmo ? 'Você não pode alterar o nível da própria conta.' : null),
         aoEscolher: () => {
           if (!window.confirm(`Alterar o nível de ${usuario.nome} para ${novoNivel}?`)) return;
           executarAcaoDeUsuario(async () => {
@@ -609,9 +615,11 @@
       },
       {
         texto: 'Redefinir verificação em duas etapas',
-        impedimento: usuario.totp_ativo
-          ? null
-          : 'Este usuário ainda não concluiu a configuração da verificação em duas etapas.',
+        impedimento:
+          contaSemDono ||
+          (usuario.totp_ativo
+            ? null
+            : 'Este usuário ainda não concluiu a configuração da verificação em duas etapas.'),
         aoEscolher: () => {
           const confirmou = window.confirm(
             `Apagar o vínculo de verificação em duas etapas de ${usuario.nome}? No próximo acesso, um novo código para o aplicativo será exibido.`,
@@ -625,7 +633,7 @@
       },
       {
         texto: desativado ? 'Reativar conta' : 'Desativar conta',
-        impedimento: ehVoceMesmo ? 'Você não pode desativar a própria conta.' : null,
+        impedimento: contaSemDono || (ehVoceMesmo ? 'Você não pode desativar a própria conta.' : null),
         aoEscolher: () => {
           const confirmou = window.confirm(
             desativado
@@ -640,6 +648,34 @@
         },
       },
       {
+        // Direito de eliminação da LGPD sem destruir o controle de
+        // estoque: some quem a pessoa era, fica o que a conta fez.
+        texto: 'Anonimizar dados pessoais (LGPD)',
+        perigo: true,
+        impedimento: anonimizado
+          ? 'Esta conta já foi anonimizada.'
+          : !desativado
+            ? 'Desative a conta antes de anonimizar.'
+            : null,
+        aoEscolher: () => {
+          const confirmou = window.confirm(
+            `Anonimizar os dados de ${usuario.nome}?\n\n`
+              + 'O nome e o e-mail serão apagados da conta e de todo o histórico. '
+              + 'As movimentações continuam registradas, sem identificar a pessoa.\n\n'
+              + 'Esta ação não tem volta, e a conta não poderá ser reativada. '
+              + `O e-mail ${usuario.email} ficará livre para um cadastro novo.`,
+          );
+          if (!confirmou) return;
+          executarAcaoDeUsuario(async () => {
+            const resultado = await anonimizarUsuario(usuario.id);
+            exibirAviso(
+              `Dados de ${usuario.nome} anonimizados. `
+                + `${resultado.registrosLimpos} registro(s) do histórico foram limpos.`,
+            );
+          });
+        },
+      },
+      {
         texto: 'Excluir conta',
         perigo: true,
         // O banco recusa apagar quem assina saídas de estoque ou
@@ -647,7 +683,7 @@
         impedimento: ehVoceMesmo
           ? 'Você não pode excluir a própria conta.'
           : usuario.tem_historico
-            ? 'Este usuário tem movimentações registradas. Desative a conta para tirar o acesso.'
+            ? 'Este usuário tem movimentações registradas. Use "Anonimizar" para apagar os dados pessoais.'
             : null,
         aoEscolher: () => {
           const confirmou = window.confirm(

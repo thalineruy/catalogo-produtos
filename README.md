@@ -31,6 +31,10 @@ Projeto Integrador II.
   acesso é cortado na mesma hora, inclusive de quem está com a tela aberta,
   e o histórico de movimentações da pessoa continua inteiro. A exclusão
   definitiva só é oferecida a contas que nunca movimentaram nada.
+- **Anonimização (LGPD)** — depois de desativada, a conta pode ter os dados
+  pessoais apagados: nome e e-mail somem da conta e também do texto de todo
+  o histórico, as credenciais são destruídas e o e-mail fica livre para um
+  cadastro novo. As movimentações permanecem, sem identificar a pessoa.
 - **Acesso** — login com verificação em duas etapas (Google Authenticator),
   opção de confiar no computador por 30 dias, dois níveis de permissão
   (administrador e operador) e troca de senha pelo próprio usuário.
@@ -96,6 +100,7 @@ Execute os scripts na pasta `banco/`, **em ordem**, no SQL Editor do Supabase:
     busca que encontra o produto mesmo com erro de digitação.
 11. `11-usuarios-situacao.sql` — conta ativa ou desativada, com a data da
     desativação.
+12. `12-usuarios-anonimizacao.sql` — data da anonimização da conta.
 
 Todos usam `IF NOT EXISTS`, então rodar de novo num banco já criado não
 quebra nem apaga nada. Pular qualquer um dos scripts a partir do 05 faz o
@@ -282,6 +287,34 @@ celular precisa de "Redefinir 2FA", não de uma senha nova.
 Se o envio de e-mail estiver configurado, cada pedido também avisa os
 administradores por e-mail. A rota é pública e aceita no máximo 5 pedidos por
 hora vindos do mesmo endereço IP.
+
+## Desativar, anonimizar e excluir usuários
+
+São três ações diferentes, na tela de Administração, dentro do menu "Ações"
+de cada linha. A diferença existe por causa do histórico: as saídas de
+estoque e os registros de auditoria apontam para quem os fez, e o banco
+recusa apagar um usuário que assina qualquer um deles.
+
+| Ação | O que faz | Quando usar |
+| --- | --- | --- |
+| **Desativar** | Corta o acesso na hora. Mantém nome, e-mail e histórico. | Alguém saiu da empresa, ou está afastado. Tem volta. |
+| **Anonimizar** | Apaga nome, e-mail e credenciais da conta e do texto de todo o histórico. Libera o e-mail. | O titular pediu a eliminação dos dados, ou o vínculo acabou de vez. Não tem volta. |
+| **Excluir** | Apaga a linha do banco. | Conta criada por engano, que nunca movimentou nada. |
+
+A anonimização atende ao direito de eliminação da LGPD sem destruir o
+controle de estoque. O apoio está no art. 12, que tira o dado anonimizado do
+alcance da lei, e no art. 16, que ressalva o que precisa ser mantido. Por
+isso ela só aparece depois de a conta estar desativada: são dois passos
+conscientes para uma ação sem volta.
+
+A limpeza passa pelo texto de **todos** os registros do histórico, e não só
+pelos daquela pessoa — o nome dela também aparece em registros feitos por
+outros ("Desativou o usuário Fulano"). Fica de fora o que alguém tenha
+digitado à mão, como o motivo de uma saída: não há como adivinhar um nome
+escrito em texto livre.
+
+Depois de anonimizada, a conta não volta a ser usada. Se a pessoa retornar à
+empresa, entra como cadastro novo, com o mesmo e-mail — que ficou livre.
 
 ## Login para testes locais
 

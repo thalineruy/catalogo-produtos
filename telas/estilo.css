@@ -1685,11 +1685,13 @@ legend { margin-bottom: 10px; }
   cursor: not-allowed;
 }
 
-/* Separada das demais: é a única sem volta, e um clique errado aqui não
-   tem conserto. */
-.menu-acoes-perigo {
+.menu-acoes-perigo { color: var(--destaque); }
+
+/* As ações sem volta ficam separadas das demais por um traço, para um
+   clique apressado não cair nelas. O traço sai só uma vez, antes da
+   primeira delas. */
+.menu-acoes-item:not(.menu-acoes-perigo) + .menu-acoes-perigo {
   margin-top: 4px;
   border-top: 1px solid var(--linha);
-  color: var(--destaque);
 }
 .menu-acoes-perigo:hover:not([disabled]) { background: var(--destaque-claro); }
