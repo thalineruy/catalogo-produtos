@@ -176,6 +176,16 @@ async function resetarSenhaUsuario(id) {
   return apiFetch(`/usuarios/${id}/reset-senha`, { method: 'POST' });
 }
 
+// Desativar tira o acesso e mantém o histórico de quem movimentou o
+// estoque. Excluir só é aceito para contas que nunca movimentaram nada.
+async function alterarSituacaoUsuario(id, ativo) {
+  return apiFetch(`/usuarios/${id}/situacao`, { method: 'PUT', body: JSON.stringify({ ativo }) });
+}
+
+async function excluirUsuario(id) {
+  return apiFetch(`/usuarios/${id}`, { method: 'DELETE' });
+}
+
 // Reenvia o link de ativação. Caminho normal para quem esqueceu a senha e
 // tem acesso ao próprio e-mail; o reset acima é o plano B, para quem está
 // sem acesso à caixa de entrada.

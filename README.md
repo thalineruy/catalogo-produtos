@@ -27,6 +27,10 @@ Projeto Integrador II.
 - **Convite de acesso** — o usuário cadastrado recebe por e-mail, pelo Brevo,
   um link de uso único válido por 48 horas, e define a própria senha. Nenhuma
   senha utilizável trafega por e-mail.
+- **Situação da conta** — o administrador desativa quem saiu da empresa: o
+  acesso é cortado na mesma hora, inclusive de quem está com a tela aberta,
+  e o histórico de movimentações da pessoa continua inteiro. A exclusão
+  definitiva só é oferecida a contas que nunca movimentaram nada.
 - **Acesso** — login com verificação em duas etapas (Google Authenticator),
   opção de confiar no computador por 30 dias, dois níveis de permissão
   (administrador e operador) e troca de senha pelo próprio usuário.
@@ -88,6 +92,10 @@ Execute os scripts na pasta `banco/`, **em ordem**, no SQL Editor do Supabase:
    busca do catálogo e do histórico de saídas.
 9. `09-convites-e-solicitacoes.sql` — convites de acesso de uso único e a
    fila de pedidos de recuperação.
+10. `10-busca-tolerante.sql` — habilita a extensão `pg_trgm`, usada pela
+    busca que encontra o produto mesmo com erro de digitação.
+11. `11-usuarios-situacao.sql` — conta ativa ou desativada, com a data da
+    desativação.
 
 Todos usam `IF NOT EXISTS`, então rodar de novo num banco já criado não
 quebra nem apaga nada. Pular qualquer um dos scripts a partir do 05 faz o

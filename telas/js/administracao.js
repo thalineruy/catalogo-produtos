@@ -6,8 +6,6 @@
     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M4 20h4L18.5 9.5a2.121 2.121 0 0 0-3-3L5 17v3z"/><path d="M14 6l4 4"/></svg>';
   const ICONE_EXCLUIR =
     '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>';
-  const ICONE_CADEADO =
-    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="miter" aria-hidden="true"><rect x="5" y="11" width="14" height="9"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
 
   const areaRestrita = document.getElementById('area-restrita');
   const conteudoAdmin = document.getElementById('conteudo-administracao');
@@ -369,149 +367,306 @@
   const corpoUsuarios = document.getElementById('corpo-usuarios');
   const usuariosErro = document.getElementById('usuarios-erro');
 
+  /* A coluna de ações tinha quatro botões repetidos em cada linha, e com
+     a desativação e a exclusão seriam seis. Em vez disso, um botão único
+     abre o menu com as ações daquela pessoa: a linha fica legível, as
+     informações ganham espaço e a tabela cabe no celular.
+
+     O menu é preso ao corpo da página, e não à célula: a tabela rola na
+     horizontal, e dentro dela o menu apareceria cortado. */
+  let menuDeAcoesAberto = null;
+
+  function fecharMenuDeAcoes() {
+    if (!menuDeAcoesAberto) return;
+    const { menu, botao, aoRolar, aoTeclar, aoClicarFora } = menuDeAcoesAberto;
+    menu.remove();
+    botao.setAttribute('aria-expanded', 'false');
+    window.removeEventListener('scroll', aoRolar, true);
+    window.removeEventListener('resize', aoRolar);
+    document.removeEventListener('keydown', aoTeclar);
+    document.removeEventListener('click', aoClicarFora);
+    menuDeAcoesAberto = null;
+  }
+
+  // Abre para baixo quando há espaço e para cima quando não há, sempre
+  // dentro da janela: numa lista longa, a última linha fica colada no pé
+  // da tela.
+  function posicionarMenuDeAcoes(menu, botao) {
+    const area = botao.getBoundingClientRect();
+    const margem = 8;
+    const esquerda = Math.min(
+      Math.max(margem, area.right - menu.offsetWidth),
+      Math.max(margem, window.innerWidth - menu.offsetWidth - margem),
+    );
+    let topo = area.bottom + 4;
+    if (topo + menu.offsetHeight > window.innerHeight - margem) {
+      topo = area.top - menu.offsetHeight - 4;
+    }
+    // Último ajuste: numa janela baixa, nem acima nem abaixo cabe, e sem
+    // isto o menu ficaria fora da tela, aberto e invisível.
+    const topoMaximo = Math.max(margem, window.innerHeight - menu.offsetHeight - margem);
+    topo = Math.min(Math.max(margem, topo), topoMaximo);
+    menu.style.left = `${Math.round(esquerda)}px`;
+    menu.style.top = `${Math.round(topo)}px`;
+  }
+
+  function abrirMenuDeAcoes(botao, itens) {
+    fecharMenuDeAcoes();
+
+    const menu = document.createElement('div');
+    menu.className = 'menu-acoes';
+    menu.setAttribute('role', 'menu');
+
+    itens.forEach((item) => {
+      const opcao = document.createElement('button');
+      opcao.type = 'button';
+      opcao.className = item.perigo ? 'menu-acoes-item menu-acoes-perigo' : 'menu-acoes-item';
+      opcao.setAttribute('role', 'menuitem');
+      opcao.textContent = item.texto;
+
+      // A ação impedida continua visível, desligada e com o motivo: some
+      // da tela não explica por que aquela pessoa não pode ser excluída.
+      if (item.impedimento) {
+        opcao.disabled = true;
+        opcao.title = item.impedimento;
+      } else {
+        opcao.addEventListener('click', () => {
+          fecharMenuDeAcoes();
+          item.aoEscolher();
+        });
+      }
+
+      menu.appendChild(opcao);
+    });
+
+    document.body.appendChild(menu);
+    posicionarMenuDeAcoes(menu, botao);
+    botao.setAttribute('aria-expanded', 'true');
+
+    const aoRolar = () => posicionarMenuDeAcoes(menu, botao);
+    const aoTeclar = (evento) => {
+      if (evento.key !== 'Escape') return;
+      fecharMenuDeAcoes();
+      botao.focus();
+    };
+    const aoClicarFora = (evento) => {
+      if (menu.contains(evento.target) || botao.contains(evento.target)) return;
+      fecharMenuDeAcoes();
+    };
+
+    window.addEventListener('scroll', aoRolar, true);
+    window.addEventListener('resize', aoRolar);
+    document.addEventListener('keydown', aoTeclar);
+    // No próximo quadro, senão este mesmo clique fecharia o menu
+    setTimeout(() => document.addEventListener('click', aoClicarFora), 0);
+
+    menuDeAcoesAberto = { menu, botao, aoRolar, aoTeclar, aoClicarFora };
+
+    const primeiro = menu.querySelector('.menu-acoes-item:not([disabled])');
+    if (primeiro) primeiro.focus();
+  }
+
+  // Todas as ações da lista seguem o mesmo roteiro: executa, mostra o
+  // erro no lugar de sempre e recarrega a lista.
+  async function executarAcaoDeUsuario(acao, { recarregar = true } = {}) {
+    usuariosErro.hidden = true;
+    try {
+      await acao();
+      if (recarregar) await carregarUsuarios();
+    } catch (erro) {
+      usuariosErro.textContent = erro.message;
+      usuariosErro.hidden = false;
+    }
+  }
+
+  function formatarMomento(valor) {
+    return new Date(valor).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+  }
+
   function criarLinhaUsuario(usuario) {
     const tr = document.createElement('tr');
+    const desativado = usuario.ativo === false;
+    const ehVoceMesmo = String(usuario.id) === String(usuarioLogado.id);
+    if (desativado) tr.className = 'linha-desativada';
 
-    const tdNome = document.createElement('td');
-    tdNome.textContent = usuario.nome;
-    tr.appendChild(tdNome);
-
-    const tdEmail = document.createElement('td');
-    tdEmail.textContent = usuario.email;
-    tr.appendChild(tdEmail);
+    // Nome e e-mail na mesma célula: são a identificação da pessoa, e
+    // juntos liberam uma coluna inteira para a situação da conta.
+    const tdUsuario = document.createElement('td');
+    const nome = document.createElement('span');
+    nome.className = 'usuario-nome';
+    nome.textContent = usuario.nome;
+    tdUsuario.appendChild(nome);
+    if (ehVoceMesmo) {
+      const voce = document.createElement('span');
+      voce.className = 'etiqueta';
+      voce.textContent = 'você';
+      nome.appendChild(document.createTextNode(' '));
+      nome.appendChild(voce);
+    }
+    const email = document.createElement('span');
+    email.className = 'usuario-email';
+    email.textContent = usuario.email;
+    tdUsuario.appendChild(email);
+    tr.appendChild(tdUsuario);
 
     const tdNivel = document.createElement('td');
     tdNivel.textContent = usuario.nivel === 'administrador' ? 'Administrador' : 'Operador';
     tr.appendChild(tdNivel);
 
+    const tdSituacao = document.createElement('td');
+    tdSituacao.className = 'celula-etiquetas';
+    const etiquetaSituacao = document.createElement('span');
+    etiquetaSituacao.className = desativado ? 'etiqueta etiqueta-alerta' : 'etiqueta';
+    etiquetaSituacao.textContent = desativado ? 'Desativado' : 'Ativo';
+    if (desativado && usuario.desativado_em) {
+      etiquetaSituacao.title = `Desativado em ${formatarMomento(usuario.desativado_em)}`;
+    }
+    tdSituacao.appendChild(etiquetaSituacao);
+    // Conta desativada não entra no sistema, então cobrar a verificação
+    // em duas etapas dela seria um aviso sem ação possível.
+    if (!desativado && !usuario.totp_ativo) {
+      const etiquetaTotp = document.createElement('span');
+      etiquetaTotp.className = 'etiqueta etiqueta-alerta';
+      etiquetaTotp.textContent = '2 etapas pendente';
+      tdSituacao.appendChild(etiquetaTotp);
+    }
+    tr.appendChild(tdSituacao);
+
     const tdUltimoAcesso = document.createElement('td');
     tdUltimoAcesso.className = 'oculta-estreito';
     tdUltimoAcesso.textContent = usuario.ultimo_acesso
-      ? new Date(usuario.ultimo_acesso).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })
+      ? formatarMomento(usuario.ultimo_acesso)
       : 'Nunca acessou';
     tr.appendChild(tdUltimoAcesso);
 
-    const tdTotp = document.createElement('td');
-    tdTotp.className = 'oculta-estreito';
-    const etiquetaTotp = document.createElement('span');
-    etiquetaTotp.className = usuario.totp_ativo ? 'etiqueta' : 'etiqueta etiqueta-alerta';
-    etiquetaTotp.textContent = usuario.totp_ativo ? 'Ativa' : 'Pendente';
-    tdTotp.appendChild(etiquetaTotp);
-    tr.appendChild(tdTotp);
-
     const tdAcoes = document.createElement('td');
-    const container = document.createElement('div');
-    container.className = 'acoes-linha';
+    const botaoAcoes = document.createElement('button');
+    botaoAcoes.type = 'button';
+    botaoAcoes.className = 'botao botao-contorno botao-acoes';
+    botaoAcoes.textContent = 'Ações';
+    botaoAcoes.setAttribute('aria-haspopup', 'menu');
+    botaoAcoes.setAttribute('aria-expanded', 'false');
+    botaoAcoes.setAttribute('aria-label', `Ações para ${usuario.nome}`);
 
-    const ehVoceMesmo = String(usuario.id) === String(usuarioLogado.id);
-
-    const botaoNivel = document.createElement('button');
-    botaoNivel.type = 'button';
-    botaoNivel.className = 'botao botao-contorno';
-    botaoNivel.innerHTML = `${ICONE_CADEADO} Tornar ${usuario.nivel === 'administrador' ? 'Operador' : 'Administrador'}`;
-    botaoNivel.setAttribute(
-      'aria-label',
-      `Alterar nível de ${usuario.nome} para ${usuario.nivel === 'administrador' ? 'Operador' : 'Administrador'}`,
-    );
-    if (ehVoceMesmo) {
-      botaoNivel.disabled = true;
-      botaoNivel.title = 'Você não pode alterar o nível da própria conta.';
-    }
-    botaoNivel.addEventListener('click', async () => {
-      const novoNivel = usuario.nivel === 'administrador' ? 'operador' : 'administrador';
-      const confirmou = window.confirm(`Alterar o nível de ${usuario.nome} para ${novoNivel}?`);
-      if (!confirmou) return;
-      usuariosErro.hidden = true;
-      try {
-        await alterarNivelUsuario(usuario.id, novoNivel);
-        exibirAviso(`Nível de ${usuario.nome} alterado para ${novoNivel}.`);
-        await carregarUsuarios();
-      } catch (erro) {
-        usuariosErro.textContent = erro.message;
-        usuariosErro.hidden = false;
+    botaoAcoes.addEventListener('click', () => {
+      // Clicar de novo no mesmo botão fecha, como em qualquer menu
+      if (menuDeAcoesAberto && menuDeAcoesAberto.botao === botaoAcoes) {
+        fecharMenuDeAcoes();
+        return;
       }
+      abrirMenuDeAcoes(botaoAcoes, montarAcoesDoUsuario(usuario, { desativado, ehVoceMesmo }));
     });
 
-    // Caminho normal para quem perdeu a senha: a pessoa recebe um link e
-    // escolhe a nova. O "Resetar senha" ao lado é o plano B, para quem
-    // está sem acesso à própria caixa de entrada.
-    const botaoConvite = document.createElement('button');
-    botaoConvite.type = 'button';
-    botaoConvite.className = 'botao botao-contorno';
-    botaoConvite.innerHTML = `${ICONE_CADEADO} Reenviar link`;
-    botaoConvite.setAttribute('aria-label', `Reenviar o link de acesso para ${usuario.nome}`);
-    botaoConvite.addEventListener('click', async () => {
-      const confirmou = window.confirm(
-        `Enviar um novo link de acesso para ${usuario.email}? O link anterior deixa de valer.`,
-      );
-      if (!confirmou) return;
-      usuariosErro.hidden = true;
-      botaoConvite.disabled = true;
-      try {
-        const resultado = await reenviarConviteUsuario(usuario.id);
-        exibirAviso(descreverConvite(usuario.nome, resultado.convite));
-      } catch (erro) {
-        usuariosErro.textContent = erro.message;
-        usuariosErro.hidden = false;
-      } finally {
-        botaoConvite.disabled = false;
-      }
-    });
-
-    const botaoReset = document.createElement('button');
-    botaoReset.type = 'button';
-    botaoReset.className = 'botao botao-contorno';
-    botaoReset.innerHTML = `${ICONE_CADEADO} Resetar senha`;
-    botaoReset.setAttribute('aria-label', `Gerar senha temporária para ${usuario.nome}`);
-    botaoReset.addEventListener('click', async () => {
-      const confirmou = window.confirm(`Gerar uma senha temporária para ${usuario.nome}?`);
-      if (!confirmou) return;
-      usuariosErro.hidden = true;
-      try {
-        const resultado = await resetarSenhaUsuario(usuario.id);
-        exibirAviso(`Senha temporária de ${usuario.nome}: ${resultado.senhaTemporaria} (informe ao usuário com segurança).`);
-      } catch (erro) {
-        usuariosErro.textContent = erro.message;
-        usuariosErro.hidden = false;
-      }
-    });
-
-    const botaoRedefinirTotp = document.createElement('button');
-    botaoRedefinirTotp.type = 'button';
-    botaoRedefinirTotp.className = 'botao botao-contorno';
-    botaoRedefinirTotp.innerHTML = `${ICONE_CADEADO} Redefinir 2FA`;
-    botaoRedefinirTotp.setAttribute('aria-label', `Apagar o vínculo de verificação em duas etapas de ${usuario.nome}`);
-    if (!usuario.totp_ativo) {
-      botaoRedefinirTotp.disabled = true;
-      botaoRedefinirTotp.title = 'Este usuário ainda não concluiu a configuração da verificação em duas etapas.';
-    }
-    botaoRedefinirTotp.addEventListener('click', async () => {
-      const confirmou = window.confirm(
-        `Apagar o vínculo de verificação em duas etapas de ${usuario.nome}? No próximo acesso, um novo código para o aplicativo será exibido.`,
-      );
-      if (!confirmou) return;
-      usuariosErro.hidden = true;
-      try {
-        await removerTotpUsuario(usuario.id);
-        exibirAviso(`Verificação em duas etapas de ${usuario.nome} redefinida.`);
-        await carregarUsuarios();
-      } catch (erro) {
-        usuariosErro.textContent = erro.message;
-        usuariosErro.hidden = false;
-      }
-    });
-
-    container.appendChild(botaoNivel);
-    container.appendChild(botaoConvite);
-    container.appendChild(botaoReset);
-    container.appendChild(botaoRedefinirTotp);
-    tdAcoes.appendChild(container);
+    tdAcoes.appendChild(botaoAcoes);
     tr.appendChild(tdAcoes);
 
     return tr;
   }
 
+  function montarAcoesDoUsuario(usuario, { desativado, ehVoceMesmo }) {
+    const contaFechada = desativado ? 'Reative a conta para usar esta ação.' : null;
+    const novoNivel = usuario.nivel === 'administrador' ? 'operador' : 'administrador';
+
+    return [
+      {
+        texto: 'Reenviar link de acesso',
+        impedimento: contaFechada,
+        aoEscolher: () => {
+          if (!window.confirm(`Enviar um novo link de acesso para ${usuario.email}? O link anterior deixa de valer.`)) return;
+          executarAcaoDeUsuario(
+            async () => {
+              const resultado = await reenviarConviteUsuario(usuario.id);
+              exibirAviso(descreverConvite(usuario.nome, resultado.convite));
+            },
+            { recarregar: false },
+          );
+        },
+      },
+      {
+        texto: 'Gerar senha temporária',
+        impedimento: contaFechada,
+        aoEscolher: () => {
+          if (!window.confirm(`Gerar uma senha temporária para ${usuario.nome}?`)) return;
+          executarAcaoDeUsuario(
+            async () => {
+              const resultado = await resetarSenhaUsuario(usuario.id);
+              exibirAviso(`Senha temporária de ${usuario.nome}: ${resultado.senhaTemporaria} (informe ao usuário com segurança).`);
+            },
+            { recarregar: false },
+          );
+        },
+      },
+      {
+        texto: `Tornar ${novoNivel === 'administrador' ? 'Administrador' : 'Operador'}`,
+        impedimento: ehVoceMesmo ? 'Você não pode alterar o nível da própria conta.' : null,
+        aoEscolher: () => {
+          if (!window.confirm(`Alterar o nível de ${usuario.nome} para ${novoNivel}?`)) return;
+          executarAcaoDeUsuario(async () => {
+            await alterarNivelUsuario(usuario.id, novoNivel);
+            exibirAviso(`Nível de ${usuario.nome} alterado para ${novoNivel}.`);
+          });
+        },
+      },
+      {
+        texto: 'Redefinir verificação em duas etapas',
+        impedimento: usuario.totp_ativo
+          ? null
+          : 'Este usuário ainda não concluiu a configuração da verificação em duas etapas.',
+        aoEscolher: () => {
+          const confirmou = window.confirm(
+            `Apagar o vínculo de verificação em duas etapas de ${usuario.nome}? No próximo acesso, um novo código para o aplicativo será exibido.`,
+          );
+          if (!confirmou) return;
+          executarAcaoDeUsuario(async () => {
+            await removerTotpUsuario(usuario.id);
+            exibirAviso(`Verificação em duas etapas de ${usuario.nome} redefinida.`);
+          });
+        },
+      },
+      {
+        texto: desativado ? 'Reativar conta' : 'Desativar conta',
+        impedimento: ehVoceMesmo ? 'Você não pode desativar a própria conta.' : null,
+        aoEscolher: () => {
+          const confirmou = window.confirm(
+            desativado
+              ? `Reativar a conta de ${usuario.nome}? A pessoa volta a conseguir entrar no sistema.`
+              : `Desativar a conta de ${usuario.nome}? O acesso é cortado na hora e o histórico de movimentações é mantido.`,
+          );
+          if (!confirmou) return;
+          executarAcaoDeUsuario(async () => {
+            await alterarSituacaoUsuario(usuario.id, desativado);
+            exibirAviso(`Conta de ${usuario.nome} ${desativado ? 'reativada' : 'desativada'}.`);
+          });
+        },
+      },
+      {
+        texto: 'Excluir conta',
+        perigo: true,
+        // O banco recusa apagar quem assina saídas de estoque ou
+        // registros de atividade, para o histórico não ficar sem autor.
+        impedimento: ehVoceMesmo
+          ? 'Você não pode excluir a própria conta.'
+          : usuario.tem_historico
+            ? 'Este usuário tem movimentações registradas. Desative a conta para tirar o acesso.'
+            : null,
+        aoEscolher: () => {
+          const confirmou = window.confirm(
+            `Excluir a conta de ${usuario.nome} (${usuario.email})? Esta ação não tem volta. Para apenas tirar o acesso, use "Desativar conta".`,
+          );
+          if (!confirmou) return;
+          executarAcaoDeUsuario(async () => {
+            await excluirUsuario(usuario.id);
+            exibirAviso(`Conta de ${usuario.nome} excluída.`);
+          });
+        },
+      },
+    ];
+  }
+
   async function carregarUsuarios() {
+    // O menu aponta para o botão da linha; redesenhar a tabela com ele
+    // aberto deixaria um menu solto, ligado a um botão que não existe mais.
+    fecharMenuDeAcoes();
     const usuarios = await listarUsuarios();
     corpoUsuarios.innerHTML = '';
     usuarios.forEach((usuario) => corpoUsuarios.appendChild(criarLinhaUsuario(usuario)));

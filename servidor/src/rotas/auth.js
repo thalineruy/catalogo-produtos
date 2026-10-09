@@ -11,6 +11,7 @@ const dispositivoConfiavel = require('../servicos/dispositivoConfiavel');
 const router = express.Router();
 
 const EMISSOR_TOTP = 'Catálogo de Produtos';
+const CONTA_DESATIVADA = 'esta conta está desativada. Procure um administrador.';
 
 function assinarSessao(usuario) {
   return jwt.sign(
@@ -45,6 +46,12 @@ router.post('/', async (req, res, next) => {
 
     if (!usuario || !senhaValida) {
       return res.status(401).json({ erro: 'email ou senha inválidos' });
+    }
+
+    // Só depois de conferir a senha: avisar antes diria a quem tenta
+    // adivinhar que aquele e-mail existe no sistema.
+    if (usuario.ativo === false) {
+      return res.status(403).json({ erro: CONTA_DESATIVADA });
     }
 
     if (dispositivoToken) {
@@ -97,6 +104,12 @@ router.post('/verificar-codigo', async (req, res, next) => {
     const usuario = await usuariosRepositorio.buscarPorId(payload.id);
     if (!usuario || !usuario.totp_secret) {
       return res.status(401).json({ erro: 'sessão de verificação inválida' });
+    }
+
+    // A conta pode ter sido desativada nos cinco minutos entre a senha e
+    // o código.
+    if (usuario.ativo === false) {
+      return res.status(403).json({ erro: CONTA_DESATIVADA });
     }
 
     if (!totp.verificarCodigo({ codigo, secret: usuario.totp_secret })) {

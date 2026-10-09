@@ -131,6 +131,167 @@ describe('DELETE /usuarios/:id', () => {
     expect(resposta.status).toBe(409);
     expect(usuariosRepositorio.excluir).not.toHaveBeenCalled();
   });
+
+  it('explica que a conta com movimentações precisa ser desativada, e não excluída', async () => {
+    usuariosRepositorio.buscarPorId.mockResolvedValue({
+      id: 5, nome: 'Carlos Lima', email: 'carlos@x.com', nivel: 'operador', ativo: true,
+    });
+    const violacao = Object.assign(new Error('update or delete violates foreign key'), { code: '23503' });
+    usuariosRepositorio.excluir.mockRejectedValue(violacao);
+
+    const resposta = await request(app).delete('/usuarios/5').set('Authorization', tokenAdministrador);
+
+    expect(resposta.status).toBe(409);
+    expect(resposta.body.erro).toMatch(/desative/i);
+  });
+
+  it('recusa excluir o único administrador ativo', async () => {
+    usuariosRepositorio.buscarPorId.mockResolvedValue({
+      id: 5, nome: 'Outra Admin', email: 'outra@x.com', nivel: 'administrador', ativo: true,
+    });
+    usuariosRepositorio.contarAdministradoresAtivos.mockResolvedValue(1);
+
+    const resposta = await request(app).delete('/usuarios/5').set('Authorization', tokenAdministrador);
+
+    expect(resposta.status).toBe(409);
+    expect(usuariosRepositorio.excluir).not.toHaveBeenCalled();
+  });
+
+  it('exclui quem nunca movimentou nada', async () => {
+    usuariosRepositorio.buscarPorId.mockResolvedValue({
+      id: 5, nome: 'Carlos Lima', email: 'carlos@x.com', nivel: 'operador', ativo: true,
+    });
+    usuariosRepositorio.excluir.mockResolvedValue();
+    logsRepositorio.registrar.mockResolvedValue();
+
+    const resposta = await request(app).delete('/usuarios/5').set('Authorization', tokenAdministrador);
+
+    expect(resposta.status).toBe(204);
+    expect(usuariosRepositorio.excluir).toHaveBeenCalledWith('5');
+  });
+});
+
+describe('PUT /usuarios/:id/situacao', () => {
+  beforeEach(() => {
+    logsRepositorio.registrar.mockResolvedValue();
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('responde 403 quando o token é de operador', async () => {
+    const resposta = await request(app)
+      .put('/usuarios/5/situacao')
+      .set('Authorization', tokenOperador)
+      .send({ ativo: false });
+
+    expect(resposta.status).toBe(403);
+    expect(usuariosRepositorio.definirSituacao).not.toHaveBeenCalled();
+  });
+
+  it('responde 400 quando a situação não vem no pedido', async () => {
+    const resposta = await request(app)
+      .put('/usuarios/5/situacao')
+      .set('Authorization', tokenAdministrador)
+      .send({});
+
+    expect(resposta.status).toBe(400);
+  });
+
+  it('impede que o administrador desative a própria conta', async () => {
+    usuariosRepositorio.buscarPorId.mockResolvedValue({
+      id: 1, nome: 'Admin', email: 'admin@x.com', nivel: 'administrador', ativo: true,
+    });
+
+    const resposta = await request(app)
+      .put('/usuarios/1/situacao')
+      .set('Authorization', tokenAdministrador)
+      .send({ ativo: false });
+
+    expect(resposta.status).toBe(409);
+    expect(usuariosRepositorio.definirSituacao).not.toHaveBeenCalled();
+  });
+
+  it('impede desativar o último administrador ativo', async () => {
+    usuariosRepositorio.buscarPorId.mockResolvedValue({
+      id: 5, nome: 'Outra Admin', email: 'outra@x.com', nivel: 'administrador', ativo: true,
+    });
+    usuariosRepositorio.contarAdministradoresAtivos.mockResolvedValue(1);
+
+    const resposta = await request(app)
+      .put('/usuarios/5/situacao')
+      .set('Authorization', tokenAdministrador)
+      .send({ ativo: false });
+
+    expect(resposta.status).toBe(409);
+    expect(resposta.body.erro).toMatch(/administrador/i);
+    expect(usuariosRepositorio.definirSituacao).not.toHaveBeenCalled();
+  });
+
+  it('desativa e registra no histórico', async () => {
+    usuariosRepositorio.buscarPorId.mockResolvedValue({
+      id: 5, nome: 'Carlos Lima', email: 'carlos@x.com', nivel: 'operador', ativo: true,
+    });
+    usuariosRepositorio.definirSituacao.mockResolvedValue({
+      id: 5, nome: 'Carlos Lima', email: 'carlos@x.com', nivel: 'operador', ativo: false,
+    });
+
+    const resposta = await request(app)
+      .put('/usuarios/5/situacao')
+      .set('Authorization', tokenAdministrador)
+      .send({ ativo: false });
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body.ativo).toBe(false);
+    expect(usuariosRepositorio.definirSituacao).toHaveBeenCalledWith('5', false);
+    expect(logsRepositorio.registrar).toHaveBeenCalledWith(
+      expect.objectContaining({ detalhes: expect.stringMatching(/Desativou/) }),
+    );
+  });
+
+  it('reativa sem exigir que haja outro administrador', async () => {
+    usuariosRepositorio.buscarPorId.mockResolvedValue({
+      id: 5, nome: 'Carlos Lima', email: 'carlos@x.com', nivel: 'operador', ativo: false,
+    });
+    usuariosRepositorio.definirSituacao.mockResolvedValue({ id: 5, ativo: true });
+
+    const resposta = await request(app)
+      .put('/usuarios/5/situacao')
+      .set('Authorization', tokenAdministrador)
+      .send({ ativo: true });
+
+    expect(resposta.status).toBe(200);
+    expect(usuariosRepositorio.definirSituacao).toHaveBeenCalledWith('5', true);
+  });
+});
+
+describe('ações que não fazem sentido em conta desativada', () => {
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('recusa reenviar o link de acesso', async () => {
+    usuariosRepositorio.buscarPorId.mockResolvedValue({
+      id: 5, nome: 'Carlos Lima', email: 'carlos@x.com', nivel: 'operador', ativo: false,
+    });
+
+    const resposta = await request(app).post('/usuarios/5/convite').set('Authorization', tokenAdministrador);
+
+    expect(resposta.status).toBe(409);
+    expect(resposta.body.erro).toMatch(/desativada/i);
+  });
+
+  it('recusa gerar senha temporária', async () => {
+    usuariosRepositorio.buscarPorId.mockResolvedValue({
+      id: 5, nome: 'Carlos Lima', email: 'carlos@x.com', nivel: 'operador', ativo: false,
+    });
+
+    const resposta = await request(app).post('/usuarios/5/reset-senha').set('Authorization', tokenAdministrador);
+
+    expect(resposta.status).toBe(409);
+    expect(usuariosRepositorio.atualizarSenha).not.toHaveBeenCalled();
+  });
 });
 
 describe('PUT /usuarios/eu/senha', () => {

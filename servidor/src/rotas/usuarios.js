@@ -150,10 +150,54 @@ router.put('/:id/nivel', autenticar, exigirAdministrador, async (req, res, next)
   }
 });
 
+// Desativar é o caminho normal para quem saiu da empresa: corta o acesso
+// na mesma hora e preserva o histórico de movimentações da pessoa.
+router.put('/:id/situacao', autenticar, exigirAdministrador, async (req, res, next) => {
+  try {
+    const { ativo } = req.body;
+    if (typeof ativo !== 'boolean') {
+      return res.status(400).json({ erro: 'informe se a conta fica ativa ou desativada' });
+    }
+
+    const alvo = await usuariosRepositorio.buscarPorId(req.params.id);
+    if (!alvo) return res.status(404).json({ erro: 'usuário não encontrado' });
+
+    if (!ativo && String(alvo.id) === String(req.usuario.id)) {
+      return res.status(409).json({ erro: 'você não pode desativar a própria conta' });
+    }
+
+    if (!ativo && alvo.nivel === 'administrador' && alvo.ativo) {
+      const administradores = await usuariosRepositorio.contarAdministradoresAtivos();
+      if (administradores <= 1) {
+        return res.status(409).json({
+          erro: 'este é o único administrador ativo; promova outra pessoa antes de desativar esta conta',
+        });
+      }
+    }
+
+    const usuario = await usuariosRepositorio.definirSituacao(req.params.id, ativo);
+
+    logsRepositorio
+      .registrar({
+        usuarioId: req.usuario.id,
+        tipo: 'Edição',
+        detalhes: `${ativo ? 'Reativou' : 'Desativou'} o usuário ${alvo.nome} (${alvo.email})`,
+      })
+      .catch((erro) => console.error('falha ao registrar log de situação', erro));
+
+    res.json(usuario);
+  } catch (erro) {
+    next(erro);
+  }
+});
+
 router.post('/:id/reset-senha', autenticar, exigirAdministrador, async (req, res, next) => {
   try {
     const alvo = await usuariosRepositorio.buscarPorId(req.params.id);
     if (!alvo) return res.status(404).json({ erro: 'usuário não encontrado' });
+    if (alvo.ativo === false) {
+      return res.status(409).json({ erro: 'esta conta está desativada; reative antes de gerar uma senha' });
+    }
 
     const senhaTemporaria = gerarSenhaTemporaria();
     const senhaHash = await bcrypt.hash(senhaTemporaria, 10);
@@ -180,6 +224,9 @@ router.post('/:id/convite', autenticar, exigirAdministrador, async (req, res, ne
   try {
     const alvo = await usuariosRepositorio.buscarPorId(req.params.id);
     if (!alvo) return res.status(404).json({ erro: 'usuário não encontrado' });
+    if (alvo.ativo === false) {
+      return res.status(409).json({ erro: 'esta conta está desativada; reative antes de enviar o link de acesso' });
+    }
 
     const empresa = await empresaRepositorio.buscar().catch(() => null);
     const convite = await emissaoConvite.emitir({
@@ -232,7 +279,29 @@ router.delete('/:id', autenticar, exigirAdministrador, async (req, res, next) =>
       return res.status(409).json({ erro: 'você não pode excluir a própria conta' });
     }
 
-    await usuariosRepositorio.excluir(req.params.id);
+    if (alvo.nivel === 'administrador' && alvo.ativo) {
+      const administradores = await usuariosRepositorio.contarAdministradoresAtivos();
+      if (administradores <= 1) {
+        return res.status(409).json({
+          erro: 'este é o único administrador ativo; promova outra pessoa antes de excluir esta conta',
+        });
+      }
+    }
+
+    try {
+      await usuariosRepositorio.excluir(req.params.id);
+    } catch (erro) {
+      // 23503 é a violação de chave estrangeira do PostgreSQL: a conta
+      // assina saídas de estoque ou registros de atividade, e apagá-la
+      // deixaria esse histórico sem autor. Desativar faz o que a pessoa
+      // queria — tirar o acesso — sem perder o registro.
+      if (erro && erro.code === '23503') {
+        return res.status(409).json({
+          erro: 'este usuário tem movimentações registradas e não pode ser excluído. Desative a conta para tirar o acesso.',
+        });
+      }
+      throw erro;
+    }
 
     logsRepositorio
       .registrar({

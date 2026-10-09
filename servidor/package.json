@@ -9,6 +9,11 @@
   },
   "license": "UNLICENSED",
   "private": true,
+  "jest": {
+    "setupFilesAfterEnv": [
+      "<rootDir>/testes/ajudantes/preparar.js"
+    ]
+  },
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",

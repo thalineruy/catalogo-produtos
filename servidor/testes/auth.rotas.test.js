@@ -36,6 +36,17 @@ describe('POST /login', () => {
     expect(resposta.status).toBe(401);
   });
 
+  it('recusa a entrada de conta desativada, mesmo com a senha certa', async () => {
+    usuariosRepositorio.buscarPorEmail.mockResolvedValue({ ...usuarioBase, ativo: false });
+    bcrypt.compare.mockResolvedValue(true);
+
+    const resposta = await request(app).post('/login').send({ email: 'ana@x.com', senha: 'certa' });
+
+    expect(resposta.status).toBe(403);
+    expect(resposta.body.erro).toMatch(/desativada/i);
+    expect(resposta.body.tokenPendente).toBeUndefined();
+  });
+
   it('pede verificação em duas etapas com QR quando o usuário ainda não tem TOTP configurado', async () => {
     usuariosRepositorio.buscarPorEmail.mockResolvedValue({ ...usuarioBase, totp_secret: null, totp_confirmado_em: null });
     bcrypt.compare.mockResolvedValue(true);
