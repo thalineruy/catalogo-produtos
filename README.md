@@ -104,6 +104,7 @@ Execute os scripts na pasta `banco/`, **em ordem**, no SQL Editor do Supabase:
 11. `11-usuarios-situacao.sql` — conta ativa ou desativada, com a data da
     desativação.
 12. `12-usuarios-anonimizacao.sql` — data da anonimização da conta.
+13. `13-pedidos-anonimizacao.sql` — data da anonimização do pedido de acesso.
 
 Todos usam `IF NOT EXISTS`, então rodar de novo num banco já criado não
 quebra nem apaga nada. Pular qualquer um dos scripts a partir do 05 faz o
@@ -290,6 +291,17 @@ celular precisa de "Redefinir 2FA", não de uma senha nova.
 Se o envio de e-mail estiver configurado, cada pedido também avisa os
 administradores por e-mail. A rota é pública e aceita no máximo 5 pedidos por
 hora vindos do mesmo endereço IP.
+
+Cada linha tem **Anonimizar**, que apaga o e-mail informado, ali e no texto do
+histórico. É o mesmo direito de eliminação que a conta tem, para quem pediu
+acesso e às vezes nem chegou a ser usuário: o endereço foi digitado na tela de
+entrada, antes de qualquer cadastro. A data e o motivo continuam, porque o
+motivo vem de uma lista de três opções e não identifica ninguém.
+
+A limpeza vale para **todos os pedidos daquele endereço**, não só o escolhido —
+quem tentou três vezes deixou o e-mail três vezes. Se o e-mail também tiver
+conta no sistema, a ação é recusada com a explicação: o caminho é anonimizar a
+conta em Gerenciar Usuários, que já limpa os pedidos dela junto.
 
 ## Desativar, anonimizar e excluir usuários
 

@@ -193,6 +193,12 @@ async function anonimizarUsuario(id) {
   return apiFetch(`/usuarios/${id}/anonimizar`, { method: 'POST' });
 }
 
+// Mesma ideia para quem só pediu acesso e nunca teve conta: o e-mail
+// digitado na tela de entrada também é dado pessoal.
+async function anonimizarSolicitacao(id) {
+  return apiFetch(`/solicitacoes-acesso/${id}/anonimizar`, { method: 'POST' });
+}
+
 // Reenvia o link de ativação. Caminho normal para quem esqueceu a senha e
 // tem acesso ao próprio e-mail; o reset acima é o plano B, para quem está
 // sem acesso à caixa de entrada.

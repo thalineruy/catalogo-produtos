@@ -810,6 +810,7 @@
 
   function criarLinhaSolicitacao(solicitacao) {
     const pendente = !solicitacao.atendido_em;
+    const anonimizado = Boolean(solicitacao.anonimizado_em);
     const tr = document.createElement('tr');
 
     const tdQuando = document.createElement('td');
@@ -843,6 +844,12 @@
     etiqueta.className = pendente ? 'etiqueta etiqueta-alerta' : 'etiqueta';
     etiqueta.textContent = pendente ? 'Pendente' : 'Atendido';
     tdSituacao.appendChild(etiqueta);
+    if (anonimizado) {
+      const marca = document.createElement('div');
+      marca.className = 'apagado';
+      marca.textContent = `anonimizado em ${formatarQuando(solicitacao.anonimizado_em)}`;
+      tdSituacao.appendChild(marca);
+    }
     if (!pendente && solicitacao.atendido_por_nome) {
       const quem = document.createElement('div');
       quem.className = 'apagado';
@@ -879,7 +886,43 @@
       }
     });
 
+    // Quem pediu acesso quase nunca tem conta, então o e-mail informado
+    // aqui só sai do sistema por esta ação.
+    const botaoAnonimizar = document.createElement('button');
+    botaoAnonimizar.type = 'button';
+    botaoAnonimizar.className = 'botao botao-contorno botao-contorno-perigo';
+    botaoAnonimizar.textContent = 'Anonimizar';
+    botaoAnonimizar.setAttribute('aria-label', `Apagar o e-mail informado no pedido de ${solicitacao.email}`);
+    if (anonimizado) {
+      botaoAnonimizar.disabled = true;
+      botaoAnonimizar.title = 'Este pedido já foi anonimizado.';
+    }
+    botaoAnonimizar.addEventListener('click', async () => {
+      const confirmou = window.confirm(
+        `Apagar o e-mail ${solicitacao.email} deste pedido?\n\n`
+          + 'O endereço sai do pedido e do histórico. A data e o motivo continuam, '
+          + 'sem identificar quem pediu.\n\nEsta ação não tem volta.',
+      );
+      if (!confirmou) return;
+
+      solicitacoesErro.hidden = true;
+      botaoAnonimizar.disabled = true;
+      try {
+        const resultado = await anonimizarSolicitacao(solicitacao.id);
+        exibirAviso(
+          `E-mail apagado de ${resultado.pedidosAnonimizados} pedido(s) e de `
+            + `${resultado.registrosLimpos} registro(s) do histórico.`,
+        );
+        await carregarSolicitacoes();
+      } catch (erro) {
+        solicitacoesErro.textContent = erro.message;
+        solicitacoesErro.hidden = false;
+        botaoAnonimizar.disabled = false;
+      }
+    });
+
     container.appendChild(botao);
+    container.appendChild(botaoAnonimizar);
     tdAcoes.appendChild(container);
     tr.appendChild(tdAcoes);
 

@@ -165,3 +165,87 @@ describe('fila de solicitações de acesso', () => {
     expect(resposta.status).toBe(403);
   });
 });
+
+describe('POST /solicitacoes-acesso/:id/anonimizar', () => {
+  beforeEach(() => {
+    logsRepositorio.registrar.mockResolvedValue();
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('operador não anonimiza', async () => {
+    const resposta = await request(app)
+      .post('/solicitacoes-acesso/4/anonimizar')
+      .set('Authorization', tokenOperador);
+
+    expect(resposta.status).toBe(403);
+    expect(solicitacoesRepositorio.anonimizar).not.toHaveBeenCalled();
+  });
+
+  it('responde 404 quando o pedido não existe', async () => {
+    solicitacoesRepositorio.buscarPorId.mockResolvedValue(null);
+
+    const resposta = await request(app)
+      .post('/solicitacoes-acesso/99/anonimizar')
+      .set('Authorization', tokenAdministrador);
+
+    expect(resposta.status).toBe(404);
+  });
+
+  it('recusa anonimizar duas vezes', async () => {
+    solicitacoesRepositorio.buscarPorId.mockResolvedValue({
+      id: 4, email: 'anonimizado@removido.invalid', anonimizado_em: '2026-10-24T10:00:00',
+    });
+
+    const resposta = await request(app)
+      .post('/solicitacoes-acesso/4/anonimizar')
+      .set('Authorization', tokenAdministrador);
+
+    expect(resposta.status).toBe(409);
+    expect(solicitacoesRepositorio.anonimizar).not.toHaveBeenCalled();
+  });
+
+  // Com conta, limpar só o pedido deixaria o e-mail na tabela de usuários
+  it('manda usar a anonimização da conta quando o e-mail tem cadastro', async () => {
+    solicitacoesRepositorio.buscarPorId.mockResolvedValue({ id: 4, email: 'jose@x.com' });
+    usuariosRepositorio.buscarPorEmail.mockResolvedValue({ id: 8, email: 'jose@x.com' });
+
+    const resposta = await request(app)
+      .post('/solicitacoes-acesso/4/anonimizar')
+      .set('Authorization', tokenAdministrador);
+
+    expect(resposta.status).toBe(409);
+    expect(resposta.body.erro).toMatch(/Gerenciar Usu[áa]rios/i);
+    expect(solicitacoesRepositorio.anonimizar).not.toHaveBeenCalled();
+  });
+
+  it('apaga o e-mail do pedido e devolve quanto foi limpo', async () => {
+    solicitacoesRepositorio.buscarPorId.mockResolvedValue({ id: 4, email: 'jose@x.com' });
+    usuariosRepositorio.buscarPorEmail.mockResolvedValue(null);
+    solicitacoesRepositorio.anonimizar.mockResolvedValue({ pedidosAnonimizados: 2, registrosLimpos: 3 });
+
+    const resposta = await request(app)
+      .post('/solicitacoes-acesso/4/anonimizar')
+      .set('Authorization', tokenAdministrador);
+
+    expect(resposta.status).toBe(200);
+    expect(resposta.body).toEqual({ anonimizado: true, pedidosAnonimizados: 2, registrosLimpos: 3 });
+    expect(solicitacoesRepositorio.anonimizar).toHaveBeenCalledWith('4', {
+      emailAnonimo: 'anonimizado@removido.invalid',
+    });
+  });
+
+  it('registra a limpeza sem repetir o e-mail', async () => {
+    solicitacoesRepositorio.buscarPorId.mockResolvedValue({ id: 4, email: 'jose@x.com' });
+    usuariosRepositorio.buscarPorEmail.mockResolvedValue(null);
+    solicitacoesRepositorio.anonimizar.mockResolvedValue({ pedidosAnonimizados: 1, registrosLimpos: 0 });
+
+    await request(app).post('/solicitacoes-acesso/4/anonimizar').set('Authorization', tokenAdministrador);
+
+    const registro = logsRepositorio.registrar.mock.calls[0][0];
+    expect(registro.detalhes).not.toMatch(/jose@x\.com/);
+    expect(registro.detalhes).toMatch(/4/);
+  });
+});

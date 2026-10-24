@@ -1744,3 +1744,11 @@ legend { margin-bottom: 10px; }
   color: var(--apagado);
   text-align: center;
 }
+
+/* ---------- 31. Ação sem volta dentro da tabela ----------
+
+   Mesmo tratamento do item destacado no menu de ações: a ação que não
+   tem conserto se distingue das vizinhas pela cor, sem virar um botão
+   vermelho cheio, que pesaria demais numa linha de tabela. */
+.botao-contorno-perigo { color: var(--destaque); }
+.botao-contorno-perigo:hover:not([disabled]) { background: var(--destaque-claro); }

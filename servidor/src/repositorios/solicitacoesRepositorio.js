@@ -12,7 +12,7 @@ async function registrar({ email, motivo }, executor = pool) {
 // lista para dar rastro do que foi feito, mas descem.
 async function listar({ porPagina, deslocamento }, executor = pool) {
   const { rows } = await executor.query(
-    `SELECT s.id, s.email, s.motivo, s.criado_em, s.atendido_em,
+    `SELECT s.id, s.email, s.motivo, s.criado_em, s.atendido_em, s.anonimizado_em,
             u.nome AS atendido_por_nome,
             COUNT(*) OVER() AS total_geral
        FROM solicitacoes_acesso s
@@ -42,4 +42,60 @@ async function marcarAtendida(id, usuarioId, executor = pool) {
   return rows[0] || null;
 }
 
-module.exports = { registrar, listar, contarPendentes, marcarAtendida };
+async function buscarPorId(id, executor = pool) {
+  const { rows } = await executor.query(
+    'SELECT id, email, motivo, criado_em, atendido_em, anonimizado_em FROM solicitacoes_acesso WHERE id = $1',
+    [id],
+  );
+  return rows[0] || null;
+}
+
+/* Apaga o e-mail de quem pediu acesso, aqui e no histórico.
+
+   Limpa todos os pedidos daquele endereço, não só o escolhido: quem
+   tentou entrar três vezes deixou o e-mail três vezes, e apagar um só
+   não eliminaria o dado. Pela mesma razão a varredura do histórico não
+   filtra por pedido.
+
+   O motivo fica: vem de uma lista de três opções e não identifica
+   ninguém. Sem ele o registro perderia o pouco que ainda informa. */
+async function anonimizar(id, { emailAnonimo }) {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const { rows } = await client.query(
+      'SELECT email, anonimizado_em FROM solicitacoes_acesso WHERE id = $1 FOR UPDATE',
+      [id],
+    );
+    const pedido = rows[0];
+    if (!pedido) {
+      await client.query('ROLLBACK');
+      return null;
+    }
+
+    const { rowCount: pedidosAnonimizados } = await client.query(
+      `UPDATE solicitacoes_acesso
+          SET email = $1, anonimizado_em = now()
+        WHERE lower(email) = lower($2) AND anonimizado_em IS NULL`,
+      [emailAnonimo, pedido.email],
+    );
+
+    const { rowCount: registrosLimpos } = await client.query(
+      `UPDATE logs
+          SET detalhes = replace(detalhes, $1, 'e-mail removido')
+        WHERE detalhes LIKE '%' || $1 || '%'`,
+      [pedido.email],
+    );
+
+    await client.query('COMMIT');
+    return { pedidosAnonimizados, registrosLimpos };
+  } catch (erro) {
+    await client.query('ROLLBACK');
+    throw erro;
+  } finally {
+    client.release();
+  }
+}
+
+module.exports = { registrar, listar, contarPendentes, marcarAtendida, buscarPorId, anonimizar };
